@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spirit:component xmlns:xilinx="http://www.xilinx.com" xmlns:spirit="http://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <spirit:vendor>xilinx.com</spirit:vendor>
+  <spirit:library>user</spirit:library>
+  <spirit:name>APB_GPIO</spirit:name>
+  <spirit:version>1.0</spirit:version>
+  <spirit:busInterfaces>
+    <spirit:busInterface>
+      <spirit:name>o_irq</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt_rtl" spirit:version="1.0"/>
+      <spirit:master/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>INTERRUPT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>o_irq</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>SENSITIVITY</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.O_IRQ.SENSITIVITY" spirit:choiceRef="choice_list_99a1d2b9">LEVEL_HIGH</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>APB_GPIO</spirit:name>
+      <spirit:displayName>APB_GPIO</spirit:displayName>
+      <spirit:description>APB_GPIO</spirit:description>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="apb" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="apb_rtl" spirit:version="1.0"/>
+      <spirit:slave/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PSLVERR</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PSLVERR</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PADDR</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PADDR</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PREADY</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PREADY</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PENABLE</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PENABLE</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PPROT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PPROT</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PWRITE</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PWRITE</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PRDATA</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PRDATA</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PWDATA</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PWDATA</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PSEL</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PSEL</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>PSTRB</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>PSTRB</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>NUM_READ_OUTSTANDING</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.APB_GPIO.NUM_READ_OUTSTANDING"/>
+        </spirit:parameter>
+        <spirit:parameter>
+          <spirit:name>NUM_WRITE_OUTSTANDING</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.APB_GPIO.NUM_WRITE_OUTSTANDING"/>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
+  </spirit:busInterfaces>
+  <spirit:model>
+    <spirit:views>
+      <spirit:view>
+        <spirit:name>xilinx_anylanguagesynthesis</spirit:name>
+        <spirit:displayName>Synthesis</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:synthesis</spirit:envIdentifier>
+        <spirit:language>SystemVerilog</spirit:language>
+        <spirit:modelName>GPIO_top</spirit:modelName>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagesynthesis_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>6c8a6420</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_anylanguagebehavioralsimulation</spirit:name>
+        <spirit:displayName>Simulation</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:simulation</spirit:envIdentifier>
+        <spirit:language>SystemVerilog</spirit:language>
+        <spirit:modelName>GPIO_top</spirit:modelName>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>6c8a6420</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+      <spirit:view>
+        <spirit:name>xilinx_xpgui</spirit:name>
+        <spirit:displayName>UI Layout</spirit:displayName>
+        <spirit:envIdentifier>:vivado.xilinx.com:xgui.ui</spirit:envIdentifier>
+        <spirit:fileSetRef>
+          <spirit:localName>xilinx_xpgui_view_fileset</spirit:localName>
+        </spirit:fileSetRef>
+        <spirit:parameters>
+          <spirit:parameter>
+            <spirit:name>viewChecksum</spirit:name>
+            <spirit:value>f64a5dae</spirit:value>
+          </spirit:parameter>
+        </spirit:parameters>
+      </spirit:view>
+    </spirit:views>
+    <spirit:ports>
+      <spirit:port>
+        <spirit:name>PCLK</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PRESETn</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PSEL</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PENABLE</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PWRITE</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PADDR</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">31</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PWDATA</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">15</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PSTRB</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">1</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PPROT</spirit:name>
+        <spirit:wire>
+          <spirit:direction>in</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">2</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PRDATA</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">15</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PREADY</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>PSLVERR</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>o_irq</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">7</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>logic</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
+        <spirit:name>io_port</spirit:name>
+        <spirit:wire>
+          <spirit:direction>inout</spirit:direction>
+          <spirit:vector>
+            <spirit:left spirit:format="long">15</spirit:left>
+            <spirit:right spirit:format="long">0</spirit:right>
+          </spirit:vector>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>wire</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+    </spirit:ports>
+  </spirit:model>
+  <spirit:choices>
+    <spirit:choice>
+      <spirit:name>choice_list_99a1d2b9</spirit:name>
+      <spirit:enumeration>LEVEL_HIGH</spirit:enumeration>
+      <spirit:enumeration>LEVEL_LOW</spirit:enumeration>
+      <spirit:enumeration>EDGE_RISING</spirit:enumeration>
+      <spirit:enumeration>EDGE_FALLING</spirit:enumeration>
+    </spirit:choice>
+  </spirit:choices>
+  <spirit:fileSets>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagesynthesis_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>src/gpio.v</spirit:name>
+        <spirit:fileType>verilogSource</spirit:fileType>
+        <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>src/APB_to_GPIO.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>src/GPIO_top.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>CHECKSUM_d5fa85ac</spirit:userFileType>
+        <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
+      </spirit:file>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>src/gpio.v</spirit:name>
+        <spirit:fileType>verilogSource</spirit:fileType>
+        <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>src/APB_to_GPIO.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
+      </spirit:file>
+      <spirit:file>
+        <spirit:name>src/GPIO_top.sv</spirit:name>
+        <spirit:fileType>systemVerilogSource</spirit:fileType>
+        <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
+      </spirit:file>
+    </spirit:fileSet>
+    <spirit:fileSet>
+      <spirit:name>xilinx_xpgui_view_fileset</spirit:name>
+      <spirit:file>
+        <spirit:name>xgui/APB_GPIO_v1_0.tcl</spirit:name>
+        <spirit:fileType>tclSource</spirit:fileType>
+        <spirit:userFileType>CHECKSUM_f64a5dae</spirit:userFileType>
+        <spirit:userFileType>XGUI_VERSION_2</spirit:userFileType>
+      </spirit:file>
+    </spirit:fileSet>
+  </spirit:fileSets>
+  <spirit:description>APB_GPIO</spirit:description>
+  <spirit:parameters>
+    <spirit:parameter>
+      <spirit:name>Component_Name</spirit:name>
+      <spirit:value spirit:resolve="user" spirit:id="PARAM_VALUE.Component_Name" spirit:order="1">APB_GPIO_v1_0</spirit:value>
+    </spirit:parameter>
+  </spirit:parameters>
+  <spirit:vendorExtensions>
+    <xilinx:coreExtensions>
+      <xilinx:supportedFamilies>
+        <xilinx:family xilinx:lifeCycle="Production">versal</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">artix7</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">artix7l</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">aartix7</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">qartix7</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">zynq</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">qzynq</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">azynq</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">virtexuplus</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">virtexuplusHBM</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">zynquplus</xilinx:family>
+        <xilinx:family xilinx:lifeCycle="Production">kintexu</xilinx:family>
+      </xilinx:supportedFamilies>
+      <xilinx:taxonomies>
+        <xilinx:taxonomy>/UserIP</xilinx:taxonomy>
+      </xilinx:taxonomies>
+      <xilinx:displayName>APB_GPIO</xilinx:displayName>
+      <xilinx:definitionSource>package_project</xilinx:definitionSource>
+      <xilinx:coreRevision>3</xilinx:coreRevision>
+      <xilinx:upgrades>
+        <xilinx:canUpgradeFrom>xilinx.com:user:GPIO_top:1.0</xilinx:canUpgradeFrom>
+      </xilinx:upgrades>
+      <xilinx:coreCreationDateTime>2026-09-16T02:48:03Z</xilinx:coreCreationDateTime>
+      <xilinx:tags>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1932480b_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@70c4837f_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@216995fa_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@408d57b7_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@422d1a6d_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6581335e_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7309e464_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@30597b81_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@75c588b1_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@91d4760_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1c7c0283_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@440f1d81_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7de1782d_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1255b88a_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4299ab90_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@fb6fd62_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@579d38b8_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7e7e18d7_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4d5a29a1_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@343e3a9d_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3bd7ea76_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2f73d850_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3ab4ef3a_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@55fa5c7d_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5c528e1b_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7dad0109_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5fd1cf48_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1bb2ad24_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@27d85528_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@13bb0d0d_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5d40f8f3_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@393fdfcf_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@45df63c8_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2168988f_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@748f7925_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7c658a56_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4bc2a9c6_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5cf9cadc_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@47c2a950_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@29292e08_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39b5c9f4_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32a76b1a_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@74edbbb4_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@12d7184f_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7aba5392_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4877bf75_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@49f4aa74_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32589702_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32cf1acd_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71578450_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1ce50bcf_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@360e3018_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@d85241d_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@201b24e4_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1fd1da4b_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
+      </xilinx:tags>
+    </xilinx:coreExtensions>
+    <xilinx:packagingInfo>
+      <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="c6fa786c"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="f0e8e457"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="8477b0fc"/>
+      <xilinx:checksum xilinx:scope="parameters" xilinx:value="58d40c30"/>
+    </xilinx:packagingInfo>
+  </spirit:vendorExtensions>
+</spirit:component>
