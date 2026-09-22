@@ -42,7 +42,7 @@ module wgt_path (
     wire [ 5:0] gen_raddr;
     wire [23:0] buf_rdata;
     wire        buf_rvalid;
-
+    
     wire [23:0] gen_data;
     wire [ 2:0] gen_keep;
     wire        gen_valid;
@@ -114,7 +114,7 @@ endmodule
 
 
 // ============================================================================
-// wgt_ld_unit : RAM -> wgt_buf copy (chunk_len word)
+// wgt_ld_unit : RAM -> wgt_buf copy
 // ============================================================================
 module wgt_ld_unit (
     input wire clk,
