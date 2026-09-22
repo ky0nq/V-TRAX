@@ -5,7 +5,6 @@
 //   RAM -> act_ld_unit -> input_buf -+-> act_patch_gen -+
 //                                    |                  +-> MUX -> act_feeder -> PE
 //                                    +-> fc_gen --------+
-//
 // ============================================================================
 module act_path (
     input wire clk,
@@ -25,7 +24,7 @@ module act_path (
     input wire        i_fc_mode,
     input wire        i_tile_start,
     input wire [13:0] i_src_base,
-    input wire [13:0] i_pos_base,    // patch 순번 (2x2 window 순서)
+    input wire [13:0] i_pos_base,
     input wire [ 5:0] i_in_c,
     input wire [ 6:0] i_in_h,
     input wire [ 6:0] i_in_w,
@@ -48,8 +47,6 @@ module act_path (
     input wire [13:0] i_result_wr_addr,
     input wire [23:0] i_result_wr_data,
     input wire [ 2:0] i_result_wr_be
-
-
 );
 
     // load -> input_buf
@@ -212,7 +209,6 @@ module act_ld_unit (
     wire accept_rsp = (state == S_WAIT) && i_ram_valid;
     wire last_word = (word_index == word_count - 13'd1);
 
-
     // IDLE: 첫 word 요청
     // WAIT: 현재 응답을 받으면서 다음 word 요청
     wire [31:0] ram_addr_full = (state == S_IDLE) ? i_ram_base : ram_base 
@@ -283,7 +279,7 @@ module input_buf (
 
     always @(posedge clk) begin
         if (!rst_n) begin
-            // 메모리 내용은 유지하고 응답 valid만 초기화
+            // reset only the response valid signal
             o_rd_valid <= 1'b0;
         end else begin
             o_rd_valid <= i_rd_en;
@@ -413,8 +409,8 @@ module act_patch_gen (
     // 패치 번호에서 bank와 시작 위치를 직접 계산
     reg [23:0] lane_data;
     reg [13:0] lane_patch;
-    reg [3:0]  pix;
-    reg [5:0]  widx;
+    reg [3:0] pix;
+    reg [5:0] widx;
     integer lane;
 
     always @(*) begin
@@ -546,7 +542,7 @@ module act_patch_gen (
                     end else if (!row_mask[patch_lane]) begin
                         patch_lane <= patch_lane + 2'd1;
                     end else if (cur_hit) begin
-                        patch_lane            <= patch_lane + 2'd1;
+                        patch_lane <= patch_lane + 2'd1;
                     end else begin
                         // 필요한 window가 없으면 해당 영역을 새로 읽음
                         win_valid[cur_bank] <= 1'b0;
