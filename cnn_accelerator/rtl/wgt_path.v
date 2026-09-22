@@ -12,6 +12,7 @@ module wgt_path (
     input  wire        i_ld_start,
     input  wire [31:0] i_mem_base,
     input  wire [ 6:0] i_chunk_word_count,
+    input  wire [ 6:0] i_load_chunk_len,
     output wire        o_mem_rd_en,
     output wire [31:0] o_mem_rd_addr,
     input  wire [23:0] i_mem_rdata,
@@ -24,7 +25,7 @@ module wgt_path (
     input  wire       i_chunk_start,
     input  wire [2:0] i_col_mask,
     output wire       o_chunk_done,
-    input  wire       i_step_en,
+    input  wire       i_feed_en,
     input  wire       i_clear,
 
     // ---- PE array (skew) ----
@@ -53,7 +54,7 @@ module wgt_path (
         .rst_n             (rst_n),
         .i_ld_start        (i_ld_start),
         .i_mem_base        (i_mem_base),
-        .i_chunk_word_count(i_chunk_word_count),
+        .i_load_chunk_len(i_load_chunk_len),
         .o_mem_rd_en       (o_mem_rd_en),
         .o_mem_rd_addr     (o_mem_rd_addr),
         .i_mem_rdata       (i_mem_rdata),
@@ -102,7 +103,7 @@ module wgt_path (
         .i_keep   (gen_keep),
         .i_valid  (gen_valid),
         .o_ready  (gen_ready),
-        .i_step_en(i_step_en),
+        .i_feed_en(i_feed_en),
         .i_clear  (i_clear),
         .o_data   (o_data),
         .o_keep   (o_keep),
@@ -334,7 +335,7 @@ module wgt_patch_gen (
 endmodule
 
 // ============================================================================
-// wgt_feeder : 1-stage register slice + step_en 
+// wgt_feeder : 1-stage register slice + feed_en 
 // Output stage to the skew buffer
 // ============================================================================
 module wgt_feeder (
@@ -346,7 +347,7 @@ module wgt_feeder (
     input  wire        i_valid,
     output wire        o_ready,
 
-    input wire i_step_en,
+    input wire i_feed_en,
     input wire i_clear,
 
     output reg  [23:0] o_data,
@@ -354,7 +355,7 @@ module wgt_feeder (
     output reg         o_valid,
     input  wire        i_ready
 );
-    assign o_ready = rst_n && !i_clear && i_step_en && (!o_valid || i_ready);
+    assign o_ready = rst_n && !i_clear && i_feed_en && (!o_valid || i_ready);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin

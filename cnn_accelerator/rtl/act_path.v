@@ -22,7 +22,8 @@ module act_path (
 
     // ---- cnn_cntl ----
     input wire        i_fc_mode,
-    input wire        i_tile_start,
+    input wire        i_pg_tile_start,
+    input wire        i_fc_tile_start,
     input wire [13:0] i_src_base,
     input wire [13:0] i_pos_base,
     input wire [ 5:0] i_in_c,
@@ -33,7 +34,7 @@ module act_path (
     input wire [12:0] i_k_total,
     input wire [ 2:0] i_row_mask,
     input wire [12:0] i_fc_in_count,
-    input wire        i_step_en,
+    input wire        i_feed_en,
     input wire        i_clear,
 
     // ---- PE array ----
@@ -91,10 +92,10 @@ module act_path (
         .clk       (clk),
         .rst_n     (rst_n),
         // 출력단 생길경우 교체
-        // .i_wr_en   (ibuf_we | i_result_wr_en),
-        // .i_wr_addr (i_result_wr_en ? i_result_wr_addr : ibuf_waddr),
-        // .i_wr_data (i_result_wr_en ? i_result_wr_data : ibuf_wdata),
-        // .i_wr_be   (i_result_wr_en ? i_result_wr_be   : ibuf_wbe),
+        // .i_wr_en   (ibuf_we | i_en),
+        // .i_wr_addr (i_wr_en ? i_addr : ibuf_waddr),
+        // .i_wr_data (i_wr_en ? i_data : ibuf_wdata),
+        // .i_wr_be   (i_wr_en ? i_be   : ibuf_wbe),
         .i_wr_en   (ibuf_we),
         .i_wr_addr (ibuf_waddr),
         .i_wr_data (ibuf_wdata),
@@ -109,7 +110,7 @@ module act_path (
     act_patch_gen ACT_PATCH_GEN (
         .clk         (clk),
         .rst_n       (rst_n),
-        .i_tile_start(i_tile_start && !i_fc_mode),
+        .i_tile_start(i_pg_tile_start && !i_fc_mode),
         .i_src_base  (i_src_base),
         .i_pos_base  (i_pos_base),
         .i_in_c      (i_in_c),
@@ -132,7 +133,7 @@ module act_path (
     fc_gen FC_GEN (
         .clk         (clk),
         .rst_n       (rst_n),
-        .i_tile_start(i_tile_start && i_fc_mode),
+        .i_tile_start(i_fc_tile_start && i_fc_mode),
         .i_src_base  (i_src_base),
         .i_fc_in_count    (i_fc_in_count),
         .o_rd_en     (fc_rd_en),
@@ -168,7 +169,7 @@ module act_path (
         .i_keep   (mux_keep),
         .i_valid  (mux_valid),
         .o_ready  (mux_ready),
-        .i_step_en(i_step_en),
+        .i_feed_en(i_feed_en),
         .i_clear  (i_clear),
         .o_data   (o_data),
         .o_keep   (o_keep),
@@ -767,7 +768,7 @@ module act_feeder (
     input  wire [ 2:0] i_keep,
     input  wire        i_valid,
     output wire        o_ready,
-    input  wire        i_step_en,
+    input  wire        i_feed_en,
     input  wire        i_clear,
 
     output reg  [23:0] o_data,
@@ -775,7 +776,7 @@ module act_feeder (
     output reg         o_valid,
     input  wire        i_ready
 );
-    assign o_ready = rst_n && !i_clear && i_step_en && (!o_valid || i_ready);
+    assign o_ready = rst_n && !i_clear && i_feed_en && (!o_valid || i_ready);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
