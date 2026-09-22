@@ -156,7 +156,7 @@ module wgt_ld_unit (
     assign o_buf_wdata = i_mem_rdata;
     assign o_ld_ready  = rst_n && (state == S_IDLE) && i_buf_free;
 
-    always @(posedge clk) begin
+    always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state       <= S_IDLE;
             mem_base    <= 32'd0;
@@ -202,7 +202,7 @@ endmodule
 
 
 // ============================================================================
-// wgt_buf : 64 x 24bit, 동기 Read (1cycle latency, rvalid)
+// wgt_buf : 64 x 24bit
 // ============================================================================
 module wgt_buf (
     input  wire        clk,
@@ -220,7 +220,7 @@ module wgt_buf (
 );
     reg [23:0] mem [0:63];
 
-    always @(posedge clk) begin
+    always @(posedge clk or negedge rst_n) begin
         if (rst_n && i_we)
             mem[i_waddr] <= i_wdata;
 
@@ -262,7 +262,6 @@ module wgt_patch_gen (
     reg [6:0]  len_q;
     reg [2:0]  mask_q;
     reg [6:0]  req_idx;      // 다음에 읽을 word
-    reg [6:0]  pop_idx;      // 소비한 beat 수
     reg [1:0]  pend;         // 요청했지만 아직 소비 안 된 word (in-flight + FIFO)
 
     // 2-entry FIFO
@@ -285,7 +284,7 @@ module wgt_patch_gen (
 
     wire push = running && i_rvalid;
 
-    always @(posedge clk) begin
+    always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             running      <= 1'b0;
             len_q        <= 7'd0;
@@ -332,12 +331,9 @@ module wgt_patch_gen (
 
                 cnt <= cnt + {1'b0, push} - {1'b0, pop};
 
-                if (pop) begin
-                    pop_idx <= pop_idx + 7'd1;
-                    if (pop_idx == len_q - 7'd1) begin
-                        running      <= 1'b0;
-                        o_chunk_done <= 1'b1;
-                    end
+                if (pop && (req_idx == len_q) && (pend == 2'd1)) begin
+                    running      <= 1'b0;
+                    o_chunk_done <= 1'b1;
                 end
             end
         end
@@ -345,10 +341,9 @@ module wgt_patch_gen (
 
 endmodule
 
-
 // ============================================================================
 // wgt_feeder : 1-stage register slice + step_en (act_feeder와 동일 구조)
-//   skew 버퍼로 넘기는 출력 단.
+//   skew 버퍼로 넘기는 출력단.
 // ============================================================================
 module wgt_feeder (
     input  wire        clk,
@@ -369,7 +364,7 @@ module wgt_feeder (
 );
     assign o_ready = rst_n && !i_clear && i_step_en && (!o_valid || i_ready);
 
-    always @(posedge clk) begin
+    always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             o_data  <= 24'd0;
             o_keep  <= 3'b000;
