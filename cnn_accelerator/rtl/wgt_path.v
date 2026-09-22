@@ -54,7 +54,7 @@ module wgt_path (
         .rst_n             (rst_n),
         .i_ld_start        (i_ld_start),
         .i_mem_base        (i_mem_base),
-        .i_load_chunk_len(i_load_chunk_len),
+        .i_load_chunk_len  (i_load_chunk_len),
         .o_mem_rd_en       (o_mem_rd_en),
         .o_mem_rd_addr     (o_mem_rd_addr),
         .i_mem_rdata       (i_mem_rdata),
@@ -123,7 +123,7 @@ module wgt_ld_unit (
 
     input wire        i_ld_start,
     input wire [31:0] i_mem_base,
-    input wire [ 6:0] i_chunk_word_count,
+    input wire [ 6:0] i_load_chunk_len,
 
     output wire        o_mem_rd_en,
     output wire [31:0] o_mem_rd_addr,
@@ -151,7 +151,7 @@ module wgt_ld_unit (
     wire accept_rsp = (state == S_WAIT) && i_mem_rvalid;
     wire last_word = (idx == chunk_len - 7'd1);
 
-    assign o_mem_rd_en = rst_n && ((start_load && (i_chunk_word_count != 7'd0)) || (accept_rsp && !last_word));
+    assign o_mem_rd_en = rst_n && ((start_load && (i_load_chunk_len != 7'd0)) || (accept_rsp && !last_word));
     assign o_mem_rd_addr =(state == S_IDLE) ? 
         i_mem_base : mem_base + {25'd0, idx} + 32'd1;
 
@@ -173,10 +173,10 @@ module wgt_ld_unit (
                 S_IDLE: begin
                     if (start_load) begin
                         mem_base  <= i_mem_base;
-                        chunk_len <= i_chunk_word_count;
+                        chunk_len <= i_load_chunk_len;
                         idx       <= 7'd0;
                         // length is zero -> Complete immediately
-                        if (i_chunk_word_count == 7'd0) o_ld_done <= 1'b1;
+                        if (i_load_chunk_len == 7'd0) o_ld_done <= 1'b1;
                         else state <= S_WAIT;
                     end
                 end
