@@ -4,50 +4,36 @@ module pe_array (
     input wire clk,
     input wire rst_n,
 
-    input wire step_en,
-    input wire acc_clear,
+    input wire i_step_en,
+    input wire i_acc_clear,
 
-    // Activation: 각 행의 왼쪽 입력
-    input wire signed [7:0] act_in0,
-    input wire signed [7:0] act_in1,
-    input wire signed [7:0] act_in2,
+    // Activation
+    input wire [23:0] i_act_data,
 
-    // Weight: 각 열의 위쪽 입력
-    input wire signed [7:0] weight_in0,
-    input wire signed [7:0] weight_in1,
-    input wire signed [7:0] weight_in2,
+    // Weight
+    input wire [23:0] i_wgt_data,
 
-    // 각 PE별 MAC 제어
-    input wire [8:0] mac_valid,
-    input wire [8:0] mac_last,
+    // mac control
+    input wire [8:0] i_mac_valid,
+    input wire [8:0] i_mac_last,
 
-    // 각 PE 결과
-    output wire signed [31:0] result_data00,
-    output wire signed [31:0] result_data01,
-    output wire signed [31:0] result_data02,
+    // pe result
+    output wire [287:0] o_result_data,
 
-    output wire signed [31:0] result_data10,
-    output wire signed [31:0] result_data11,
-    output wire signed [31:0] result_data12,
-
-    output wire signed [31:0] result_data20,
-    output wire signed [31:0] result_data21,
-    output wire signed [31:0] result_data22,
-
-    // 각 PE 결과 valid
-    output wire [8:0] result_valid
+    // PE result valid
+    output wire [8:0] o_result_valid
 );
 
-/*
-mac_valid[0], mac_last[0], result_valid[0] : PE00
-mac_valid[1], mac_last[1], result_valid[1] : PE01
-mac_valid[2], mac_last[2], result_valid[2] : PE02
-mac_valid[3], mac_last[3], result_valid[3] : PE10
-mac_valid[4], mac_last[4], result_valid[4] : PE11
-mac_valid[5], mac_last[5], result_valid[5] : PE12
-mac_valid[6], mac_last[6], result_valid[6] : PE20
-mac_valid[7], mac_last[7], result_valid[7] : PE21
-mac_valid[8], mac_last[8], result_valid[8] : PE22
+    /*
+i_mac_valid[0], i_mac_last[0], o_result_valid[0] : PE00
+i_mac_valid[1], i_mac_last[1], o_result_valid[1] : PE01
+i_mac_valid[2], i_mac_last[2], o_result_valid[2] : PE02
+i_mac_valid[3], i_mac_last[3], o_result_valid[3] : PE10
+i_mac_valid[4], i_mac_last[4], o_result_valid[4] : PE11
+i_mac_valid[5], i_mac_last[5], o_result_valid[5] : PE12
+i_mac_valid[6], i_mac_last[6], o_result_valid[6] : PE20
+i_mac_valid[7], i_mac_last[7], o_result_valid[7] : PE21
+i_mac_valid[8], i_mac_last[8], o_result_valid[8] : PE22
 */
 
     // Activation 내부 연결
@@ -71,137 +57,137 @@ mac_valid[8], mac_last[8], result_valid[8] : PE22
     wire signed [7:0] weight_12_22;
 
     single_pe u_single_pe00 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[0]),
-        .mac_last    (mac_last[0]),
-        .act_in      (act_in0),
-        .weight_in   (weight_in0),
-        .act_out     (act_00_01),
-        .weight_out  (weight_00_10),
-        .result_data (result_data00),
-        .result_valid(result_valid[0])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[0]),
+        .i_mac_last    (i_mac_last[0]),
+        .act_in        (i_act_data[7:0]),
+        .weight_in     (i_wgt_data[7:0]),
+        .act_out       (act_00_01),
+        .weight_out    (weight_00_10),
+        .result_data   ($signed(o_result_data[31:0])),
+        .o_result_valid(o_result_valid[0])
     );
 
     single_pe u_single_pe01 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[1]),
-        .mac_last    (mac_last[1]),
-        .act_in      (act_00_01),
-        .weight_in   (weight_in1),
-        .act_out     (act_01_02),
-        .weight_out  (weight_01_11),
-        .result_data (result_data01),
-        .result_valid(result_valid[1])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[1]),
+        .i_mac_last    (i_mac_last[1]),
+        .act_in        (act_00_01),
+        .weight_in     (i_wgt_data[15:8]),
+        .act_out       (act_01_02),
+        .weight_out    (weight_01_11),
+        .result_data   ($signed(o_result_data[63:32])),
+        .o_result_valid(o_result_valid[1])
     );
 
     single_pe u_single_pe02 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[2]),
-        .mac_last    (mac_last[2]),
-        .act_in      (act_01_02),
-        .weight_in   (weight_in2),
-        .act_out     (),
-        .weight_out  (weight_02_12),
-        .result_data (result_data02),
-        .result_valid(result_valid[2])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[2]),
+        .i_mac_last    (i_mac_last[2]),
+        .act_in        (act_01_02),
+        .weight_in     (i_wgt_data[23:16]),
+        .act_out       (),
+        .weight_out    (weight_02_12),
+        .result_data   ($signed(o_result_data[95:64])),
+        .o_result_valid(o_result_valid[2])
     );
 
     single_pe u_single_pe10 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[3]),
-        .mac_last    (mac_last[3]),
-        .act_in      (act_in1),
-        .weight_in   (weight_00_10),
-        .act_out     (act_10_11),
-        .weight_out  (weight_10_20),
-        .result_data (result_data10),
-        .result_valid(result_valid[3])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[3]),
+        .i_mac_last    (i_mac_last[3]),
+        .act_in        (i_act_data[15:8]),
+        .weight_in     (weight_00_10),
+        .act_out       (act_10_11),
+        .weight_out    (weight_10_20),
+        .result_data   ($signed(o_result_data[127:96])),
+        .o_result_valid(o_result_valid[3])
     );
 
     single_pe u_single_pe11 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[4]),
-        .mac_last    (mac_last[4]),
-        .act_in      (act_10_11),
-        .weight_in   (weight_01_11),
-        .act_out     (act_11_12),
-        .weight_out  (weight_11_21),
-        .result_data (result_data11),
-        .result_valid(result_valid[4])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[4]),
+        .i_mac_last    (i_mac_last[4]),
+        .act_in        (act_10_11),
+        .weight_in     (weight_01_11),
+        .act_out       (act_11_12),
+        .weight_out    (weight_11_21),
+        .result_data   ($signed(o_result_data[159:128])),
+        .o_result_valid(o_result_valid[4])
     );
 
     single_pe u_single_pe12 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[5]),
-        .mac_last    (mac_last[5]),
-        .act_in      (act_11_12),
-        .weight_in   (weight_02_12),
-        .act_out     (),
-        .weight_out  (weight_12_22),
-        .result_data (result_data12),
-        .result_valid(result_valid[5])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[5]),
+        .i_mac_last    (i_mac_last[5]),
+        .act_in        (act_11_12),
+        .weight_in     (weight_02_12),
+        .act_out       (),
+        .weight_out    (weight_12_22),
+        .result_data   ($signed(o_result_data[191:160])),
+        .o_result_valid(o_result_valid[5])
     );
 
     single_pe u_single_pe20 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[6]),
-        .mac_last    (mac_last[6]),
-        .act_in      (act_in2),
-        .weight_in   (weight_10_20),
-        .act_out     (act_20_21),
-        .weight_out  (),
-        .result_data (result_data20),
-        .result_valid(result_valid[6])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[6]),
+        .i_mac_last    (i_mac_last[6]),
+        .act_in        (i_act_data[23:16]),
+        .weight_in     (weight_10_20),
+        .act_out       (act_20_21),
+        .weight_out    (),
+        .result_data   ($signed(o_result_data[223:192])),
+        .o_result_valid(o_result_valid[6])
     );
 
     single_pe u_single_pe21 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[7]),
-        .mac_last    (mac_last[7]),
-        .act_in      (act_20_21),
-        .weight_in   (weight_11_21),
-        .act_out     (act_21_22),
-        .weight_out  (),
-        .result_data (result_data21),
-        .result_valid(result_valid[7])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[7]),
+        .i_mac_last    (i_mac_last[7]),
+        .act_in        (act_20_21),
+        .weight_in     (weight_11_21),
+        .act_out       (act_21_22),
+        .weight_out    (),
+        .result_data   ($signed(o_result_data[255:224])),
+        .o_result_valid(o_result_valid[7])
     );
 
     single_pe u_single_pe22 (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .step_en     (step_en),
-        .acc_clear   (acc_clear),
-        .mac_valid   (mac_valid[8]),
-        .mac_last    (mac_last[8]),
-        .act_in      (act_21_22),
-        .weight_in   (weight_12_22),
-        .act_out     (),
-        .weight_out  (),
-        .result_data (result_data22),
-        .result_valid(result_valid[8])
+        .clk           (clk),
+        .rst_n         (rst_n),
+        .i_step_en     (i_step_en),
+        .i_acc_clear   (i_acc_clear),
+        .i_mac_valid   (i_mac_valid[8]),
+        .i_mac_last    (i_mac_last[8]),
+        .act_in        (act_21_22),
+        .weight_in     (weight_12_22),
+        .act_out       (),
+        .weight_out    (),
+        .result_data   ($signed(o_result_data[287:256])),
+        .o_result_valid(o_result_valid[8])
     );
 endmodule
