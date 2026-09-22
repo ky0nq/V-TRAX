@@ -1,0 +1,1382 @@
+START
+IMG_LD
+FRAME_CONSUME
+PLSTART
+OWNER 1
+PRD addr=0
+PWR addr=0 data=00112233
+PRD addr=1
+PWR addr=1 data=01102332
+PRD addr=2
+PWR addr=2 data=02132031
+PRD addr=3
+PWR addr=3 data=03122130
+PRD addr=4
+PWR addr=4 data=04152637
+PRD addr=5
+PWR addr=5 data=05142736
+PRD addr=6
+PWR addr=6 data=06172435
+PRD addr=7
+PWR addr=7 data=07162534
+PRD addr=8
+PWR addr=8 data=08192a3b
+PRD addr=9
+PWR addr=9 data=09182b3a
+PRD addr=10
+PWR addr=10 data=0a1b2839
+PRD addr=11
+PWR addr=11 data=0b1a2938
+PRD addr=12
+PWR addr=12 data=0c1d2e3f
+PRD addr=13
+PWR addr=13 data=0d1c2f3e
+PRD addr=14
+PWR addr=14 data=0e1f2c3d
+PRD addr=15
+PWR addr=15 data=0f1e2d3c
+PRD addr=16
+PWR addr=16 data=10013223
+PLDONE
+OWNER 0
+LCFG L=0 ocfg=1 src=0 dst=2048 in=16x16x3 out=16x16x6 stride=1 pad=1 zp=0 K=27 fc=0 pool=1 pool_in=16x16x6 final=0 relu=1 pbase=0 wbase=0 qm=40000000 qs=30
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=0 pos=0 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=1 pos=0 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=2 pos=3 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=3 pos=3 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=4 pos=6 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=5 pos=6 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=6 pos=9 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=7 pos=9 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=8 pos=12 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=9 pos=12 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=10 pos=15 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=11 pos=15 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=12 pos=18 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=13 pos=18 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=14 pos=21 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=15 pos=21 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=16 pos=24 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=17 pos=24 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=18 pos=27 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=19 pos=27 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=20 pos=30 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=21 pos=30 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=22 pos=33 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=23 pos=33 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=24 pos=36 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=25 pos=36 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=26 pos=39 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=27 pos=39 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=28 pos=42 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=29 pos=42 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=30 pos=45 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=31 pos=45 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=32 pos=48 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=33 pos=48 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=34 pos=51 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=35 pos=51 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=36 pos=54 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=37 pos=54 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=38 pos=57 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=39 pos=57 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=40 pos=60 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=41 pos=60 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=42 pos=63 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=43 pos=63 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=44 pos=66 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=45 pos=66 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=46 pos=69 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=47 pos=69 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=48 pos=72 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=49 pos=72 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=50 pos=75 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=51 pos=75 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=52 pos=78 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=53 pos=78 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=54 pos=81 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=55 pos=81 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=56 pos=84 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=57 pos=84 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=58 pos=87 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=59 pos=87 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=60 pos=90 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=61 pos=90 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=62 pos=93 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=63 pos=93 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=64 pos=96 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=65 pos=96 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=66 pos=99 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=67 pos=99 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=68 pos=102 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=69 pos=102 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=70 pos=105 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=71 pos=105 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=72 pos=108 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=73 pos=108 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=74 pos=111 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=75 pos=111 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=76 pos=114 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=77 pos=114 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=78 pos=117 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=79 pos=117 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=80 pos=120 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=81 pos=120 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=82 pos=123 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=83 pos=123 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=84 pos=126 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=85 pos=126 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=86 pos=129 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=87 pos=129 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=88 pos=132 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=89 pos=132 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=90 pos=135 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=91 pos=135 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=92 pos=138 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=93 pos=138 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=94 pos=141 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=95 pos=141 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=96 pos=144 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=97 pos=144 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=98 pos=147 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=99 pos=147 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=100 pos=150 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=101 pos=150 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=102 pos=153 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=103 pos=153 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=104 pos=156 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=105 pos=156 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=106 pos=159 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=107 pos=159 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=108 pos=162 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=109 pos=162 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=110 pos=165 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=111 pos=165 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=112 pos=168 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=113 pos=168 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=114 pos=171 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=115 pos=171 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=116 pos=174 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=117 pos=174 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=118 pos=177 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=119 pos=177 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=120 pos=180 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=121 pos=180 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=122 pos=183 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=123 pos=183 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=124 pos=186 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=125 pos=186 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=126 pos=189 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=127 pos=189 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=128 pos=192 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=129 pos=192 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=130 pos=195 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=131 pos=195 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=132 pos=198 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=133 pos=198 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=134 pos=201 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=135 pos=201 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=136 pos=204 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=137 pos=204 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=138 pos=207 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=139 pos=207 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=140 pos=210 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=141 pos=210 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=142 pos=213 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=143 pos=213 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=144 pos=216 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=145 pos=216 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=146 pos=219 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=147 pos=219 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=148 pos=222 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=149 pos=222 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=150 pos=225 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=151 pos=225 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=152 pos=228 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=153 pos=228 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=154 pos=231 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=155 pos=231 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=156 pos=234 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=157 pos=234 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=158 pos=237 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=159 pos=237 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=160 pos=240 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=161 pos=240 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=162 pos=243 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=163 pos=243 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=164 pos=246 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=165 pos=246 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=166 pos=249 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=167 pos=249 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=168 pos=252 rm=111 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=169 pos=252 rm=111 cm=111 ocb=3 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=111 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,27,27,27,27,27,27 ml=1,1,1,1,1,1,1,1,1 last_at=27,27,27,27,27,27,27,27,27
+WLOAD L=0 base=0 og=0 kb=0 len=27 ram=0
+TCFG L=0 tile=170 pos=255 rm=001 cm=111 ocb=0 last=0 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=001 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,0,0,0,0,0,0 ml=1,1,1,0,0,0,0,0,0 last_at=27,27,27,-1,-1,-1,-1,-1,-1
+WLOAD L=0 base=0 og=1 kb=0 len=27 ram=27
+TCFG L=0 tile=171 pos=255 rm=001 cm=111 ocb=3 last=1 relu=1 pb=0 K=27
+TSTART PG
+PECMD K=27 rm=001 cm=111
+RSTART len=27
+TILE inject=27 step=32 clr=1 creq=0 mv=27,27,27,0,0,0,0,0,0 ml=1,1,1,0,0,0,0,0,0 last_at=27,27,27,-1,-1,-1,-1,-1,-1
+LEND L=0
+LCFG L=1 ocfg=1 src=2048 dst=0 in=8x8x6 out=8x8x4 stride=1 pad=1 zp=0 K=54 fc=0 pool=0 pool_in=8x8x4 final=0 relu=1 pbase=6 wbase=54 qm=40000000 qs=30
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=172 pos=0 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=173 pos=0 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=174 pos=3 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=175 pos=3 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=176 pos=6 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=177 pos=6 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=178 pos=9 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=179 pos=9 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=180 pos=12 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=181 pos=12 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=182 pos=15 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=183 pos=15 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=184 pos=18 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=185 pos=18 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=186 pos=21 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=187 pos=21 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=188 pos=24 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=189 pos=24 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=190 pos=27 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=191 pos=27 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=192 pos=30 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=193 pos=30 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=194 pos=33 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=195 pos=33 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=196 pos=36 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=197 pos=36 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=198 pos=39 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=199 pos=39 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=200 pos=42 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=201 pos=42 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=202 pos=45 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=203 pos=45 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=204 pos=48 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=205 pos=48 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=206 pos=51 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=207 pos=51 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=208 pos=54 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=209 pos=54 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=210 pos=57 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=211 pos=57 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=212 pos=60 rm=111 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,54,54,54,54,54,54 ml=1,1,1,1,1,1,1,1,1 last_at=54,54,54,54,54,54,54,54,54
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=213 pos=60 rm=111 cm=001 ocb=3 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=111 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,54,0,0,54,0,0 ml=1,0,0,1,0,0,1,0,0 last_at=54,-1,-1,54,-1,-1,54,-1,-1
+WLOAD L=1 base=54 og=0 kb=0 len=54 ram=54
+TCFG L=1 tile=214 pos=63 rm=001 cm=111 ocb=0 last=0 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=001 cm=111
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,54,54,0,0,0,0,0,0 ml=1,1,1,0,0,0,0,0,0 last_at=54,54,54,-1,-1,-1,-1,-1,-1
+WLOAD L=1 base=54 og=1 kb=0 len=54 ram=108
+TCFG L=1 tile=215 pos=63 rm=001 cm=001 ocb=3 last=1 relu=1 pb=6 K=54
+TSTART PG
+PECMD K=54 rm=001 cm=001
+RSTART len=54
+TILE inject=54 step=59 clr=1 creq=0 mv=54,0,0,0,0,0,0,0,0 ml=1,0,0,0,0,0,0,0,0 last_at=54,-1,-1,-1,-1,-1,-1,-1,-1
+LEND L=1
+LCFG L=2 ocfg=1 src=0 dst=2048 in=8x8x4 out=1x1x6 stride=1 pad=0 zp=0 K=256 fc=1 pool=0 pool_in=1x1x6 final=0 relu=1 pbase=10 wbase=162 qm=40000000 qs=30
+WLOAD L=2 base=162 og=0 kb=0 len=64 ram=162
+TCFG L=2 tile=216 pos=0 rm=001 cm=111 ocb=0 last=0 relu=1 pb=10 K=256
+TSTART FC
+PECMD K=256 rm=001 cm=111
+RSTART len=64
+CREQ kb=64 len=64
+WLOAD L=2 base=162 og=0 kb=64 len=64 ram=226
+RSTART len=64
+CREQ kb=128 len=64
+WLOAD L=2 base=162 og=0 kb=128 len=64 ram=290
+RSTART len=64
+CREQ kb=192 len=64
+WLOAD L=2 base=162 og=0 kb=192 len=64 ram=354
+RSTART len=64
+TILE inject=256 step=261 clr=1 creq=3 mv=256,256,256,0,0,0,0,0,0 ml=1,1,1,0,0,0,0,0,0 last_at=256,256,256,-1,-1,-1,-1,-1,-1
+WLOAD L=2 base=162 og=1 kb=0 len=64 ram=418
+TCFG L=2 tile=217 pos=0 rm=001 cm=111 ocb=3 last=1 relu=1 pb=10 K=256
+TSTART FC
+PECMD K=256 rm=001 cm=111
+RSTART len=64
+CREQ kb=64 len=64
+WLOAD L=2 base=162 og=1 kb=64 len=64 ram=482
+RSTART len=64
+CREQ kb=128 len=64
+WLOAD L=2 base=162 og=1 kb=128 len=64 ram=546
+RSTART len=64
+CREQ kb=192 len=64
+WLOAD L=2 base=162 og=1 kb=192 len=64 ram=610
+RSTART len=64
+TILE inject=256 step=261 clr=1 creq=3 mv=256,256,256,0,0,0,0,0,0 ml=1,1,1,0,0,0,0,0,0 last_at=256,256,256,-1,-1,-1,-1,-1,-1
+LEND L=2
+LCFG L=3 ocfg=1 src=2048 dst=0 in=1x1x6 out=1x1x1 stride=1 pad=0 zp=0 K=6 fc=1 pool=0 pool_in=1x1x1 final=1 relu=0 pbase=16 wbase=674 qm=40000000 qs=30
+WLOAD L=3 base=674 og=0 kb=0 len=6 ram=674
+TCFG L=3 tile=218 pos=0 rm=001 cm=001 ocb=0 last=1 relu=0 pb=16 K=6
+TSTART FC
+PECMD K=6 rm=001 cm=001
+RSTART len=6
+TILE inject=6 step=11 clr=1 creq=0 mv=6,0,0,0,0,0,0,0,0 ml=1,0,0,0,0,0,0,0,0 last_at=6,-1,-1,-1,-1,-1,-1,-1,-1
+LEND L=3
+DONE writer_mode=0
