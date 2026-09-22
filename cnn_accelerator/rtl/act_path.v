@@ -331,11 +331,10 @@ module act_patch_gen (
 
     localparam [2:0] S_IDLE     = 3'd0,
                      S_SELECT   = 3'd1,
-                     S_LOC      = 3'd2,
-                     S_CAP_INIT = 3'd3,
-                     S_CAP_REQ  = 3'd4,
-                     S_CAP_WAIT = 3'd5,
-                     S_SEND     = 3'd6;
+                     S_CAP_INIT = 3'd2,
+                     S_CAP_REQ  = 3'd3,
+                     S_CAP_WAIT = 3'd4,
+                     S_SEND     = 3'd5;
 
     reg [2:0] state;
 
@@ -353,8 +352,6 @@ module act_patch_gen (
     reg [1:0] patch_lane;
 
     wire signed [15:0] in_w_s16 = {9'd0, in_w};
-    wire signed [15:0] in_w2 = {8'd0, in_w, 1'b0};  // 2*in_w
-    wire signed [15:0] row0_L = pad_en ? -(in_w_s16 + 16'sd1) : 16'sd0;
 
     // ---------------- window cache (2 bank x 32 word) ----------------
     reg [23:0] window_mem[0:63];
@@ -373,20 +370,22 @@ module act_patch_gen (
     reg         lane_bank                                             [0:2];
     reg  [ 2:0] lane_qoff                                             [0:2];
 
-    // ---------------- window 위치 추적 (나눗셈 대체) ----------------
-    reg         trk_valid;
-    reg  [11:0] trk_num;
-    reg [5:0] trk_wx, trk_wy;
-    reg signed [15:0] trk_rowL;  // window 행 시작 pixel의 선형 index
-    reg [11:0] loc_rem;
+    // 현재 window가 출력 격자의 어디에 있는지 계산
+    wire [5:0] win_x = cur_win % wpr;
+    wire [5:0] win_y = cur_win / wpr;
 
-    wire signed [8:0] org_x = $signed(
-        {2'b00, trk_wx, 1'b0}
-    ) - (pad_en ? 9'sd1 : 9'sd0);
-    wire signed [8:0] org_y = $signed(
-        {2'b00, trk_wy, 1'b0}
-    ) - (pad_en ? 9'sd1 : 9'sd0);
-    wire signed [15:0] org_L = trk_rowL + $signed({9'd0, trk_wx, 1'b0});
+    // 필요한 입력 4×4 영역의 시작 좌표
+    wire signed [8:0] org_x =
+        $signed({2'b00, win_x, 1'b0})
+        - (pad_en ? 9'sd1 : 9'sd0);
+
+    wire signed [8:0] org_y =
+        $signed({2'b00, win_y, 1'b0})
+        - (pad_en ? 9'sd1 : 9'sd0);
+
+    // 입력의 픽셀 번호 = y × 입력 폭 + x
+    wire signed [15:0] org_L =
+        org_y * in_w_s16 + org_x;
 
     // ---------------- capture counter ----------------
     reg signed [8:0] cap_x, cap_y, cap_x0;
@@ -492,12 +491,6 @@ module act_patch_gen (
             win_valid  <= 2'b00;
             win_tag0   <= 12'd0;
             win_tag1   <= 12'd0;
-            trk_valid  <= 1'b0;
-            trk_num    <= 12'd0;
-            trk_wx     <= 6'd0;
-            trk_wy     <= 6'd0;
-            trk_rowL   <= 16'sd0;
-            loc_rem    <= 12'd0;
             o_rd_en    <= 1'b0;
             o_rd_addr  <= 14'd0;
             send_k     <= 13'd0;
@@ -533,7 +526,6 @@ module act_patch_gen (
                             (i_in_w     != in_w)     ||
                             (i_pad_en   != pad_en)) begin
                             win_valid <= 2'b00;
-                            trk_valid <= 1'b0;
                         end
 
                         state <= S_SELECT;
@@ -558,41 +550,9 @@ module act_patch_gen (
                         lane_qoff[patch_lane] <= {cur_q[1], 1'b0, cur_q[0]};
                         patch_lane            <= patch_lane + 2'd1;
                     end else begin
-                        // miss: 이 bank를 새 window로 교체
+                        // 필요한 window가 없으면 해당 영역을 새로 읽음
                         win_valid[cur_bank] <= 1'b0;
-
-                        if (trk_valid && (cur_win == trk_num + 12'd1)) begin
-                            // 직전 window의 다음 window -> 위치 1칸 전진
-                            trk_num <= cur_win;
-                            if ({1'b0, trk_wx} + 7'd1 >= {1'b0, wpr}) begin
-                                trk_wx   <= 6'd0;
-                                trk_wy   <= trk_wy + 6'd1;
-                                trk_rowL <= trk_rowL + in_w2;
-                            end else begin
-                                trk_wx <= trk_wx + 6'd1;
-                            end
-                            state <= S_CAP_INIT;
-                        end else begin
-                            // 임의 위치: 뺄셈 반복으로 (wx, wy) 계산
-                            trk_valid <= 1'b0;
-                            loc_rem   <= cur_win;
-                            trk_wy    <= 6'd0;
-                            trk_rowL  <= row0_L;
-                            state     <= S_LOC;
-                        end
-                    end
-                end
-
-                S_LOC: begin
-                    if (loc_rem >= {6'd0, wpr}) begin
-                        loc_rem  <= loc_rem - {6'd0, wpr};
-                        trk_wy   <= trk_wy + 6'd1;
-                        trk_rowL <= trk_rowL + in_w2;
-                    end else begin
-                        trk_wx    <= loc_rem[5:0];
-                        trk_num   <= cur_win;
-                        trk_valid <= 1'b1;
-                        state     <= S_CAP_INIT;
+                        state <= S_CAP_INIT;
                     end
                 end
 
