@@ -203,13 +203,13 @@ module act_ld_unit (
 );
     localparam S_IDLE = 1'd0, S_WAIT = 1'b1;
 
-    reg [1:0] state;
+    reg        state;
     reg [31:0] ram_base;
     reg [12:0] word_count;
     reg [12:0] word_index;
 
     wire start_rd = (state == S_IDLE) && i_ld_start && (i_ld_word_count != 13'd0);
-    wire c = (state == S_WAIT) && i_ram_valid;
+    wire accept_rsp = (state == S_WAIT) && i_ram_valid;
     wire last_word = (word_index == word_count - 13'd1);
 
 
@@ -421,8 +421,8 @@ module act_patch_gen (
     reg [23:0] lane_data;
 
     integer lane;
-    reg [3:0]  pix;
-    reg [5:0]  widx;
+    reg [3:0] pix;
+    reg [5:0] widx;
     reg [23:0] selected_word;
 
     always @(*) begin
@@ -686,31 +686,32 @@ module fc_gen (
 
     localparam [1:0] S_IDLE = 2'd0, S_GET = 2'd1, S_WAIT = 2'd2, S_SEND = 2'd3;
 
-    reg [ 1:0] state;
+    reg  [ 1:0] state;
 
-    reg [13:0] base_addr;
-    reg [12:0] input_count;
-    reg [12:0] k;
+    reg  [13:0] base_addr;
+    reg  [12:0] input_count;
+    reg  [12:0] k;
 
-    reg        cached_valid;
-    reg [13:0] cached_addr;
-    reg [23:0] cached_word;
+    reg         cached_valid;
+    reg  [13:0] cached_addr;
+    reg  [23:0] cached_word;
 
-    reg [13:0] wanted_addr;
+    reg  [13:0] wanted_addr;
 
-    reg [12:0] word_offset;
-    reg [ 1:0] byte_lane;
+    reg  [12:0] word_offset;
+    reg  [ 1:0] byte_lane;
 
     // 필요한 word가 현재 캐시에 있으면 메모리 읽기 생략
-    wire cache_hit = cached_valid && (cached_addr == wanted_addr);
+    wire        cache_hit = cached_valid && (cached_addr == wanted_addr);
 
     assign o_valid = rst_n && (state == S_SEND);
     assign o_keep  = 3'b001;
 
     always @(*) begin
         if (input_count == FC0_INPUT_COUNT) begin
-            // 픽셀당 2 word: C0,C1,C2 / C3
+            // 픽셀당 2 word: C0,C1,C2 / C3 -> 픽셀 번호 = k / 4, 채널 번호 = k % 4
             word_offset = {1'b0, k[12:2], (k[1:0] == 2'd3)};
+            // C3이면 0, 아니면 채널 번호
             byte_lane   = (k[1:0] == 2'd3) ? 2'd0 : k[1:0];
         end else begin
             // 이후 FC: word당 3개
@@ -747,11 +748,12 @@ module fc_gen (
                         state        <= S_GET;
                     end
                 end
-
+                // read o,x
                 S_GET: begin
                     state <= cache_hit ? S_SEND : S_WAIT;
                 end
-
+                //읽기요청을 했을경우
+                //응답 받으면 word와 addr 저장
                 S_WAIT: begin
                     if (i_rd_valid) begin
                         cached_word  <= i_rd_data;
