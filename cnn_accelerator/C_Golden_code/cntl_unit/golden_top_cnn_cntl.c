@@ -29,7 +29,9 @@
  *   OWNER 1|0                           o_ram_owner changed
  *   PRD addr=                           Param RAM read request fired
  *   PWR addr= data=                     param_buf write, data = 32-bit bias (address pairing is checked too)
- *   LCFG L= ...                         o_layer_cfg_valid + the whole descriptor
+ *   LCFG L= ...                         o_layer_cfg_valid + the descriptor ports that still exist
+ *                                       (2026-09-22: o_out_w / o_out_h / o_in_zp / o_conv_h were dropped
+ *                                        from cnn_cntl, so the line carries outc=, conv_w=, pool_c= only)
  *   WLOAD L= base= og= kb= len= ram=    wload fired, ram = base + og*K + kb
  *   TCFG L= tile= pos= rm= cm= ocb= ... o_tile_cfg_valid + tile config
  *   TSTART PG|FC                        o_pg_tile_start / o_fc_tile_start
@@ -66,6 +68,17 @@
  *   golden_top_cnn_cntl --small --check rtl_trace_small.txt
  *
  * Exit code: 0 pass, 1 mismatch / empty trace, 2 bad args or file error.
+ *
+ * Controller changes on 2026-09-22 that this model already covers or does not need:
+ *   - pe_cntl lost o_reader_issue_en / i_reader_idle / i_weight_feeder_empty and
+ *     o_result_clear; cnn_cntl lost o_conv_h / o_out_w / o_out_h / o_in_zp. None of
+ *     them was a trace event, only the LCFG payload shrank (see above).
+ *   - out_path.o_result_space_ready now gates pe_cntl.o_tile_ready (tile level, via
+ *     space_seen) instead of every step. That only delays events, it never reorders
+ *     them, so a transaction-level model needs no change.
+ *   - The wrapper's o_pos_base / o_mem_base / o_param_base / o_param_wr_addr are now
+ *     14 / 32 / 6 / 6 bits wide (receiver widths). Values are unchanged; check_widths()
+ *     still uses the cnn_cntl internal widths.
  */
 #include <stdarg.h>
 #include <stdio.h>
@@ -87,7 +100,6 @@
 #define WBUF_WORDS 64   /* wgt_buf depth = max chunk length */
 #define PE_N        9   /* 3 x 3 PE              */
 #define PIPE_N      5   /* valid_pipe / last_pipe depth = diagonal d = r + c (0..4) */
-#define INPUT_ZP    0
 
 /* ---------------------------------------------------------------------------
  * network description
@@ -448,11 +460,11 @@ static void run_inference(const layer_t *L, const config_t *c)
         g_cnn.layer_idx = l;
 
         /* C_SET: layer_cfg and output_cfg on the same clk */
-        emit("LCFG L=%d ocfg=1 src=%d dst=%d in=%dx%dx%d out=%dx%dx%d stride=%d pad=%d zp=%d "
-             "K=%d fc=%d pool=%d pool_in=%dx%dx%d final=%d relu=%d pbase=%d wbase=%d qm=%08x qs=%d",
-             l, src, dst, y->in_w, y->in_h, y->in_c, y->out_w, y->out_h, y->out_c,
-             y->stride, y->pad_en, INPUT_ZP, y->k_total, y->is_fc, y->pool_en,
-             y->out_w, y->out_h, y->out_c,              /* pooling_unit gets the pre-pool size */
+        emit("LCFG L=%d ocfg=1 src=%d dst=%d in=%dx%dx%d outc=%d stride=%d pad=%d "
+             "K=%d fc=%d pool=%d conv_w=%d pool_c=%d final=%d relu=%d pbase=%d wbase=%d qm=%08x qs=%d",
+             l, src, dst, y->in_w, y->in_h, y->in_c, y->out_c,
+             y->stride, y->pad_en, y->k_total, y->is_fc, y->pool_en,
+             y->out_w, y->out_c,                        /* o_pool_in_w = pre-pool width, o_pool_c = out_c */
              final, y->relu, y->param_base, y->w_base, QUANT_M_DEFAULT, QUANT_S_DEFAULT);
 
         /* tile order: pos_group outer, oc_group inner
