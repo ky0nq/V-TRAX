@@ -237,7 +237,7 @@ endmodule
 
 
 // ============================================================================
-// wgt_patch_gen : buf를 순서대로 읽어 beat로 내보냄 (1 beat/cycle)
+// wgt_patch_gen : buf를 순서대로 읽어 beat로 내보냄 
 // ============================================================================
 module wgt_patch_gen (
     input  wire        clk,
@@ -260,79 +260,77 @@ module wgt_patch_gen (
     output reg         o_chunk_done
 );
     reg        running;
-    reg [6:0]  len_q;
-    reg [2:0]  mask_q;
-    reg [6:0]  req_idx;      // 다음에 읽을 word
-    reg [1:0]  pend;         // 요청했지만 아직 소비 안 된 word (in-flight + FIFO)
+    reg [6:0]  chunk_len_r;
+    reg [2:0]  col_mask_r;
+    reg [6:0]  rd_idx;      // 다음 읽기를 요청할 word 인덱스
+    reg [1:0]  pend_count;       // 요청 후 아직 feeder에 전달하지 않은 word 수
 
-    // 2-entry FIFO
-    reg [23:0] fifo0, fifo1;
-    reg        head, tail;
-    reg [1:0]  cnt;
+    // 2-entry
+    reg [23:0] data_buf0, data_buf1;
+    reg        rd_sel, wr_sel;
+    reg [1:0]  buf_count;
 
     wire pop   = o_valid && i_ready;
-    wire issue = running && (req_idx != len_q) && ((pend < 2'd2) || pop);
+    wire rd_req = running && (rd_idx != chunk_len_r) && ((pend_count < 2'd2) || pop);
 
-    assign o_ren   = issue;
-    assign o_raddr = req_idx[5:0];
+    assign o_ren   = rd_req;
+    assign o_raddr = rd_idx[5:0];
 
-    wire [23:0] head_word = head ? fifo1 : fifo0;
-    assign o_valid = running && (cnt != 2'd0);
-    assign o_keep  = mask_q;
-    assign o_data  = { mask_q[2] ? head_word[23:16] : 8'd0,
-                       mask_q[1] ? head_word[15:8]  : 8'd0,
-                       mask_q[0] ? head_word[7:0]   : 8'd0 };
+    wire [23:0] out_word = rd_sel ? data_buf1 : data_buf0;
+    assign o_valid = running && (buf_count != 2'd0);
+    assign o_keep  = col_mask_r;
+    assign o_data  = { col_mask_r[2] ? out_word[23:16] : 8'd0,
+                       col_mask_r[1] ? out_word[15:8]  : 8'd0,
+                       col_mask_r[0] ? out_word[7:0]   : 8'd0 };
 
     wire push = running && i_rvalid;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             running      <= 1'b0;
-            len_q        <= 7'd0;
-            mask_q       <= 3'b000;
-            req_idx      <= 7'd0;
-            pop_idx      <= 7'd0;
-            pend         <= 2'd0;
-            head         <= 1'b0;
-            tail         <= 1'b0;
-            cnt          <= 2'd0;
+            chunk_len_r        <= 7'd0;
+            col_mask_r       <= 3'b000;
+            rd_idx      <= 7'd0;
+            pend_count         <= 2'd0;
+            rd_sel         <= 1'b0;
+            wr_sel         <= 1'b0;
+            buf_count          <= 2'd0;
             o_chunk_done <= 1'b0;
         end else begin
             o_chunk_done <= 1'b0;
 
             if (!running) begin
                 if (i_chunk_start) begin
-                    len_q   <= i_chunk_word_count;
-                    mask_q  <= i_col_mask;
-                    req_idx <= 7'd0;
-                    pop_idx <= 7'd0;
-                    pend    <= 2'd0;
-                    head    <= 1'b0;
-                    tail    <= 1'b0;
-                    cnt     <= 2'd0;
+                    chunk_len_r   <= i_chunk_word_count;
+                    col_mask_r  <= i_col_mask;
+                    rd_idx <= 7'd0;
+                    pend_count    <= 2'd0;
+                    rd_sel    <= 1'b0;
+                    wr_sel    <= 1'b0;
+                    buf_count     <= 2'd0;
                     if (i_chunk_word_count == 7'd0)
                         o_chunk_done <= 1'b1;
                     else
                         running <= 1'b1;
                 end
             end else begin
-                if (issue)
-                    req_idx <= req_idx + 7'd1;
-
-                pend <= pend + {1'b0, issue} - {1'b0, pop};
+                if (rd_req)
+                    rd_idx <= rd_idx + 7'd1;
+                    
+                pend_count <= pend_count + {1'b0, rd_req} - {1'b0, pop};
 
                 if (push) begin
-                    if (tail) fifo1 <= i_rdata;
-                    else      fifo0 <= i_rdata;
-                    tail <= ~tail;
+                    if (wr_sel) data_buf1 <= i_rdata;
+                    else      data_buf0 <= i_rdata;
+                    wr_sel <= ~wr_sel;
                 end
 
                 if (pop)
-                    head <= ~head;
+                    rd_sel <= ~rd_sel;
 
-                cnt <= cnt + {1'b0, push} - {1'b0, pop};
+                buf_count <= buf_count + {1'b0, push} - {1'b0, pop};
 
-                if (pop && (req_idx == len_q) && (pend == 2'd1)) begin
+                if (pop && (rd_idx == chunk_len_r) && (pend_count == 2'd1)) begin
                     running      <= 1'b0;
                     o_chunk_done <= 1'b1;
                 end
