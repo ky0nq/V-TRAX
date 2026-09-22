@@ -10,7 +10,6 @@ module wgt_path (
     input  wire        clk,
     input  wire        rst_n,
 
-    // ---- memory load ----
     input  wire        i_ld_start,
     input  wire [31:0] i_mem_base,
     input  wire [6:0]  i_chunk_word_count,
@@ -139,22 +138,26 @@ module wgt_ld_unit (
     output wire        o_ld_ready,
     input  wire        i_buf_free
 );
-    localparam [1:0] S_IDLE = 2'd0,
-                     S_REQ  = 2'd1,
-                     S_WAIT = 2'd2;
+    localparam S_IDLE = 1'd0, S_WAIT = 1'd1;
 
     reg [1:0]  state;
     reg [31:0] mem_base;
     reg [6:0]  chunk_len;
     reg [6:0]  idx;
+    
+    assign o_ld_ready  = rst_n && (state == S_IDLE) && i_buf_free;
 
-    assign o_mem_rd_en   = rst_n && (state == S_REQ);
-    assign o_mem_rd_addr = mem_base + {25'd0, idx};
+    wire start_load = i_ld_start && o_ld_ready;
+    wire accept_rsp = (state == S_WAIT) && i_mem_rvalid;
+    wire last_word  = (idx == chunk_len - 7'd1);
 
-    assign o_buf_we    = rst_n && (state == S_WAIT) && i_mem_rvalid;
+    assign o_mem_rd_en = rst_n && ((start_load && (i_chunk_word_count != 7'd0)) || (accept_rsp && !last_word));
+    assign o_mem_rd_addr =(state == S_IDLE) ? 
+        i_mem_base : mem_base + {25'd0, idx} + 32'd1;
+
+    assign o_buf_we    = rst_n && accept_rsp;
     assign o_buf_waddr = idx[5:0];
     assign o_buf_wdata = i_mem_rdata;
-    assign o_ld_ready  = rst_n && (state == S_IDLE) && i_buf_free;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -162,33 +165,31 @@ module wgt_ld_unit (
             mem_base    <= 32'd0;
             chunk_len   <= 7'd0;
             idx         <= 7'd0;
-            o_ld_done <= 1'b0;
+            o_ld_done   <= 1'b0;
         end else begin
             o_ld_done <= 1'b0;
 
             case (state)
                 S_IDLE: begin
-                    if (i_ld_start && i_buf_free) begin
+                    if (start_load) begin
                         mem_base  <= i_mem_base;
                         chunk_len <= i_chunk_word_count;
                         idx       <= 7'd0;
+                        // 길이가 0이면 읽기 없이 완료
                         if (i_chunk_word_count == 7'd0)
                             o_ld_done <= 1'b1;
                         else
-                            state <= S_REQ;
+                            state <= S_WAIT;
                     end
                 end
 
-                S_REQ: state <= S_WAIT;
-
                 S_WAIT: begin
-                    if (i_mem_rvalid) begin
-                        if (idx == chunk_len - 7'd1) begin
+                    if (accept_rsp) begin
+                        if (last_word) begin
                             o_ld_done <= 1'b1;
                             state       <= S_IDLE;
                         end else begin
                             idx   <= idx + 7'd1;
-                            state <= S_REQ;
                         end
                     end
                 end
@@ -218,19 +219,19 @@ module wgt_buf (
     output reg  [23:0] o_rdata,
     output reg         o_rvalid
 );
+    //max 64 weight word
     reg [23:0] mem [0:63];
 
-    always @(posedge clk or negedge rst_n) begin
-        if (rst_n && i_we)
-            mem[i_waddr] <= i_wdata;
-
-        if (rst_n && i_ren)
-            o_rdata <= mem[i_raddr];
-
-        if (!rst_n)
+    always @(posedge clk) begin
+        if (!rst_n) begin
             o_rvalid <= 1'b0;
-        else
+        end else begin
             o_rvalid <= i_ren;
+            if (i_we)
+                mem[i_waddr] <= i_wdata;
+            if (i_ren)
+                o_rdata <= mem[i_raddr];
+        end
     end
 endmodule
 
