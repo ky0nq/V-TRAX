@@ -32,7 +32,7 @@ module act_path (
     input wire        i_pad_en,
     input wire [12:0] i_k_total,
     input wire [ 2:0] i_row_mask,
-    input wire [12:0] i_fc_in_len,
+    input wire [12:0] i_fc_in_count,
     input wire        i_step_en,
     input wire        i_clear,
 
@@ -43,10 +43,10 @@ module act_path (
     input  wire        i_ready,
 
     // ---- result_buf ----
-    input wire        i_result_wr_en,
-    input wire [13:0] i_result_wr_addr,
-    input wire [23:0] i_result_wr_data,
-    input wire [ 2:0] i_result_wr_be
+    input wire        i_wr_en,
+    input wire [13:0] i_wr_addr,
+    input wire [23:0] i_wr_data,
+    input wire [ 2:0] i_wr_be
 );
 
     // load -> input_buf
@@ -134,7 +134,7 @@ module act_path (
         .rst_n       (rst_n),
         .i_tile_start(i_tile_start && i_fc_mode),
         .i_src_base  (i_src_base),
-        .i_in_len    (i_fc_in_len),
+        .i_fc_in_count    (i_fc_in_count),
         .o_rd_en     (fc_rd_en),
         .o_rd_addr   (fc_rd_addr),
         .i_rd_data   (ibuf_rdata),
@@ -620,7 +620,7 @@ module fc_gen (
 
     input wire        i_tile_start,
     input wire [13:0] i_src_base,
-    input wire [12:0] i_in_len,
+    input wire [12:0] i_fc_in_count,
 
     output reg         o_rd_en,
     output reg  [13:0] o_rd_addr,
@@ -692,9 +692,9 @@ module fc_gen (
         end else begin
             case (state)
                 S_IDLE: begin
-                    if (i_tile_start && i_in_len != 0) begin
+                    if (i_tile_start && i_fc_in_count != 0) begin
                         base_addr    <= i_src_base;
-                        input_count  <= i_in_len;
+                        input_count  <= i_fc_in_count;
                         k            <= 13'd0;
                         cached_valid <= 1'b0;
                         state        <= S_GET;
