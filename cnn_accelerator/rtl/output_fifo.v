@@ -12,14 +12,17 @@ module output_fifo (
     input wire [ 2:0] i_col_mask,
     input wire        i_tile_last,
 
-    input wire        i_is_fc,
-    input wire [6:0]  i_conv_w,
+    input wire       i_is_fc,
+    input wire [6:0] i_conv_w,
 
     // PE result input
     input wire [287:0] i_result_data,
     input wire [  8:0] i_result_valid,
 
     // Tile configuration handshake
+    output wire o_cfg_ready,
+    
+    // PE result space status
     output wire o_result_space_ready,
 
     // Output
@@ -27,44 +30,55 @@ module output_fifo (
     output reg         o_valid,
     input  wire        i_ready,
 
-    output reg  [2:0]  o_keep,
+    output reg  [ 2:0] o_keep,
     output wire [18:0] o_meta
 );
 
     // result save register
-    reg [95:0] row0_data;
-    reg [95:0] row1_data;
-    reg [95:0] row2_data;
+    reg  [95:0] row0_data;
+    reg  [95:0] row1_data;
+    reg  [95:0] row2_data;
 
-    reg [2:0] row0_valid;
-    reg [2:0] row1_valid;
-    reg [2:0] row2_valid;
+    reg  [ 2:0] row0_valid;
+    reg  [ 2:0] row1_valid;
+    reg  [ 2:0] row2_valid;
 
     // tile set register
-    reg [11:0] patch_base_reg;
-    reg [ 4:0] out_ch_base_reg;
-    reg [ 2:0] row_mask_reg;
-    reg [ 2:0] col_mask_reg;
-    reg        tile_last_reg;
-    reg        is_fc_reg;
-    reg [ 6:0] conv_w_reg;
+    reg  [11:0] patch_base_reg;
+    reg  [ 4:0] out_ch_base_reg;
+    reg  [ 2:0] row_mask_reg;
+    reg  [ 2:0] col_mask_reg;
+    reg         tile_last_reg;
+    reg         is_fc_reg;
+    reg  [ 6:0] conv_w_reg;
 
     // output state register
-    reg        tile_active;
+    reg         tile_active;
 
     // output row num
-    reg [1:0] out_row;
+    reg  [ 1:0] out_row;
 
     // handshake
-    wire cfg_fire;
-    wire out_fire;
+    wire        cfg_fire;
+    wire        out_fire;
 
+    assign o_cfg_ready          = rst_n && !tile_active;
     assign o_result_space_ready = rst_n && !tile_active;
 
     wire cfg_mask_valid;
 
-    assign cfg_mask_valid = (i_row_mask != 3'b000) && (i_col_mask != 3'b000);
-    assign cfg_fire = i_cfg_valid && o_result_space_ready && cfg_mask_valid;
+    assign cfg_mask_valid =
+    (
+        (i_row_mask == 3'b001) ||
+        (i_row_mask == 3'b011) ||
+        (i_row_mask == 3'b111)
+    ) &&
+    (
+        (i_col_mask == 3'b001) ||
+        (i_col_mask == 3'b011) ||
+        (i_col_mask == 3'b111)
+    );
+    assign cfg_fire = i_cfg_valid && o_cfg_ready && cfg_mask_valid;
     assign out_fire = o_valid && i_ready;
 
     // select first effective row
@@ -75,11 +89,9 @@ module output_fifo (
 
         if (i_row_mask[0]) begin
             first_row = 2'd0;
-        end
-        else if (i_row_mask[1]) begin
+        end else if (i_row_mask[1]) begin
             first_row = 2'd1;
-        end
-        else if (i_row_mask[2]) begin
+        end else if (i_row_mask[2]) begin
             first_row = 2'd2;
         end
     end
@@ -92,14 +104,11 @@ module output_fifo (
 
         case (out_row)
             2'd0: begin
-                if (row_mask_reg[1])
-                    next_row = 2'd1;
-                else if (row_mask_reg[2])
-                    next_row = 2'd2;
+                if (row_mask_reg[1]) next_row = 2'd1;
+                else if (row_mask_reg[2]) next_row = 2'd2;
             end
             2'd1: begin
-                if (row_mask_reg[2])
-                    next_row = 2'd2;
+                if (row_mask_reg[2]) next_row = 2'd2;
             end
             2'd2: begin
                 next_row = 2'd3;
@@ -187,17 +196,22 @@ module output_fifo (
     wire [11:0] current_position;
 
     assign current_position = is_fc_reg ? 12'd0 : patch_base_reg + out_row;
-    assign o_meta = {1'b0, tile_last_reg && last_valid_row, out_ch_base_reg, current_position};
+    assign o_meta = {
+        tile_last_reg && last_valid_row,  // [18] layer_end
+        last_valid_row,  // [17] tile_end
+        out_ch_base_reg,  // [16:12] out_ch_base
+        current_position  // [11:0] position
+    };
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            row0_data  <= 96'd0;
-            row1_data  <= 96'd0;
-            row2_data  <= 96'd0;
+            row0_data       <= 96'd0;
+            row1_data       <= 96'd0;
+            row2_data       <= 96'd0;
 
-            row0_valid <= 3'b000;
-            row1_valid <= 3'b000;
-            row2_valid <= 3'b000;
+            row0_valid      <= 3'b000;
+            row1_valid      <= 3'b000;
+            row2_valid      <= 3'b000;
 
             patch_base_reg  <= 12'd0;
             out_ch_base_reg <= 5'd0;
@@ -207,10 +221,9 @@ module output_fifo (
             is_fc_reg       <= 1'b0;
             conv_w_reg      <= 7'd0;
 
-            tile_active <= 1'b0;
-            out_row     <= 2'd0;
-        end
-        else begin
+            tile_active     <= 1'b0;
+            out_row         <= 2'd0;
+        end else begin
             if (cfg_fire) begin
                 patch_base_reg  <= i_patch_base;
                 out_ch_base_reg <= i_out_ch_base;
@@ -220,16 +233,14 @@ module output_fifo (
                 is_fc_reg       <= i_is_fc;
                 conv_w_reg      <= i_conv_w;
 
-                tile_active <= 1'b1;
+                tile_active     <= 1'b1;
 
-                out_row <= first_row;
+                out_row         <= first_row;
 
-                row0_valid <= 3'b000;
-                row1_valid <= 3'b000;
-                row2_valid <= 3'b000;
-            end
-
-            else begin
+                row0_valid      <= 3'b000;
+                row1_valid      <= 3'b000;
+                row2_valid      <= 3'b000;
+            end else begin
                 if (tile_active) begin
                     //row 0
                     if (i_result_valid[0]) begin
@@ -289,8 +300,7 @@ module output_fifo (
                     if (last_valid_row) begin
                         tile_active <= 1'b0;
                         out_row     <= 2'd0;
-                    end
-                    else begin
+                    end else begin
                         out_row <= next_row;
                     end
                 end
