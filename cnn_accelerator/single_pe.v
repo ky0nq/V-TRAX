@@ -3,10 +3,10 @@
 module single_pe (
     input wire clk,
     input wire rst_n,
-    input wire step_en,
-    input wire acc_clear,
-    input wire mac_valid,
-    input wire mac_last,
+    input wire i_step_en,
+    input wire i_acc_clear,
+    input wire i_mac_valid,
+    input wire i_mac_last,
 
     input wire signed [7:0] act_in,
     input wire signed [7:0] weight_in,
@@ -14,7 +14,7 @@ module single_pe (
     output reg signed [ 7:0] act_out,
     output reg signed [ 7:0] weight_out,
     output reg signed [31:0] result_data,
-    output reg               result_valid
+    output reg               o_result_valid
 );
 
     reg signed [31:0] acc_reg;
@@ -25,28 +25,28 @@ module single_pe (
 
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
-            acc_reg      <= 32'd0;
-            result_data  <= 32'd0;
-            result_valid <= 0;
-            act_out      <= 8'd0;
-            weight_out   <= 8'd0;
+            acc_reg        <= 32'd0;
+            result_data    <= 32'd0;
+            o_result_valid <= 1'b0;
+            act_out        <= 8'd0;
+            weight_out     <= 8'd0;
         end else begin
-            if (acc_clear) begin
-                acc_reg      <= 32'd0;
-                result_data  <= 32'd0;
-                result_valid <= 1'b0;
+            if (i_acc_clear) begin
+                acc_reg        <= 32'd0;
+                result_data    <= 32'd0;
+                o_result_valid <= 1'b0;
             end else begin
-                result_valid <= 1'b0;  // 1 pulse
+                o_result_valid <= 1'b0;  // 1 pulse
 
-                if (step_en) begin
+                if (i_step_en) begin
                     act_out    <= act_in;
                     weight_out <= weight_in;
-                    // step_en = 0 : pe stop
-                    if (mac_valid) begin
+                    // i_step_en = 0 : pe stop
+                    if (i_mac_valid) begin
                         acc_reg <= acc_next;
-                        if (mac_last) begin
-                            result_data  <= acc_next;
-                            result_valid <= 1'b1;
+                        if (i_mac_last) begin
+                            result_data <= acc_next;
+                            o_result_valid <= 1'b1;
                         end
                     end
                 end
