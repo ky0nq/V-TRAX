@@ -50,67 +50,66 @@ module wgt_path (
     wire        gen_ready;
 
     wgt_ld_unit WGT_LD_UNIT (
-        .clk               (clk),
-        .rst_n             (rst_n),
-        .i_ld_start        (i_ld_start),
-        .i_mem_base        (i_mem_base),
-        .i_load_chunk_len  (i_load_chunk_len),
-        .o_mem_rd_en       (o_mem_rd_en),
-        .o_mem_rd_addr     (o_mem_rd_addr),
-        .i_mem_rdata       (i_mem_rdata),
-        .i_mem_rvalid      (i_mem_rvalid),
-        .o_buf_we          (buf_we),
-        .o_buf_waddr       (buf_waddr),
-        .o_buf_wdata       (buf_wdata),
-        .o_ld_done         (o_ld_done),
-        .o_ld_ready        (o_ld_ready),
-        .i_buf_free        (i_buf_free)
+        .clk                (clk),
+        .rst_n              (rst_n),
+        .i_ld_start         (i_ld_start),
+        .i_mem_base         (i_mem_base),
+        .i_chunk_word_count (i_load_chunk_len),
+        .o_mem_rd_en        (o_mem_rd_en),
+        .o_mem_rd_addr      (o_mem_rd_addr),
+        .i_mem_rdata        (i_mem_rdata),
+        .i_mem_rvalid       (i_mem_rvalid),
+        .o_buf_we           (buf_we),
+        .o_buf_waddr        (buf_waddr),
+        .o_buf_wdata        (buf_wdata),
+        .o_ld_done          (o_ld_done),
+        .o_ld_ready         (o_ld_ready),
+        .i_buf_free         (i_buf_free)
     );
 
     wgt_buf WGT_BUF (
-        .clk     (clk),
-        .rst_n   (rst_n),
-        .i_we    (buf_we),
-        .i_waddr (buf_waddr),
-        .i_wdata (buf_wdata),
-        .i_ren   (gen_ren),
-        .i_raddr (gen_raddr),
-        .o_rdata (buf_rdata),
-        .o_rvalid(buf_rvalid)
+        .clk                (clk),
+        .rst_n              (rst_n),
+        .i_we               (buf_we),
+        .i_waddr            (buf_waddr),
+        .i_wdata            (buf_wdata),
+        .i_ren              (gen_ren),
+        .i_raddr            (gen_raddr),
+        .o_rdata            (buf_rdata),
+        .o_rvalid           (buf_rvalid)
     );
 
     wgt_patch_gen WGT_PATCH_GEN (
-        .clk               (clk),
-        .rst_n             (rst_n),
-        .i_chunk_start     (i_chunk_start),
-        .i_chunk_word_count(i_chunk_word_count),
-        .i_col_mask        (i_col_mask),
-        .o_ren             (gen_ren),
-        .o_raddr           (gen_raddr),
-        .i_rdata           (buf_rdata),
-        .i_rvalid          (buf_rvalid),
-        .o_data            (gen_data),
-        .o_keep            (gen_keep),
-        .o_valid           (gen_valid),
-        .i_ready           (gen_ready),
-        .o_chunk_done      (o_chunk_done)
+        .clk                (clk),
+        .rst_n              (rst_n),
+        .i_chunk_start      (i_chunk_start),
+        .i_chunk_word_count (i_chunk_word_count),
+        .i_col_mask         (i_col_mask),
+        .o_ren              (gen_ren),
+        .o_raddr            (gen_raddr),
+        .i_rdata            (buf_rdata),
+        .i_rvalid           (buf_rvalid),
+        .o_data             (gen_data),
+        .o_keep             (gen_keep),
+        .o_valid            (gen_valid),
+        .i_ready            (gen_ready),
+        .o_chunk_done       (o_chunk_done)
     );
 
     wgt_feeder WGT_FEEDER (
-        .clk      (clk),
-        .rst_n    (rst_n),
-        .i_data   (gen_data),
-        .i_keep   (gen_keep),
-        .i_valid  (gen_valid),
-        .o_ready  (gen_ready),
-        .i_feed_en(i_feed_en),
-        .i_clear  (i_clear),
-        .o_data   (o_data),
-        .o_keep   (o_keep),
-        .o_valid  (o_valid),
-        .i_ready  (i_ready)
-    );
-
+        .clk                (clk),
+        .rst_n              (rst_n),
+        .i_data             (gen_data),
+        .i_keep             (gen_keep),
+        .i_valid            (gen_valid),
+        .o_ready            (gen_ready),
+        .i_feed_en          (i_feed_en),
+        .i_clear            (i_clear),
+        .o_data             (o_data),
+        .o_keep             (o_keep),
+        .o_valid            (o_valid),
+        .i_ready            (i_ready)
+    );          
 endmodule
 
 
@@ -123,7 +122,7 @@ module wgt_ld_unit (
 
     input wire        i_ld_start,
     input wire [31:0] i_mem_base,
-    input wire [ 6:0] i_load_chunk_len,
+    input wire [ 6:0] i_chunk_word_count,
 
     output wire        o_mem_rd_en,
     output wire [31:0] o_mem_rd_addr,
@@ -151,7 +150,7 @@ module wgt_ld_unit (
     wire accept_rsp = (state == S_WAIT) && i_mem_rvalid;
     wire last_word = (idx == chunk_len - 7'd1);
 
-    assign o_mem_rd_en = rst_n && ((start_load && (i_load_chunk_len != 7'd0)) || (accept_rsp && !last_word));
+    assign o_mem_rd_en = rst_n && ((start_load && (i_chunk_word_count != 7'd0)) || (accept_rsp && !last_word));
     assign o_mem_rd_addr =(state == S_IDLE) ? 
         i_mem_base : mem_base + {25'd0, idx} + 32'd1;
 
@@ -173,10 +172,10 @@ module wgt_ld_unit (
                 S_IDLE: begin
                     if (start_load) begin
                         mem_base  <= i_mem_base;
-                        chunk_len <= i_load_chunk_len;
+                        chunk_len <= i_chunk_word_count;
                         idx       <= 7'd0;
                         // length is zero -> Complete immediately
-                        if (i_load_chunk_len == 7'd0) o_ld_done <= 1'b1;
+                        if (i_chunk_word_count == 7'd0) o_ld_done <= 1'b1;
                         else state <= S_WAIT;
                     end
                 end
