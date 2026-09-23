@@ -65,10 +65,11 @@ module top_cnn #(
     // ---- top_cnn_cntl -> wgt_path ----------------------------------------
     wire         c_wload_start;
     wire [31:0]  c_mem_base;
-    wire [ 6:0]  c_load_chunk_len;
+    wire [ 8:0]  c_load_chunk_len;
+    wire         c_buf_half;
     wire         c_wbuf_free;
     wire         c_reader_start;
-    wire [ 6:0]  c_reader_chunk_len;
+    wire [ 8:0]  c_reader_chunk_len;
     wire [ 2:0]  c_pe_col_mask;
 
     // ---- top_cnn_cntl -> pe_core -----------------------------------------
@@ -158,6 +159,7 @@ module top_cnn #(
         .i_wload_ready          (w_ld_ready),
         .o_mem_base             (c_mem_base),
         .o_load_chunk_len       (c_load_chunk_len),
+        .o_buf_half             (c_buf_half),
         .i_wload_done           (w_ld_done),
         .o_wbuf_free            (c_wbuf_free),
         .o_reader_start         (c_reader_start),
@@ -272,6 +274,7 @@ module top_cnn #(
         .i_ld_start             (c_wload_start),
         .i_mem_base             (c_mem_base),
         .i_load_chunk_len       (c_load_chunk_len),
+        .i_buf_half             (c_buf_half),
         .o_ld_done              (w_ld_done),
         .o_ld_ready             (w_ld_ready),
         .i_col_mask             (c_pe_col_mask),
