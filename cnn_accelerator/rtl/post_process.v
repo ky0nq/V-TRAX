@@ -111,18 +111,26 @@ module post_process (
     reg signed [31:0] bias_cache1;
     reg signed [31:0] bias_cache2;
 
-    // 각 lane의 Bias가 정상적으로 cache에 저장되었는지 표시
-    // 모든 필요한 Bias가 준비되면 o_params_ready를 1로 만들 때 사용
-    reg [2:0] bias_loaded_mask;
+    // ---- Bias 읽기 (핸드셰이크 정리 2026-09-23) ----
+    //   요청은 lane 0..n-1 을 연속으로 내고 (req_idx), 응답은 오는 대로 받는다 (rsp_idx, ready 항상 1).
+    //   전에는 lane 마다 요청 -> 응답 대기 를 반복해서 타일마다 7 clk 이 들었다.
+    reg [1:0] bias_req_idx;      // 다음에 요청할 lane
+    reg [1:0] bias_rsp_idx;      // 다음에 받을 lane
+    reg [1:0] bias_n_lanes;      // 이 타일에 필요한 lane 수 (col_mask 001/011/111 -> 1/2/3)
 
-    // 현재 어떤 lane의 Bias를 요청 중인지 표시
-    // 0 : lane0, 1 : lane1, 2 : lane2
-    reg [1:0] bias_lane_idx;
-
-    // Bias read request가 수락된 뒤,
-    // 응답이 어느 lane에 해당하는지 기억하기 위해 사용
-    // param_buf 응답이 request와 다른 cycle에 들어올 수 있기 때문
-    reg [1:0] bias_rsp_lane_reg;
+    // ---- Bias 캐시 2 entry ----
+    //   같은 (bias_base, out_ch_base, col_mask) 타일이 다시 오면 param_buf 를 읽지 않는다.
+    //   Conv0 / Conv1 은 채널 그룹 2 개가 번갈아 오므로 첫 두 타일 뒤로는 전부 hit (타일당 -7 clk).
+    //   param_buf 가 다시 적재되면 (i_params_loaded=0) 비운다.
+    reg        [ 1:0] bc_valid;
+    reg        [13:0] bc_key0, bc_key1;           // {bias_base[5:0], out_ch_base[4:0], col_mask[2:0]}
+    reg signed [31:0] bc0_b0, bc0_b1, bc0_b2;
+    reg signed [31:0] bc1_b0, bc1_b1, bc1_b2;
+    reg               bc_next;                    // 다음에 채울 entry
+    wire       [13:0] cfg_key  = {i_bias_base, i_out_ch_base, i_col_mask};
+    wire              cfg_hit0 = bc_valid[0] && (bc_key0 == cfg_key);
+    wire              cfg_hit1 = bc_valid[1] && (bc_key1 == cfg_key);
+    wire              cfg_hit  = cfg_hit0 || cfg_hit1;
 
 
     // =========================================================
@@ -216,210 +224,87 @@ module post_process (
     end
 
     // =========================================================
-    // Arithmetic Intermediate Registers
+    // Requant 파이프라인 (타이밍 : 2026-09-23)
+    //   한 클럭에 있던 bias 덧셈 -> 32x32 곱 -> 반올림 shift -> 포화 를 4 단으로 나눴다.
+    //   PROCESS 에서 lane 을 한 클럭에 하나씩 넣고 (s0), 3 클럭 뒤 (s3) 결과가 result_lane 에 써진다.
+    //   lane 순서 / keep / meta 처리는 그대로. 한 beat 에 (lane 수 + 3) 클럭이 든다.
     // =========================================================
 
-    // PE INT32 결과 + Bias INT32의 덧셈 결과
-    // signed INT32 + signed INT32는 overflow 확인을 위해
-    // 33-bit 임시값으로 계산
-    reg signed [32:0] bias_sum_ext;
+    // ---- s0 : bias 덧셈 + INT32 포화 (조합, PROCESS 의 현재 lane) ----
+    reg signed [32:0] bias_sum_ext;   // 33-bit 로 더해서 overflow 를 본다
+    reg signed [31:0] acc32_reg;      // Golden 의 A32
 
-    // Bias 적용 후 실제 Golden의 A32 값
-    // overflow/wrap을 그대로 허용하지 않고 범위 확인 후 사용
-    reg signed [31:0] acc32_reg;
-
-    // A32 × quant_multiplier 결과
-    // signed 32-bit × signed 32-bit이므로 64-bit 필요
-    reg signed [63:0] mult_result;
-
-    // round-to-nearest, ties away from zero를 수행하기 위해
-    // 곱셈 결과의 절댓값을 저장
-    reg [63:0] mult_abs;
-
-    // shift 시 더할 rounding offset
-    // S > 0일 때 2^(S-1)
-    reg [63:0] round_offset;
-
-    // abs(P) + rounding offset 계산 시 carry 손실을 막기 위한
-    // 65-bit 확장 임시값
-    reg [64:0] round_mag_ext;
-
-    // 현재 Layer에서 실제 사용할 multiplier
-    reg signed [31:0] current_multiplier;
-
-    // 현재 Layer에서 실제 사용할 right shift 값
-    reg        [ 5:0] current_shift;
-
-    // rounding 및 shift 완료 후 부호까지 복원한 값
-    // 최종 ReLU / saturation 전에 사용
-    reg signed [63:0] rounded_result;
-
-    // 일반 Layer에서 현재 lane의 최종 INT8 결과
-    reg signed [7:0] normal_int8_result;
-    
-    // Final Layer의 최종 signed INT8 각도 결과
-    reg signed [7:0] final_int8_result;
-
-    // Final Layer 결과를 handshake 완료까지 유지
-    reg signed [7:0] final_result_reg;
-
-    // =========================================================
-    // Bias Addition
-    // =========================================================
     always @(*) begin
-        // signed INT32 PE result와 signed INT32 Bias를
-        // 각각 33-bit로 sign extension 후 덧셈
-        // 32-bit 덧셈에서 발생할 수 있는 overflow를
-        // 조용히 wrap시키지 않기 위해 33-bit로 계산
         bias_sum_ext = {current_lane_data[31], current_lane_data} + {current_bias[31], current_bias};
     end
 
-    // =========================================================
-    // INT32 Range Check
-    // =========================================================
     always @(*) begin
-        // 33-bit 결과의 상위 2-bit를 확인하여
-        // signed INT32 범위를 벗어났는지 판단
         case (bias_sum_ext[32:31])
-
-            // 01 : positive overflow
-            // signed INT32 최댓값으로 saturation
-            2'b01: begin
-                acc32_reg = 32'h7FFF_FFFF;
-            end
-
-            // 10 : negative overflow
-            // signed INT32 최솟값으로 saturation
-            2'b10: begin
-                acc32_reg = 32'h8000_0000;
-            end
-
-            // 00 또는 11이면 signed INT32 범위 내
-            default: begin
-                acc32_reg = bias_sum_ext[31:0];
-            end
-
+            2'b01:   acc32_reg = 32'h7FFF_FFFF;   // 양의 overflow -> INT32 최댓값
+            2'b10:   acc32_reg = 32'h8000_0000;   // 음의 overflow -> INT32 최솟값
+            default: acc32_reg = bias_sum_ext[31:0];
         endcase
     end
 
-    // =========================================================
-    // Requant Parameter Select
-    // =========================================================
+    // 현재 레이어의 M / S.  Final FC2 는 각도 변환용 M / S
+    reg signed [31:0] current_multiplier;
+    reg        [ 5:0] current_shift;
+
     always @(*) begin
         if (is_final_layer_reg) begin
-            // Final FC2는 각도 변환 전용 M/S 사용
             current_multiplier = angle_multiplier_reg;
             current_shift      = angle_shift_reg;
         end
         else begin
-            // Conv1 / Conv2 / FC1은 일반 requant M/S 사용
             current_multiplier = quant_multiplier_reg;
             current_shift      = quant_shift_reg;
         end
     end
 
-    // =========================================================
-    // Signed 32x32 Multiply
-    // =========================================================
+    // ---- 파이프라인 레지스터 ----
+    //   s1 : acc32, M (DSP 입력 레지스터)   s2 : 64-bit 곱   s3 : 곱 + 반올림 오프셋
+    //   s3 에서 shift + 포화 해서 result_lane / final_result_reg 에 쓴다
+    reg               s1_valid, s2_valid, s3_valid;   // 그 단에 유효 lane 이 있다
+    reg        [ 1:0] s1_lane,  s2_lane,  s3_lane;    // 그 lane 번호
+    reg               s1_last,  s2_last,  s3_last;    // 이 beat 의 마지막 lane 이다
+    reg signed [31:0] s1_acc32;
+    reg signed [31:0] s1_mult;
+    reg signed [63:0] s2_prod;
+    reg signed [63:0] s3_sum;
+
+    // 반올림 : round-to-nearest, ties away from zero
+    //   P >= 0 : (P + 2^(S-1)) >> S
+    //   P <  0 : (P + 2^(S-1) - 1) >>> S      (= -((|P| + 2^(S-1)) >> S) 와 같다)
+    //   S = 0  : P 그대로
+    //   |P| <= 2^62 (INT32 x INT32) 이고 S <= 30 이라 64-bit 에서 넘치지 않는다
+    wire        [63:0] round_half = (current_shift == 6'd0) ? 64'd0 : (64'd1 << (current_shift - 6'd1));
+    wire signed [63:0] round_off  = (current_shift == 6'd0) ? 64'sd0 :
+                                    (s2_prod[63] ? ($signed(round_half) - 64'sd1) : $signed(round_half));
+
+    // s3 : 산술 우측 shift 뒤 값 (부호 포함)
+    wire signed [63:0] rounded_result = s3_sum >>> current_shift;
+
+    // 일반 레이어 : ReLU + signed INT8 포화
+    reg signed [7:0] normal_int8_result;
+
     always @(*) begin
-        // signed INT32 × signed INT32
-        // 결과는 signed 64-bit
-        mult_result = $signed(acc32_reg) * $signed(current_multiplier);
+        if (relu_en_reg && rounded_result[63])        normal_int8_result = 8'd0;    // ReLU
+        else if (rounded_result > $signed(64'd127))   normal_int8_result = 8'h7F;   // 최댓값 초과
+        else if (rounded_result < -$signed(64'd128))  normal_int8_result = 8'h80;   // 최솟값 미만
+        else                                          normal_int8_result = rounded_result[7:0];
     end
 
-    // =========================================================
-    // Round-to-Nearest, Ties Away from Zero
-    // =========================================================
+    // Final FC2 : ReLU 없이 signed INT8 포화 (1 도 단위 각도)
+    reg signed [7:0] final_int8_result;
+
     always @(*) begin
-        // 기본값
-        mult_abs       = 64'd0;
-        round_offset   = 64'd0;
-        round_mag_ext  = 65'd0;
-        rounded_result = 64'd0;
-
-        // shift가 0이면 rounding 없이 원본 그대로 사용
-        if (current_shift == 6'd0) begin
-            rounded_result = mult_result;
-        end
-        else begin
-            // mult_result의 절댓값 계산
-            // 음수일 경우 2's complement로 magnitude 생성
-            if (mult_result[63]) begin
-                mult_abs = (~mult_result) + 64'd1;
-            end
-            else begin
-                mult_abs = mult_result;
-            end
-
-            // rounding offset = 2^(S-1)
-            round_offset = 64'd1 << (current_shift - 6'd1);
-
-            // abs(P) + rounding offset
-            // carry 손실 방지를 위해 65-bit에서 계산
-            round_mag_ext = {1'b0, mult_abs} + {1'b0, round_offset};
-
-            // magnitude를 right shift한 뒤
-            // 원래 mult_result의 부호 복원
-            if (mult_result[63]) begin
-                rounded_result = -$signed(round_mag_ext >> current_shift);
-            end
-            else begin
-                rounded_result = $signed(round_mag_ext >> current_shift);
-            end
-        end
+        if (rounded_result > $signed(64'd127))        final_int8_result = 8'h7F;
+        else if (rounded_result < -$signed(64'd128))  final_int8_result = 8'h80;
+        else                                          final_int8_result = rounded_result[7:0];
     end
 
-    // =========================================================
-    // Normal Layer ReLU / INT8 Saturation
-    // =========================================================
-    always @(*) begin
-        // 기본값
-        normal_int8_result = 8'd0;
-
-        // ReLU가 활성화된 Layer에서 음수이면 0
-        if (relu_en_reg && rounded_result[63]) begin
-            normal_int8_result = 8'd0;
-        end
-
-        // signed INT8 최댓값 초과
-        else if (rounded_result > $signed(64'd127)) begin
-            normal_int8_result = 8'h7F;
-        end
-
-        // signed INT8 최솟값 미만
-        else if (rounded_result < -$signed(64'd128)) begin
-            normal_int8_result = 8'h80;
-        end
-
-        // signed INT8 범위 안이면 하위 8-bit 사용
-        else begin
-            normal_int8_result = rounded_result[7:0];
-        end
-    end
-
-    // =========================================================
-    // Final Layer INT8 Saturation
-    // =========================================================
-    always @(*) begin
-        // 기본값
-        final_int8_result = 8'd0;
-
-        // Final Layer는 ReLU를 적용하지 않음
-        // signed INT8 최댓값 초과
-        if (rounded_result > $signed(64'd127)) begin
-            final_int8_result = 8'h7F;
-        end
-
-        // signed INT8 최솟값 미만
-        else if (rounded_result < -$signed(64'd128)) begin
-            final_int8_result = 8'h80;
-        end
-
-        // signed INT8 범위 내
-        else begin
-            final_int8_result = rounded_result[7:0];
-        end
-    end
+    // Final 결과를 handshake 완료까지 유지
+    reg signed [7:0] final_result_reg;
 
     // =========================================================
     // Normal INT8 Output Lane Registers
@@ -431,9 +316,8 @@ module post_process (
     reg signed [7:0] result_lane1;
     reg signed [7:0] result_lane2;
 
-    // 각 lane의 계산이 완료됐는지 표시
-    // 모든 유효 lane 계산 완료 여부를 판단할 때 사용
-    reg [2:0] result_done_mask;
+    // 이 beat 의 마지막 lane 을 파이프라인에 넣었다 (넣은 뒤 결과가 나올 때까지 기다린다)
+    reg issue_done;
 
     // =========================================================
     // FSM State
@@ -536,31 +420,21 @@ module post_process (
     assign bias_req_fire = o_bias_req_valid && i_bias_req_ready;
     assign bias_rsp_fire = i_bias_rsp_valid && o_bias_rsp_ready;
 
-    // 현재 Bias response까지 반영했을 때
-    // 어떤 lane의 Bias가 준비되는지 계산
-    wire [2:0] bias_loaded_next;
-
-    assign bias_loaded_next = bias_loaded_mask | (3'b001 << bias_rsp_lane_reg);
+    // 이번 응답이 이 타일의 마지막 lane 이다
+    wire bias_rsp_last = bias_rsp_fire && (bias_rsp_idx == bias_n_lanes - 2'd1);
 
     // =========================================================
-    // Lane Process Completion
+    // Lane 넣기 / 완료 판정
     // =========================================================
 
-    // 현재 lane에 대응하는 bit
-    wire [2:0] current_lane_bit;
+    // 이 beat 에서 마지막으로 넣을 lane (keep 은 001 / 011 / 111 로 lane0 부터 연속)
+    wire [1:0] last_lane_idx = keep_reg[2] ? 2'd2 : (keep_reg[1] ? 2'd1 : 2'd0);
 
-    // 현재 lane 처리까지 반영한 완료 mask
-    wire [2:0] result_done_next;
+    // s0 에 마지막 lane 을 넣는 클럭
+    wire       issue_last    = (state == PROCESS) && !issue_done && (lane_idx == last_lane_idx);
 
-    // 현재 cycle의 lane 처리로
-    // beat의 모든 유효 lane 처리가 완료되는지 표시
-    wire process_done;
-
-    assign current_lane_bit = (3'b001 << lane_idx);
-    assign result_done_next = result_done_mask | (current_lane_valid ? current_lane_bit : 3'b000);
-    assign process_done = (state == PROCESS) && (keep_reg != 3'b000) && ((result_done_next & keep_reg) == keep_reg);
-
-
+    // 마지막 lane 의 결과가 result_lane 에 써지는 클럭. 다음 클럭에 OUT_WAIT / FINAL_WAIT
+    wire       process_done  = (state == PROCESS) && s3_last;
 
     // =========================================================
     // FSM State Register
@@ -584,7 +458,7 @@ module post_process (
             // -------------------------------------------------
             IDLE: begin
                 if (cfg_fire)
-                  next_state = BIAS_REQ;
+                    next_state = cfg_hit ? READY : BIAS_REQ;   // 캐시 hit 이면 바로 READY
             end
 
 
@@ -592,8 +466,9 @@ module post_process (
             // param_buf에 현재 lane Bias 요청
             // -------------------------------------------------
             BIAS_REQ: begin
-                if (bias_req_fire)
-                    next_state = BIAS_WAIT;
+                // lane 0..n-1 요청을 연속으로 내고, 마지막 응답이 오면 READY
+                if (bias_rsp_last)
+                    next_state = READY;
             end
 
 
@@ -601,14 +476,8 @@ module post_process (
             // Bias 응답 대기
             // -------------------------------------------------
             BIAS_WAIT: begin
-                if (bias_rsp_fire) begin
-                    // 이번 response까지 포함했을 때
-                    // 현재 Tile에 필요한 모든 Bias가 준비되었는지 확인
-                    if ((bias_loaded_next & col_mask_reg) == col_mask_reg)
-                        next_state = READY;
-                    else
-                        next_state = BIAS_REQ;
-                end
+                // 쓰지 않는다 (연속 읽기로 바꾸면서 BIAS_REQ 에 합쳤다)
+                next_state = READY;
             end
 
 
@@ -617,7 +486,7 @@ module post_process (
             // -------------------------------------------------
             READY: begin
                 if (cfg_fire) begin
-                    next_state = BIAS_REQ;
+                    next_state = cfg_hit ? READY : BIAS_REQ;
                 end
                 else if (input_fire) begin
                     next_state = PROCESS;
@@ -679,14 +548,13 @@ module post_process (
 
         o_ready          = 1'b0;
 
-        // Normal output 기본값
-        o_data           = 24'd0;
+        // 데이터 출력은 state 로 게이팅하지 않고 레지스터를 그대로 낸다 (타이밍 2026-09-23 :
+        // state -> o_meta -> pooling 위치 계산 -> o_ready 가 한 경로였다). 유효 여부는 valid 만 본다
+        o_data           = {result_lane2, result_lane1, result_lane0};
         o_valid          = 1'b0;
-        o_keep           = 3'b000;
-        o_meta           = 19'd0;
-
-        // Final output은 다음 단계에서 연결
-        o_final_data     = 8'd0;
+        o_keep           = keep_reg;
+        o_meta           = meta_reg;
+        o_final_data     = final_result_reg;
         o_final_valid    = 1'b0;
 
 
@@ -697,15 +565,13 @@ module post_process (
             end
 
             BIAS_REQ: begin
-                // Bias request 발생
-                o_bias_req_valid = 1'b1;
-                // 현재 bias lane에 해당하는 주소 출력
-                o_bias_addr = bias_base_reg + out_ch_base_reg + bias_lane_idx;
+                // 남은 lane 이 있으면 요청, 응답은 항상 받는다
+                o_bias_req_valid = (bias_req_idx < bias_n_lanes);
+                o_bias_addr      = bias_base_reg + out_ch_base_reg + bias_req_idx;
+                o_bias_rsp_ready = 1'b1;
             end
 
             BIAS_WAIT: begin
-                // Bias response를 받을 준비
-                o_bias_rsp_ready = 1'b1;
             end
 
             READY: begin
@@ -809,75 +675,68 @@ module post_process (
     end
 
     // =========================================================
-    // Bias Cache / Control Register Update
+    // Bias 읽기 / 캐시 갱신
     // =========================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            // reset 시 Bias cache 초기화
-            bias_cache0       <= 32'd0;
-            bias_cache1       <= 32'd0;
-            bias_cache2       <= 32'd0;
-
-            // 아직 어떤 Bias도 준비되지 않은 상태
-            bias_loaded_mask  <= 3'b000;
-
-            // 유효 lane은 항상 낮은 번호부터 연속되므로
-            // 새로운 Tile은 항상 lane0 Bias부터 요청
-            bias_lane_idx     <= 2'd0;
-
-            // 아직 수락된 Bias request가 없으므로 초기화
-            bias_rsp_lane_reg <= 2'd0;
+            bias_cache0   <= 32'd0;
+            bias_cache1   <= 32'd0;
+            bias_cache2   <= 32'd0;
+            bias_req_idx  <= 2'd0;
+            bias_rsp_idx  <= 2'd0;
+            bias_n_lanes  <= 2'd1;
+            bc_valid      <= 2'b00;
+            bc_key0       <= 14'd0;  bc_key1 <= 14'd0;
+            bc0_b0 <= 32'd0; bc0_b1 <= 32'd0; bc0_b2 <= 32'd0;
+            bc1_b0 <= 32'd0; bc1_b1 <= 32'd0; bc1_b2 <= 32'd0;
+            bc_next       <= 1'b0;
         end
-        else if (cfg_fire) begin
-            // 새로운 Tile 설정이 들어오면
-            // 이전 Tile의 Bias cache 상태를 무효화
-            bias_cache0       <= 32'd0;
-            bias_cache1       <= 32'd0;
-            bias_cache2       <= 32'd0;
+        else begin
+            // param_buf 가 다시 적재되면 (새 추론) 캐시를 비운다
+            if (!i_params_loaded) bc_valid <= 2'b00;
 
-            bias_loaded_mask  <= 3'b000;
-
-            // 새 Tile의 첫 Bias는 lane0부터 요청
-            bias_lane_idx     <= 2'd0;
-
-            bias_rsp_lane_reg <= 2'd0;
-        end
-        else if (bias_req_fire) begin
-            // 현재 Bias request가 param_buf에 실제 수락되었으므로,
-            // 이후 들어올 Bias response가 어느 lane의 요청인지 기억
-            bias_rsp_lane_reg <= bias_lane_idx;
-        end
-        else if (bias_rsp_fire) begin
-            // 응답이 어느 lane에 대한 것인지 확인하여
-            // 해당 Bias cache에 저장
-            case (bias_rsp_lane_reg)
-
-                2'd0: begin
-                    bias_cache0 <= i_bias_data;
+            if (cfg_fire) begin
+                bias_req_idx <= 2'd0;
+                bias_rsp_idx <= 2'd0;
+                bias_n_lanes <= i_col_mask[2] ? 2'd3 : (i_col_mask[1] ? 2'd2 : 2'd1);
+                if (cfg_hit0) begin
+                    bias_cache0 <= bc0_b0;  bias_cache1 <= bc0_b1;  bias_cache2 <= bc0_b2;
                 end
-
-                2'd1: begin
-                    bias_cache1 <= i_bias_data;
+                else if (cfg_hit1) begin
+                    bias_cache0 <= bc1_b0;  bias_cache1 <= bc1_b1;  bias_cache2 <= bc1_b2;
                 end
-
-                2'd2: begin
-                    bias_cache2 <= i_bias_data;
+                else begin
+                    bias_cache0 <= 32'd0;   bias_cache1 <= 32'd0;   bias_cache2 <= 32'd0;
                 end
-
-                default: begin
-                    // 정상 동작에서는 발생하지 않음
+            end
+            else begin
+                if (bias_req_fire) bias_req_idx <= bias_req_idx + 2'd1;
+                if (bias_rsp_fire) begin
+                    bias_rsp_idx <= bias_rsp_idx + 2'd1;
+                    case (bias_rsp_idx)
+                        2'd0:    bias_cache0 <= i_bias_data;
+                        2'd1:    bias_cache1 <= i_bias_data;
+                        default: bias_cache2 <= i_bias_data;
+                    endcase
                 end
-
-            endcase
-
-            // 현재 response까지 포함하여
-            // Bias 준비 상태 갱신
-            bias_loaded_mask <= bias_loaded_next;
-
-            // 아직 필요한 Bias가 더 남아 있다면
-            // 다음 연속 lane을 요청하도록 index 증가
-            if ((bias_loaded_next & col_mask_reg) != col_mask_reg) begin
-                bias_lane_idx <= bias_rsp_lane_reg + 2'd1;
+                // 마지막 응답 : 이 타일의 bias 세 개를 캐시에 넣는다
+                if (bias_rsp_last && i_params_loaded) begin
+                    if (!bc_next) begin
+                        bc_key0 <= {bias_base_reg, out_ch_base_reg, col_mask_reg};
+                        bc0_b0  <= (bias_rsp_idx == 2'd0) ? i_bias_data : bias_cache0;
+                        bc0_b1  <= (bias_rsp_idx == 2'd1) ? i_bias_data : bias_cache1;
+                        bc0_b2  <= (bias_rsp_idx == 2'd2) ? i_bias_data : bias_cache2;
+                        bc_valid[0] <= 1'b1;
+                    end
+                    else begin
+                        bc_key1 <= {bias_base_reg, out_ch_base_reg, col_mask_reg};
+                        bc1_b0  <= (bias_rsp_idx == 2'd0) ? i_bias_data : bias_cache0;
+                        bc1_b1  <= (bias_rsp_idx == 2'd1) ? i_bias_data : bias_cache1;
+                        bc1_b2  <= (bias_rsp_idx == 2'd2) ? i_bias_data : bias_cache2;
+                        bc_valid[1] <= 1'b1;
+                    end
+                    bc_next <= ~bc_next;
+                end
             end
         end
     end
@@ -902,74 +761,72 @@ module post_process (
     end
 
     // =========================================================
-    // Lane Processing Register Update
+    // Lane 파이프라인 진행
     // =========================================================
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            // 처리할 lane은 항상 lane0부터 시작
             lane_idx         <= 2'd0;
-
-            // 아직 처리 완료된 lane 없음
-            result_done_mask <= 3'b000;
-
-            // 이전 beat의 결과가 남지 않도록 초기화
+            issue_done       <= 1'b0;
+            s1_valid <= 1'b0;  s2_valid <= 1'b0;  s3_valid <= 1'b0;
+            s1_lane  <= 2'd0;  s2_lane  <= 2'd0;  s3_lane  <= 2'd0;
+            s1_last  <= 1'b0;  s2_last  <= 1'b0;  s3_last  <= 1'b0;
+            s1_acc32 <= 32'd0; s1_mult  <= 32'd0;
+            s2_prod  <= 64'd0; s3_sum   <= 64'd0;
             result_lane0     <= 8'd0;
             result_lane1     <= 8'd0;
             result_lane2     <= 8'd0;
             final_result_reg <= 8'd0;
         end
-        else if (input_fire) begin
-            // 새로운 beat를 수락하면 lane 처리 상태 초기화
-            lane_idx         <= 2'd0;
-            result_done_mask <= 3'b000;
+        else begin
+            // ---- 파이프라인은 매 클럭 전진한다 ----
+            // s0 -> s1 : PROCESS 에서 현재 lane 을 넣는다 (무효 lane 은 valid=0 으로 지나간다)
+            s1_valid <= (state == PROCESS) && !issue_done && current_lane_valid;
+            s1_lane  <= lane_idx;
+            s1_last  <= issue_last;
+            s1_acc32 <= acc32_reg;
+            s1_mult  <= current_multiplier;
 
-            // invalid lane의 출력에도 이전 결과가 남지 않도록 초기화
-            result_lane0     <= 8'd0;
-            result_lane1     <= 8'd0;
-            result_lane2     <= 8'd0;
-            final_result_reg <= 8'd0;
-        end else if (state == PROCESS) begin
-            // 현재 lane이 유효한 경우 처리 완료 bit 기록
-            if (current_lane_valid) begin
+            // s1 -> s2 : signed 32 x 32 곱 (DSP)
+            s2_valid <= s1_valid;
+            s2_lane  <= s1_lane;
+            s2_last  <= s1_last;
+            s2_prod  <= s1_acc32 * s1_mult;
 
-                // Normal Layer
+            // s2 -> s3 : 반올림 오프셋 덧셈
+            s3_valid <= s2_valid;
+            s3_lane  <= s2_lane;
+            s3_last  <= s2_last;
+            s3_sum   <= s2_prod + round_off;
+
+            // ---- s3 : shift + 포화 결과 저장 ----
+            if (s3_valid) begin
                 if (!is_final_layer_reg) begin
-                    case (lane_idx)
-
-                        2'd0: begin
-                            result_lane0 <= normal_int8_result;
-                        end
-
-                        2'd1: begin
-                            result_lane1 <= normal_int8_result;
-                        end
-
-                        2'd2: begin
-                            result_lane2 <= normal_int8_result;
-                        end
-
-                        default: begin
-                            // 정상 동작에서는 발생하지 않음
-                        end
-
+                    case (s3_lane)
+                        2'd0:    result_lane0 <= normal_int8_result;
+                        2'd1:    result_lane1 <= normal_int8_result;
+                        2'd2:    result_lane2 <= normal_int8_result;
+                        default: begin end
                     endcase
                 end
-
-                // Final FC2
-                // FC2는 output channel이 1개이므로 lane0만 사용
-                else begin
-                    if (lane_idx == 2'd0) begin
-                        final_result_reg <= final_int8_result;
-                    end
+                else if (s3_lane == 2'd0) begin
+                    // Final FC2 는 lane0 하나
+                    final_result_reg <= final_int8_result;
                 end
-
-                // 현재 lane 처리 완료 기록
-                result_done_mask <= result_done_next;
             end
-            // 현재 lane 처리로 전체 beat가 끝나지 않았다면
-            // 다음 lane으로 이동
-            if (!process_done) begin
-                lane_idx <= lane_idx + 2'd1;
+
+            // ---- lane 넣기 ----
+            if (input_fire) begin
+                // 새 beat : lane0 부터. 무효 lane 자리에 이전 결과가 남지 않도록 지운다
+                lane_idx         <= 2'd0;
+                issue_done       <= 1'b0;
+                result_lane0     <= 8'd0;
+                result_lane1     <= 8'd0;
+                result_lane2     <= 8'd0;
+                final_result_reg <= 8'd0;
+            end
+            else if ((state == PROCESS) && !issue_done) begin
+                if (issue_last) issue_done <= 1'b1;
+                else            lane_idx   <= lane_idx + 2'd1;
             end
         end
     end
