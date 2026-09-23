@@ -108,60 +108,15 @@ module out_path (
     end
 
     // =========================================================
-    // Tile Configuration Pending Buffer
+    // Tile Configuration : 직접 전달 (핸드셰이크 정리 2026-09-23)
+    //   cnn_cntl 은 이전 타일의 tile_in_done 뒤, pe_cntl 이 IDLE 이고 수집기가 빈 것을 본 뒤에만
+    //   i_tile_cfg_valid 를 낸다 (요구사항 4 / 14). 그 시점에 output_fifo (tile_active=0) 와
+    //   post_process (READY, cfg_change_allowed=1) 는 항상 받을 수 있으므로 여기서 다시 버퍼링하지
+    //   않는다. 아래 두 ready 는 검증용으로만 남긴다 (둘 다 1 이어야 정상).
     // =========================================================
-    reg         cfg_pending;
-
-    reg  [11:0] tile_patch_base_reg;
-    reg  [ 4:0] tile_out_ch_base_reg;
-    reg  [ 2:0] tile_row_mask_reg;
-    reg  [ 2:0] tile_col_mask_reg;
-    reg         tile_last_reg;
-
     wire        fifo_cfg_ready;
     wire        pp_cfg_ready;
-    wire        tile_cfg_mask_valid;
-    wire        tile_cfg_fire;
-
-    assign tile_cfg_mask_valid =
-    (
-        (tile_row_mask_reg == 3'b001) ||
-        (tile_row_mask_reg == 3'b011) ||
-        (tile_row_mask_reg == 3'b111)
-    ) &&
-    (
-        (tile_col_mask_reg == 3'b001) ||
-        (tile_col_mask_reg == 3'b011) ||
-        (tile_col_mask_reg == 3'b111)
-    );
-
-    assign tile_cfg_fire =
-        cfg_pending &&
-        tile_cfg_mask_valid &&
-        fifo_cfg_ready &&
-        pp_cfg_ready;
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            cfg_pending          <= 1'b0;
-            tile_patch_base_reg  <= 12'd0;
-            tile_out_ch_base_reg <= 5'd0;
-            tile_row_mask_reg    <= 3'b000;
-            tile_col_mask_reg    <= 3'b000;
-            tile_last_reg        <= 1'b0;
-        end else begin
-            if (i_tile_cfg_valid && !cfg_pending) begin
-                tile_patch_base_reg  <= i_patch_base;
-                tile_out_ch_base_reg <= i_out_ch_base;
-                tile_row_mask_reg    <= i_row_mask;
-                tile_col_mask_reg    <= i_col_mask;
-                tile_last_reg        <= i_tile_last;
-                cfg_pending          <= 1'b1;
-            end else if (tile_cfg_fire) begin
-                cfg_pending <= 1'b0;
-            end
-        end
-    end
+    wire        tile_cfg_fire = i_tile_cfg_valid;
 
     // =========================================================
     // Output FIFO Interface Wires
@@ -198,7 +153,7 @@ module out_path (
 
     wire               params_loaded;
 
-    assign o_params_ready = !cfg_pending && pp_params_ready;
+    assign o_params_ready = pp_params_ready;
 
     // =========================================================
     // Pooling Unit Interface Wires
@@ -245,11 +200,11 @@ module out_path (
         .rst_n(rst_n),
 
         .i_cfg_valid  (tile_cfg_fire),
-        .i_patch_base (tile_patch_base_reg),
-        .i_out_ch_base(tile_out_ch_base_reg),
-        .i_row_mask   (tile_row_mask_reg),
-        .i_col_mask   (tile_col_mask_reg),
-        .i_tile_last  (tile_last_reg),
+        .i_patch_base (i_patch_base),
+        .i_out_ch_base(i_out_ch_base),
+        .i_row_mask   (i_row_mask),
+        .i_col_mask   (i_col_mask),
+        .i_tile_last  (i_tile_last),
 
         .i_is_fc (is_fc_reg),
         .i_conv_w(conv_w_reg),
@@ -275,8 +230,8 @@ module out_path (
         .i_cfg_valid(tile_cfg_fire),
         .o_cfg_ready(pp_cfg_ready),
 
-        .i_col_mask   (tile_col_mask_reg),
-        .i_out_ch_base(tile_out_ch_base_reg),
+        .i_col_mask   (i_col_mask),
+        .i_out_ch_base(i_out_ch_base),
 
         .i_bias_base     (bias_base_reg),
         .i_relu_en       (relu_en_reg),
@@ -325,28 +280,28 @@ module out_path (
     pooling_unit u_pooling_unit (
         .clk  (clk),
         .rst_n(rst_n),
-    
+
         // Layer Configuration
         .i_cfg_valid(i_layer_cfg_valid),
         .i_pool_en  (i_pool_en),
         .i_in_w     (i_conv_w),
         .i_in_h     (i_conv_h),
         .i_channels (i_out_channels),
-    
+
         // post_process -> pooling_unit
         .i_data (pp_data),
         .i_valid(pp_valid),
         .o_ready(pp_ready),
         .i_keep (pp_keep),
         .i_meta (pp_meta),
-    
+
         // pooling_unit -> result_buf
         .o_data (pool_data),
         .o_valid(pool_valid),
         .i_ready(pool_ready),
         .o_keep (pool_keep),
         .o_meta (pool_meta),
-    
+
         // Tile Input Completion
         .o_tile_in_done(pool_tile_in_done)
     );
