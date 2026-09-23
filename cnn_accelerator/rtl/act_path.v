@@ -17,7 +17,6 @@ module act_path (
     output wire        o_ram_rd_en,
     output wire [11:0] o_ram_rd_addr,
     input  wire [23:0] i_ram_rdata,
-    input  wire        i_ram_valid,
     output wire        o_ld_done,
 
     // ---- cnn_cntl ----
@@ -80,7 +79,6 @@ module act_path (
         .o_ram_rd_en    (o_ram_rd_en),
         .o_ram_rd_addr  (o_ram_rd_addr),
         .i_ram_rdata    (i_ram_rdata),
-        .i_ram_valid    (i_ram_valid),
         .o_ibuf_we      (ibuf_we),
         .o_ibuf_waddr   (ibuf_waddr),
         .o_ibuf_wdata   (ibuf_wdata),
@@ -91,16 +89,10 @@ module act_path (
     input_buf INPUT_BUF (
         .clk       (clk),
         .rst_n     (rst_n),
-        // 출력단 생길경우 교체
-        // .i_wr_en   (ibuf_we | i_en),
-        // .i_wr_addr (i_wr_en ? i_addr : ibuf_waddr),
-        // .i_wr_data (i_wr_en ? i_data : ibuf_wdata),
-        // .i_wr_be   (i_wr_en ? i_be   : ibuf_wbe),
-        .i_wr_en   (ibuf_we),
-        .i_wr_addr (ibuf_waddr),
-        .i_wr_data (ibuf_wdata),
-        .i_wr_be   (ibuf_wbe),
-        //
+        .i_wr_en   (ibuf_we | i_wr_en),
+        .i_wr_addr (i_wr_en ? i_wr_addr : ibuf_waddr),
+        .i_wr_data (i_wr_en ? i_wr_data : ibuf_wdata),
+        .i_wr_be   (i_wr_en ? i_wr_be : ibuf_wbe),
         .i_rd_en   (ibuf_rd_en),
         .i_rd_addr (ibuf_rd_addr),
         .o_rd_data (ibuf_rdata),
@@ -131,19 +123,19 @@ module act_path (
     );
 
     fc_gen FC_GEN (
-        .clk         (clk),
-        .rst_n       (rst_n),
-        .i_tile_start(i_fc_tile_start && i_fc_mode),
-        .i_src_base  (i_src_base),
-        .i_fc_in_count    (i_fc_in_count),
-        .o_rd_en     (fc_rd_en),
-        .o_rd_addr   (fc_rd_addr),
-        .i_rd_data   (ibuf_rdata),
-        .i_rd_valid  (ibuf_rvalid && i_fc_mode),
-        .o_data      (fc_data),
-        .o_keep      (fc_keep),
-        .o_valid     (fc_valid),
-        .i_ready     (fc_ready)
+        .clk          (clk),
+        .rst_n        (rst_n),
+        .i_tile_start (i_fc_tile_start && i_fc_mode),
+        .i_src_base   (i_src_base),
+        .i_fc_in_count(i_fc_in_count),
+        .o_rd_en      (fc_rd_en),
+        .o_rd_addr    (fc_rd_addr),
+        .i_rd_data    (ibuf_rdata),
+        .i_rd_valid   (ibuf_rvalid && i_fc_mode),
+        .o_data       (fc_data),
+        .o_keep       (fc_keep),
+        .o_valid      (fc_valid),
+        .i_ready      (fc_ready)
     );
 
     MUX MUX (
@@ -190,7 +182,6 @@ module act_ld_unit (
     output wire        o_ram_rd_en,
     output wire [11:0] o_ram_rd_addr,
     input  wire [23:0] i_ram_rdata,
-    input  wire        i_ram_valid,
 
     output wire        o_ibuf_we,
     output wire [13:0] o_ibuf_waddr,
@@ -207,7 +198,7 @@ module act_ld_unit (
     reg [12:0] word_index;
 
     wire start_rd = (state == S_IDLE) && i_ld_start && (i_ld_word_count != 13'd0);
-    wire accept_rsp = (state == S_WAIT) && i_ram_valid;
+    wire accept_rsp = (state == S_WAIT);
     wire last_word = (word_index == word_count - 13'd1);
 
     // IDLE: 첫 word 요청
@@ -345,10 +336,29 @@ module act_patch_gen (
     reg [2:0] row_mask;
     reg words2;  // 1: pixel당 2 word (Cin=6), 0: 1 word (Cin=3)
     reg [5:0] wpr;  // 한 행의 window 개수 = out_w / 2
+    reg [2:0] wpr_sh;    // log2(wpr).  wpr 은 2 의 거듭제곱 (32 / 16 / 8 / 1)
+    reg [5:0] wpr_mask;  // wpr - 1
+    reg [2:0] in_w_sh;   // log2(in_w). in_w 는 2 의 거듭제곱 (64 / 32 / 16)
     reg [13:0] base_patch;
     reg [1:0] patch_lane;
 
     wire signed [15:0] in_w_s16 = {9'd0, in_w};
+
+    // 2 의 거듭제곱 (1 ~ 64) 의 log2. 그 밖의 값은 최상위 1 의 자리 (타이밍 : 나눗셈 대신 shift 용)
+    function [2:0] f_log2_7;
+        input [6:0] v;
+        begin
+            casez (v)
+                7'b1??????: f_log2_7 = 3'd6;
+                7'b01?????: f_log2_7 = 3'd5;
+                7'b001????: f_log2_7 = 3'd4;
+                7'b0001???: f_log2_7 = 3'd3;
+                7'b00001??: f_log2_7 = 3'd2;
+                7'b000001?: f_log2_7 = 3'd1;
+                default:    f_log2_7 = 3'd0;
+            endcase
+        end
+    endfunction
 
     // ---------------- window cache (2 bank x 32 word) ----------------
     reg [23:0] window_mem[0:63];
@@ -363,8 +373,9 @@ module act_patch_gen (
     wire cur_hit = win_valid[cur_bank] && (cur_tag == cur_win);
 
     // 현재 window가 출력 격자의 어디에 있는지 계산
-    wire [5:0] win_x = cur_win % wpr;
-    wire [5:0] win_y = cur_win / wpr;
+    // 나눗셈 대신 shift / mask (wpr 은 2 의 거듭제곱). 조합 나눗셈은 100 MHz 에서 -19 ns 였다 (2026-09-23)
+    wire [5:0] win_x = cur_win[5:0] & wpr_mask;
+    wire [5:0] win_y = cur_win >> wpr_sh;
 
     // 필요한 입력 4×4 영역의 시작 좌표
     wire signed [8:0] org_x = $signed(
@@ -376,7 +387,8 @@ module act_patch_gen (
     ) - (pad_en ? 9'sd1 : 9'sd0);
 
     // 입력의 픽셀 번호 = y × 입력 폭 + x
-    wire signed [15:0] org_L = org_y * in_w_s16 + org_x;
+    // in_w 도 2 의 거듭제곱이라 곱셈 대신 shift
+    wire signed [15:0] org_L = ($signed({{7{org_y[8]}}, org_y}) <<< in_w_sh) + org_x;
 
     // ---------------- capture counter ----------------
     reg signed [8:0] cap_x, cap_y;
@@ -471,6 +483,7 @@ module act_patch_gen (
     endtask
 
     wire [6:0] out_w_in = i_pad_en ? i_in_w : (i_in_w - 7'd2);
+    wire [5:0] wpr_in   = (out_w_in[6:1] == 6'd0) ? 6'd1 : out_w_in[6:1];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -484,6 +497,9 @@ module act_patch_gen (
             row_mask   <= 3'b000;
             words2     <= 1'b0;
             wpr        <= 6'd1;
+            wpr_sh     <= 3'd0;
+            wpr_mask   <= 6'd0;
+            in_w_sh    <= 3'd0;
             base_patch <= 14'd0;
             patch_lane <= 2'd0;
             win_valid  <= 2'b00;
@@ -514,7 +530,10 @@ module act_patch_gen (
                         pad_en <= i_pad_en;
                         k_total <= i_k_total;
                         words2 <= (i_in_c > 6'd3);
-                        wpr <= (out_w_in[6:1] == 6'd0) ? 6'd1 : out_w_in[6:1];
+                        wpr <= wpr_in;
+                        wpr_sh   <= f_log2_7({1'b0, wpr_in});
+                        wpr_mask <= wpr_in - 6'd1;
+                        in_w_sh  <= f_log2_7(i_in_w);
 
                         if ((i_pos_base == 14'd0) ||
                             (i_src_base != src_base) ||
@@ -653,6 +672,8 @@ module fc_gen (
 
     reg  [12:0] word_offset;
     reg  [ 1:0] byte_lane;
+    reg  [12:0] k_word;      // k / 3  (k 와 같이 세는 카운터. 조합 나눗셈은 타이밍 때문에 뺐다 2026-09-23)
+    reg  [ 1:0] k_lane;      // k % 3
 
     // 필요한 word가 현재 캐시에 있으면 메모리 읽기 생략
     wire        cache_hit = cached_valid && (cached_addr == wanted_addr);
@@ -668,8 +689,8 @@ module fc_gen (
             byte_lane   = (k[1:0] == 2'd3) ? 2'd0 : k[1:0];
         end else begin
             // 이후 FC: word당 3개
-            word_offset = k / 13'd3;
-            byte_lane   = k % 13'd3;
+            word_offset = k_word;
+            byte_lane   = k_lane;
         end
 
         wanted_addr = base_addr + word_offset;
@@ -687,6 +708,8 @@ module fc_gen (
             base_addr    <= 14'd0;
             input_count  <= 13'd0;
             k            <= 13'd0;
+            k_word       <= 13'd0;
+            k_lane       <= 2'd0;
             cached_valid <= 1'b0;
             cached_addr  <= 14'd0;
             cached_word  <= 24'd0;
@@ -697,6 +720,8 @@ module fc_gen (
                         base_addr    <= i_src_base;
                         input_count  <= i_fc_in_count;
                         k            <= 13'd0;
+                        k_word       <= 13'd0;
+                        k_lane       <= 2'd0;
                         cached_valid <= 1'b0;
                         state        <= S_GET;
                     end
@@ -722,6 +747,12 @@ module fc_gen (
                             state <= S_IDLE;
                         end else begin
                             k     <= k + 1'b1;
+                            if (k_lane == 2'd2) begin
+                                k_lane <= 2'd0;
+                                k_word <= k_word + 13'd1;
+                            end else begin
+                                k_lane <= k_lane + 2'd1;
+                            end
                             state <= S_GET;
                         end
                     end
@@ -800,7 +831,3 @@ module act_feeder (
         end
     end
 endmodule
-
-
-
-
