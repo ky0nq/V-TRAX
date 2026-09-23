@@ -4,6 +4,10 @@
 // wgt_path : Weight Top
 //
 //   RAM -> wgt_ld_unit -> wgt_buf -> wgt_patch_gen -> wgt_feeder -> PE (skew)
+//
+//   wgt_buf 는 512 word = 반쪽 2 개 x 256 (2026-09-23 이중 버퍼). chunk 하나는 반쪽 하나에 들어간다.
+//   어느 반쪽인지는 cnn_cntl.o_buf_half 가 정한다 : wgt_ld_unit 은 i_ld_start 에서, wgt_patch_gen 은
+//   i_chunk_start 에서 래치한다. 한쪽을 PE 에 공급하는 동안 다른 쪽에 다음 chunk 를 적재할 수 있다.
 // ============================================================================
 module wgt_path (
     input wire clk,
@@ -11,8 +15,9 @@ module wgt_path (
 
     input  wire        i_ld_start,
     input  wire [31:0] i_mem_base,
-    input  wire [ 6:0] i_chunk_word_count,
-    input  wire [ 6:0] i_load_chunk_len,
+    input  wire [ 8:0] i_chunk_word_count,   // reader 가 읽을 chunk 길이 1 ~ 256 (pe_cntl.o_chunk_word_count)
+    input  wire [ 8:0] i_load_chunk_len,     // 적재할 chunk 길이 1 ~ 256      (cnn_cntl.o_chunk_word_count)
+    input  wire        i_buf_half,           // chunk 가 놓이는 wgt_buf 반쪽 (cnn_cntl.o_buf_half). 적재는 i_ld_start, reader 는 i_chunk_start 에서 래치
     output wire        o_mem_rd_en,
     output wire [31:0] o_mem_rd_addr,
     input  wire [23:0] i_mem_rdata,
@@ -36,11 +41,11 @@ module wgt_path (
 );
 
     wire        buf_we;
-    wire [ 5:0] buf_waddr;
+    wire [ 8:0] buf_waddr;
     wire [23:0] buf_wdata;
 
     wire        gen_ren;
-    wire [ 5:0] gen_raddr;
+    wire [ 8:0] gen_raddr;
     wire [23:0] buf_rdata;
     wire        buf_rvalid;
     
@@ -55,6 +60,7 @@ module wgt_path (
         .i_ld_start         (i_ld_start),
         .i_mem_base         (i_mem_base),
         .i_chunk_word_count (i_load_chunk_len),
+        .i_buf_half         (i_buf_half),
         .o_mem_rd_en        (o_mem_rd_en),
         .o_mem_rd_addr      (o_mem_rd_addr),
         .i_mem_rdata        (i_mem_rdata),
@@ -85,6 +91,7 @@ module wgt_path (
         .i_chunk_start      (i_chunk_start),
         .i_chunk_word_count (i_chunk_word_count),
         .i_col_mask         (i_col_mask),
+        .i_buf_half         (i_buf_half),
         .o_ren              (gen_ren),
         .o_raddr            (gen_raddr),
         .i_rdata            (buf_rdata),
@@ -115,6 +122,7 @@ endmodule
 
 // ============================================================================
 // wgt_ld_unit : RAM -> wgt_buf copy
+//   쓰기 주소 = {i_buf_half (i_ld_start 에서 래치), idx 0 ~ 255}
 // ============================================================================
 module wgt_ld_unit (
     input wire clk,
@@ -122,7 +130,8 @@ module wgt_ld_unit (
 
     input wire        i_ld_start,
     input wire [31:0] i_mem_base,
-    input wire [ 6:0] i_chunk_word_count,
+    input wire [ 8:0] i_chunk_word_count,
+    input wire        i_buf_half,
 
     output wire        o_mem_rd_en,
     output wire [31:0] o_mem_rd_addr,
@@ -130,7 +139,7 @@ module wgt_ld_unit (
     input  wire        i_mem_rvalid,
 
     output wire        o_buf_we,
-    output wire [ 5:0] o_buf_waddr,
+    output wire [ 8:0] o_buf_waddr,
     output wire [23:0] o_buf_wdata,
 
     output reg  o_ld_done,
@@ -141,29 +150,31 @@ module wgt_ld_unit (
 
     reg [ 1:0] state;
     reg [31:0] mem_base;
-    reg [ 6:0] chunk_len;
-    reg [ 6:0] idx;
+    reg [ 8:0] chunk_len;
+    reg [ 8:0] idx;
+    reg        buf_half;
 
     assign o_ld_ready = rst_n && (state == S_IDLE) && i_buf_free;
 
     wire start_load = i_ld_start && o_ld_ready;
     wire accept_rsp = (state == S_WAIT) && i_mem_rvalid;
-    wire last_word = (idx == chunk_len - 7'd1);
+    wire last_word = (idx == chunk_len - 9'd1);
 
-    assign o_mem_rd_en = rst_n && ((start_load && (i_chunk_word_count != 7'd0)) || (accept_rsp && !last_word));
+    assign o_mem_rd_en = rst_n && ((start_load && (i_chunk_word_count != 9'd0)) || (accept_rsp && !last_word));
     assign o_mem_rd_addr =(state == S_IDLE) ? 
-        i_mem_base : mem_base + {25'd0, idx} + 32'd1;
+        i_mem_base : mem_base + {23'd0, idx} + 32'd1;
 
     assign o_buf_we = rst_n && accept_rsp;
-    assign o_buf_waddr = idx[5:0];
+    assign o_buf_waddr = {buf_half, idx[7:0]};
     assign o_buf_wdata = i_mem_rdata;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state     <= S_IDLE;
             mem_base  <= 32'd0;
-            chunk_len <= 7'd0;
-            idx       <= 7'd0;
+            chunk_len <= 9'd0;
+            idx       <= 9'd0;
+            buf_half  <= 1'b0;
             o_ld_done <= 1'b0;
         end else begin
             o_ld_done <= 1'b0;
@@ -173,9 +184,10 @@ module wgt_ld_unit (
                     if (start_load) begin
                         mem_base  <= i_mem_base;
                         chunk_len <= i_chunk_word_count;
-                        idx       <= 7'd0;
+                        idx       <= 9'd0;
+                        buf_half  <= i_buf_half;
                         // length is zero -> Complete immediately
-                        if (i_chunk_word_count == 7'd0) o_ld_done <= 1'b1;
+                        if (i_chunk_word_count == 9'd0) o_ld_done <= 1'b1;
                         else state <= S_WAIT;
                     end
                 end
@@ -186,7 +198,7 @@ module wgt_ld_unit (
                             o_ld_done <= 1'b1;
                             state     <= S_IDLE;
                         end else begin
-                            idx <= idx + 7'd1;
+                            idx <= idx + 9'd1;
                         end
                     end
                 end
@@ -200,24 +212,24 @@ endmodule
 
 
 // ============================================================================
-// wgt_buf : 64 x 24bit
+// wgt_buf : 512 x 24bit = 반쪽 2 개 x 256 word (주소 [8] = 반쪽)
 // ============================================================================
 module wgt_buf (
     input wire clk,
     input wire rst_n,
 
     input wire        i_we,
-    input wire [ 5:0] i_waddr,
+    input wire [ 8:0] i_waddr,
     input wire [23:0] i_wdata,
 
     input wire       i_ren,
-    input wire [5:0] i_raddr,
+    input wire [8:0] i_raddr,
 
     output reg [23:0] o_rdata,
     output reg        o_rvalid
 );
-    //max 64 weight word
-    reg [23:0] mem[0:63];
+    // 반쪽 2 개 x 256 weight word
+    reg [23:0] mem[0:511];
 
     always @(posedge clk) begin
         if (!rst_n) begin
@@ -233,17 +245,19 @@ endmodule
 
 // ============================================================================
 // wgt_patch_gen : Read buffer sequentially and output beats
+//   읽기 주소 = {i_buf_half (i_chunk_start 에서 래치), rd_idx 0 ~ 255}
 // ============================================================================
 module wgt_patch_gen (
     input wire clk,
     input wire rst_n,
 
     input wire       i_chunk_start,
-    input wire [6:0] i_chunk_word_count,
+    input wire [8:0] i_chunk_word_count,
     input wire [2:0] i_col_mask,
+    input wire       i_buf_half,
 
     output wire        o_ren,
-    output wire [ 5:0] o_raddr,
+    output wire [ 8:0] o_raddr,
     input  wire [23:0] i_rdata,
     input  wire        i_rvalid,
 
@@ -255,9 +269,10 @@ module wgt_patch_gen (
     output reg o_chunk_done
 );
     reg chunk_active;
-    reg [6:0] chunk_len_r;
+    reg [8:0] chunk_len_r;
     reg [2:0] col_mask_r;
-    reg [6:0] rd_idx;           // Index of the next word to read
+    reg       rd_half_r;        // 이 chunk 가 든 반쪽
+    reg [8:0] rd_idx;           // Index of the next word to read
     reg [1:0] pend_count;       // Number of words not yet sent to the feeder
 
     // 2-entry
@@ -269,7 +284,7 @@ module wgt_patch_gen (
     wire rd_req = chunk_active && (rd_idx != chunk_len_r) && ((pend_count < 2'd2) || buf_read);
 
     assign o_ren   = rd_req;
-    assign o_raddr = rd_idx[5:0];
+    assign o_raddr = {rd_half_r, rd_idx[7:0]};
 
     wire [23:0] out_word = rd_sel ? data_buf1 : data_buf0;
     assign o_valid = chunk_active && (buf_count != 2'd0);
@@ -285,9 +300,10 @@ module wgt_patch_gen (
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             chunk_active <= 1'b0;
-            chunk_len_r  <= 7'd0;
+            chunk_len_r  <= 9'd0;
             col_mask_r   <= 3'd0;
-            rd_idx       <= 7'd0;
+            rd_half_r    <= 1'b0;
+            rd_idx       <= 9'd0;
             pend_count   <= 2'd0;
             rd_sel       <= 1'b0;
             wr_sel       <= 1'b0;
@@ -300,16 +316,17 @@ module wgt_patch_gen (
                 if (i_chunk_start) begin
                     chunk_len_r <= i_chunk_word_count;
                     col_mask_r  <= i_col_mask;
-                    rd_idx      <= 7'd0;
+                    rd_half_r   <= i_buf_half;
+                    rd_idx      <= 9'd0;
                     pend_count  <= 2'd0;
                     rd_sel      <= 1'b0;
                     wr_sel      <= 1'b0;
                     buf_count   <= 2'd0;
-                    if (i_chunk_word_count == 7'd0) o_chunk_done <= 1'b1;
+                    if (i_chunk_word_count == 9'd0) o_chunk_done <= 1'b1;
                     else chunk_active <= 1'b1;
                 end
             end else begin
-                if (rd_req) rd_idx <= rd_idx + 7'd1;
+                if (rd_req) rd_idx <= rd_idx + 9'd1;
 
                 pend_count <= pend_count + {1'b0, rd_req} - {1'b0, buf_read};
 
