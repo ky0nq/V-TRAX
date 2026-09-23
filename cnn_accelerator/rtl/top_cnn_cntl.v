@@ -155,6 +155,7 @@ module cnn_cntl #(
     output wire                  o_is_final_layer,       // -> out_path.i_is_final_layer (result_buf.i_is_final_layer)
     output wire                  o_pool_en,              // -> out_path.i_pool_en        (pooling_unit.i_pool_en)
     output wire [`DIM_W-1:0]     o_conv_w,               // -> out_path.i_pool_in_w      (pooling_unit.i_in_w, output_fifo.i_conv_w).  Pool 이전 출력 폭
+    output wire [`DIM_W-1:0]     o_conv_h,               // -> out_path.i_conv_h         (pooling_unit.i_in_h).  Pool 이전 출력 높이 (명세 R544. 2026-09-22 다시 넣음)
     output wire [`CH_W-1:0]      o_out_channels,         // -> out_path.i_pool_c (pooling_unit.i_channels), act_path.i_out_c (act_ld_unit.i_out_c : 쓰기 주소의 ceil(C/3))
     output wire [`ACT_AW-1:0]    o_dst_base,             // -> act_path.i_dst_base       (act_ld_unit.i_dst_base : 결과를 쓸 영역)
     output wire                  o_relu_en,              // -> out_path.i_relu_en        (post_process.i_relu_en)
@@ -203,10 +204,10 @@ module cnn_cntl #(
     // 타일 좌표. 두 카운터가 "어느 출력 9개를 계산하나" 를 정한다.
     reg [`POS_W-1:0] pos_group;      // `define POS_W  12 = 출력 위치 0 ~ 4095. 위치 3개 묶음 번호 (Conv0 0~1365 / Conv1 0~341 / FC 0)
     reg [`OCG_W-1:0] oc_group;       // `define OCG_W   4 = 채널 그룹 0 ~ 15.   채널 3개 묶음 번호 (Conv 0~1 / fc1 0~10 / fc2 0)
+    reg [`W_AW-1:0]  og_off_q;       // oc_group * K 를 oc_group 과 같은 에지에 누적한 값 (곱셈기 대신. 타이밍 2026-09-23)
 
     reg tile_started;
     reg tcfg_sent;
-    reg pr_low_seen;                // cfg 이후 params_ready=0 을 확인했다
     reg first_chunk_rdy;
     reg tile_in_done_seen;
     reg layer_done_seen;
@@ -306,6 +307,7 @@ module cnn_cntl #(
 
     // pooling_unit 에 주는 것은 "후처리 결과" 의 크기, 즉 Pool 이전 크기다
     assign o_conv_w = ly_out_w;  // Lx_OUT_W      (64 / 32 / 1 / 1)
+    assign o_conv_h = ly_out_h;  // Lx_OUT_H      (64 / 32 / 1 / 1)
 
     // pe_cntl 로 가는 타일 명령 payload. 데이터패스로 가는 것과 값이 같고, 명세가 포트를 따로 둔다.
     // 명세 act_ld_unit / fc_gen 표의 입력에 맞춘 포트. 값은 상수이거나 이미 나가는 값과 같다.
@@ -353,8 +355,21 @@ module cnn_cntl #(
     // act_patch_gen.i_pos_base 와 out_path.i_patch_base 로 같은 값이 간다.
     assign o_pos_base    = pos_base_k[`POS_W-1:0];
     assign o_out_ch_base = oc_base_k[`OCB_W-1:0];
-    assign o_row_mask    = lane_mask(ly_out_pix, pos_base_k);
-    assign o_col_mask    = lane_mask(out_c_k,    oc_base_k);
+    // mask 는 레지스터로 낸다 (타이밍 2026-09-23 : pos_group -> lane_mask -> output_fifo first_row 가 14 단).
+    //   pos_group / oc_group 은 C_NXT_TILE 에지에 바뀌고 tile_cfg / 타일 명령 / tile_start 는 그보다
+    //   2 clk 이상 뒤라 한 clk 늦은 값이 항상 맞다.
+    reg [`KEEP_W-1:0] row_mask_r, col_mask_r;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            row_mask_r <= {`KEEP_W{1'b0}};
+            col_mask_r <= {`KEEP_W{1'b0}};
+        end else begin
+            row_mask_r <= lane_mask(ly_out_pix, pos_base_k);
+            col_mask_r <= lane_mask(out_c_k,    oc_base_k);
+        end
+    end
+    assign o_row_mask    = row_mask_r;
+    assign o_col_mask    = col_mask_r;
 
     wire pos_last = ((pos_base_k + 13'd3) >= ly_out_pix);
     wire oc_last = ((oc_base_k + 13'd3) >= out_c_k);
@@ -410,7 +425,7 @@ module cnn_cntl #(
     wire [`W_AW-1:0] og_ext = {{(`W_AW - `OCG_W) {1'b0}}, oc_group};
     wire [`W_AW-1:0] k_ext = {{(`W_AW - `K_W) {1'b0}}, ly_k};
     wire [`W_AW-1:0] kb_ext = {{(`W_AW - `K_W) {1'b0}}, svc_kbase};
-    wire [`W_AW-1:0] og_off = og_ext * k_ext;  // oc_group * K
+    wire [`W_AW-1:0] og_off = og_off_q;        // oc_group * K (og_off_q 는 oc_group 갱신 에지에 같이 갱신)
     assign o_mem_base         = ly_w_base + og_off + kb_ext;
 
     // ready 를 본 clk 에만 1clk. W_ISSUE 는 ready 가 올 때까지 기다리는 상태다.
@@ -470,9 +485,9 @@ module cnn_cntl #(
             region_sel <= 1'b0;
             pos_group         <= {`POS_W{1'b0}};   // `define POS_W  12 → 12'd0 : 출력 위치 0 부터
             oc_group          <= {`OCG_W{1'b0}};   // `define OCG_W   4 →  4'd0 : 출력 채널 0 부터
+            og_off_q          <= {`W_AW{1'b0}};
             tile_started <= 1'b0;
             tcfg_sent <= 1'b0;
-            pr_low_seen <= 1'b0;
             first_chunk_rdy <= 1'b0;
             tile_in_done_seen <= 1'b0;
             layer_done_seen <= 1'b0;
@@ -583,9 +598,9 @@ module cnn_cntl #(
                     // layer change -> tile zero setting
                     pos_group          <= {`POS_W{1'b0}};  // POS_W  12 → 12'd0 : 출력 위치 0,1,2 (pos_base = 0)
                     oc_group           <= {`OCG_W{1'b0}};  // OCG_W   4 →  4'd0 : 출력 채널 0,1,2 (out_ch_base = 0)
+                    og_off_q           <= {`W_AW{1'b0}};
                     tile_started <= 1'b0;
                     tcfg_sent <= 1'b0;
-                    pr_low_seen <= 1'b0;
                     first_chunk_rdy <= 1'b0;
                     tile_in_done_seen <= 1'b0;
                     layer_done_seen <= 1'b0;
@@ -610,19 +625,15 @@ module cnn_cntl #(
                 end
 
                 // tile_cfg 1clk (i_tile_ready=1 인 clk 에만, 요구사항 4. 펄스는 위 assign 이 낸다)
-                // => params_ready  0 -> 1
+                // cfg 다음 clk 부터 i_params_ready=1 이면 진행한다. out_path 는 cfg 에지에 상태를 바꾸므로
+                // 그 다음 clk 의 값은 이 타일의 것이다 (bias 캐시 hit 이면 0 으로 내려가지 않고 바로 1).
+                // 전에는 0 을 한 번 본 뒤 1 을 기다렸다 (핸드셰이크 정리 2026-09-23, 명세 R562 갱신 필요)
                 C_TILE_CFG: begin // param_buf -> post_process
                     if (!tcfg_sent) begin
-                        if (i_tile_ready) begin
-                            tcfg_sent   <= 1'b1;
-                            pr_low_seen <= 1'b0;
-                        end
-                    end else begin
-                        if (!i_params_ready) pr_low_seen <= 1'b1;
-                        else if (pr_low_seen) begin
-                            tile_started <= 1'b0;
-                            state        <= C_PE_TILE;
-                        end
+                        if (i_tile_ready) tcfg_sent <= 1'b1;
+                    end else if (i_params_ready) begin
+                        tile_started <= 1'b0;
+                        state        <= C_PE_TILE;
                     end
                 end
 
@@ -653,15 +664,16 @@ module cnn_cntl #(
                 C_NXT_TILE: begin
                     tile_started      <= 1'b0;
                     tcfg_sent         <= 1'b0;
-                    pr_low_seen       <= 1'b0;
                     first_chunk_rdy   <= 1'b0;
                     tile_in_done_seen <= 1'b0;
 
                     if (!oc_last) begin
                         oc_group  <= oc_group + 1'b1;   // same patch 3, next output channel 3. 
+                        og_off_q  <= og_off_q + k_ext;
                         state <= C_W_LOAD;
                     end else if (!pos_last) begin
                         oc_group  <= {`OCG_W{1'b0}};    // OCG_W 4 → 4'd0 : next position -> again channel 0
+                        og_off_q  <= {`W_AW{1'b0}};
                         pos_group <= pos_group + 1'b1;  // patch_base += 3
                         state <= C_W_LOAD;
                     end else begin
@@ -1120,6 +1132,7 @@ module top_cnn_cntl #(
     output wire [`ACT_AW-1:0]    o_dst_base,             // [C] -> act_path.i_dst_base          (act_ld_unit.i_dst_base : 결과를 쓸 영역)
     output wire [`CH_W-1:0]      o_out_c,                // [C] -> act_path.i_out_c             (act_ld_unit.i_out_c : 쓰기 주소의 ceil(out_c/3))
     output wire [`DIM_W-1:0]     o_pool_in_w,            // [C] -> out_path.i_pool_in_w         (pooling_unit.i_in_w, output_fifo.i_conv_w : 패치 순번 -> pos 변환의 W)
+    output wire [`DIM_W-1:0]     o_pool_in_h,            // [C] -> out_path.i_conv_h            (pooling_unit.i_in_h)
     output wire [`CH_W-1:0]      o_pool_c,               // [C] -> out_path.i_pool_c            (pooling_unit.i_channels)
     output wire                  o_pool_en,              // [C] -> out_path.i_pool_en           (pooling_unit.i_pool_en)
     output wire                  o_is_final_layer,       // [C] -> out_path.i_is_final_layer    (result_buf.i_is_final_layer)
@@ -1200,7 +1213,7 @@ module top_cnn_cntl #(
     //     o_write_grant               ->  o_writer_mode
     //     o_fc_mode, o_is_fc          ->  o_path_sel              (같은 값)
     //     o_bias_base                 ->  o_param_base
-    //     o_conv_w                    ->  o_pool_in_w             (o_conv_h / o_result_clear 는 2026-09-22 팀 결정으로 없앴다)
+    //     o_conv_w, o_conv_h          ->  o_pool_in_w, o_pool_in_h  (o_result_clear 는 2026-09-22 팀 결정으로 없앴다. o_conv_h 는 같은 날 다시 넣었다)
     //     o_out_channels              ->  o_out_c, o_pool_c       (같은 값)
     //     o_layer_cfg_valid           ->  o_layer_cfg_valid, o_output_cfg_valid   (같은 펄스)
     //     o_pos_base, o_patch_base    ->  o_pos_base              (같은 값)
@@ -1314,6 +1327,7 @@ module top_cnn_cntl #(
         .o_dst_base(o_dst_base),
         .o_out_channels(o_out_c),
         .o_conv_w(o_pool_in_w),
+        .o_conv_h(o_pool_in_h),
         .o_pool_en(o_pool_en),
         .o_is_final_layer(o_is_final_layer),
         .o_ram_base(),                      // 명세의 act_ld_unit.i_ram_base 로 갈 값. 이 저장소의 act_ld_unit 에는 아직 입력이 없다
