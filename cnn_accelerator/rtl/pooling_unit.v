@@ -46,18 +46,40 @@ module pooling_unit (
     reg [6:0] in_w_reg;
     reg [6:0] in_h_reg;
     reg [5:0] channels_reg;
+    reg [2:0] in_w_sh_reg;     // log2(in_w).  in_w 는 2 의 거듭제곱 (64 / 32 / 16)
+    reg [6:0] in_w_mask_reg;   // in_w - 1
+
+    // 2 의 거듭제곱 (1 ~ 64) 의 log2. 그 밖의 값은 최상위 1 의 자리 (타이밍 : 나눗셈 대신 shift 용)
+    function [2:0] f_log2_7;
+        input [6:0] v;
+        begin
+            casez (v)
+                7'b1??????: f_log2_7 = 3'd6;
+                7'b01?????: f_log2_7 = 3'd5;
+                7'b001????: f_log2_7 = 3'd4;
+                7'b0001???: f_log2_7 = 3'd3;
+                7'b00001??: f_log2_7 = 3'd2;
+                7'b000001?: f_log2_7 = 3'd1;
+                default:    f_log2_7 = 3'd0;
+            endcase
+        end
+    endfunction
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            pool_en_reg  <= 1'b0;
-            in_w_reg     <= 7'd0;
-            in_h_reg     <= 7'd0;
-            channels_reg <= 6'd0;
+            pool_en_reg   <= 1'b0;
+            in_w_reg      <= 7'd0;
+            in_h_reg      <= 7'd0;
+            channels_reg  <= 6'd0;
+            in_w_sh_reg   <= 3'd0;
+            in_w_mask_reg <= 7'd0;
         end else if (i_cfg_valid) begin
-            pool_en_reg  <= i_pool_en;
-            in_w_reg     <= i_in_w;
-            in_h_reg     <= i_in_h;
-            channels_reg <= i_channels;
+            pool_en_reg   <= i_pool_en;
+            in_w_reg      <= i_in_w;
+            in_h_reg      <= i_in_h;
+            channels_reg  <= i_channels;
+            in_w_sh_reg   <= f_log2_7(i_in_w);
+            in_w_mask_reg <= i_in_w - 7'd1;
         end
     end
 
@@ -79,6 +101,15 @@ module pooling_unit (
     assign input_tile_end    = i_meta[17];
     assign input_layer_end   = i_meta[18];
 
+    // 채널 그룹 선택. 1792 줄 always 블록보다 앞에 있어야 해서 여기로 올렸다 (사용 전 선언).
+    // Current MaxPool layer has 6 output channels.
+    //
+    // group 0 : channel 0 ~ 2, out_ch_base = 0
+    // group 1 : channel 3 ~ 5, out_ch_base = 3
+    wire pool_group_sel;
+
+    assign pool_group_sel = (input_out_ch_base == 5'd3);
+
     // =========================================================
     // Position Decode
     // =========================================================
@@ -87,9 +118,9 @@ module pooling_unit (
     wire [11:0] input_y_full;
     wire [11:0] input_x_full;
 
-    assign input_y_full = (in_w_reg != 7'd0) ? (input_pos / {5'd0, in_w_reg}) : 12'd0;
-
-    assign input_x_full = (in_w_reg != 7'd0) ? (input_pos % {5'd0, in_w_reg}) : 12'd0;
+    // 나눗셈 대신 shift / mask (in_w 는 2 의 거듭제곱). 조합 나눗셈은 100 MHz 에서 -20 ns 였다 (2026-09-23)
+    assign input_y_full = input_pos >> in_w_sh_reg;
+    assign input_x_full = input_pos & {5'd0, in_w_mask_reg};
 
     wire [6:0] input_y;
     wire [6:0] input_x;
@@ -115,7 +146,10 @@ module pooling_unit (
     // pool_pos = (y/2) * (in_w/2) + (x/2)
     wire [11:0] pool_position;
 
-    assign pool_position = ({5'd0, input_y} >> 1) * ({5'd0, in_w_reg} >> 1) + ({5'd0, input_x} >> 1);
+    // (y/2) * (in_w/2) + (x/2)  =  (y/2) << (log2(in_w) - 1)  |  (x/2)
+    wire [11:0] pool_y2 = {6'd0, input_y[6:1]};
+    wire [11:0] pool_x2 = {6'd0, input_x[6:1]};
+    assign pool_position = (in_w_sh_reg == 3'd0) ? 12'd0 : ((pool_y2 << (in_w_sh_reg - 3'd1)) | pool_x2);
 
     // 동일 channel group에서 하나의 2x2 window를 구분하는 ID.
     // 현재 구조에서는 pool output position과 동일하다.
@@ -156,99 +190,6 @@ module pooling_unit (
     assign o_meta = out_meta_reg;
 
     // =========================================================
-    // Output Register / Tile Input Done
-    // =========================================================
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            out_data_reg      <= 24'd0;
-            out_valid_reg     <= 1'b0;
-            out_keep_reg      <= 3'b000;
-            out_meta_reg      <= 19'd0;
-
-            o_tile_in_done    <= 1'b0;
-        end
-        else begin
-            // pulse 기본값
-            o_tile_in_done <= 1'b0;
-
-            // 새 Layer 시작 시 pending output 제거
-            if (i_cfg_valid) begin
-                out_valid_reg <= 1'b0;
-            end
-            else begin
-
-                // 현재 output이 downstream에 수락되면 제거
-                if (output_fire) begin
-                    out_valid_reg <= 1'b0;
-                end
-
-                // -------------------------------------------------
-                // 새로운 input 수락
-                // -------------------------------------------------
-                if (input_fire) begin
-
-                    // =============================================
-                    // Bypass
-                    // =============================================
-                    if (!pool_en_reg) begin
-                        out_data_reg  <= i_data;
-                        out_keep_reg  <= i_keep;
-                        out_meta_reg  <= i_meta;
-                        out_valid_reg <= 1'b1;
-                    end
-
-                    // =============================================
-                    // 2x2 MaxPool
-                    // q=3에서만 output 생성
-                    // =============================================
-                    else if (pool_q == 2'd3) begin
-
-                        if (!pool_group_sel) begin
-                            out_data_reg <= {
-                                group0_final_max2,
-                                group0_final_max1,
-                                group0_final_max0
-                            };
-                        
-                            out_keep_reg <= group0_keep_reg;
-                        end
-                        else begin
-                            out_data_reg <= {
-                                group1_final_max2,
-                                group1_final_max1,
-                                group1_final_max0
-                            };
-                        
-                            out_keep_reg <= group1_keep_reg;
-                        end
-
-                        // Pool output metadata
-                        //
-                        // [18] layer_end
-                        // [17] tile_end = 항상 0
-                        // [16:12] out_ch_base
-                        // [11:0] pooled position
-                        out_meta_reg <= {
-                            pool_output_layer_end,
-                            1'b0,
-                            input_out_ch_base,
-                            pool_position
-                        };
-
-                        out_valid_reg <= 1'b1;
-                    end
-
-                    // Tile의 마지막 input beat를 수락한 순간
-                    if (input_tile_end) begin
-                        o_tile_in_done <= 1'b1;
-                    end
-                end
-            end
-        end
-    end
-    
-    // =========================================================
     // Input Lane Split
     // =========================================================
 
@@ -264,13 +205,6 @@ module pooling_unit (
     // Pool Channel Group Select
     // =========================================================
 
-    // Current MaxPool layer has 6 output channels.
-    //
-    // group 0 : channel 0 ~ 2, out_ch_base = 0
-    // group 1 : channel 3 ~ 5, out_ch_base = 3
-    wire pool_group_sel;
-
-    assign pool_group_sel = (input_out_ch_base == 5'd3);
 
 
     // =========================================================
@@ -399,6 +333,7 @@ module pooling_unit (
         (in_h_reg >= 7'd2) &&
         (in_w_reg[0] == 1'b0) &&
         (in_h_reg[0] == 1'b0) &&
+        ((in_w_reg & (in_w_reg - 7'd1)) == 7'd0) &&   // in_w 는 2 의 거듭제곱 (위치를 shift 로 계산)
         (channels_reg >= 6'd1) &&
         (channels_reg <= 6'd6);
 
@@ -481,6 +416,101 @@ module pooling_unit (
             )
         );
         
+    // (아래 always 는 group*_final_max / *_keep_reg / pool_output_layer_end 를 쓰므로 그 선언들 뒤로 옮겼다 : 사용 전 선언)
+    // =========================================================
+    // Output Register / Tile Input Done
+    // =========================================================
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            out_data_reg      <= 24'd0;
+            out_valid_reg     <= 1'b0;
+            out_keep_reg      <= 3'b000;
+            out_meta_reg      <= 19'd0;
+
+            o_tile_in_done    <= 1'b0;
+        end
+        else begin
+            // pulse 기본값
+            o_tile_in_done <= 1'b0;
+
+            // 새 Layer 시작 시 pending output 제거
+            if (i_cfg_valid) begin
+                out_valid_reg <= 1'b0;
+            end
+            else begin
+
+                // 현재 output이 downstream에 수락되면 제거
+                if (output_fire) begin
+                    out_valid_reg <= 1'b0;
+                end
+
+                // -------------------------------------------------
+                // 새로운 input 수락
+                // -------------------------------------------------
+                if (input_fire) begin
+
+                    // =============================================
+                    // Bypass
+                    // =============================================
+                    if (!pool_en_reg) begin
+                        out_data_reg  <= i_data;
+                        out_keep_reg  <= i_keep;
+                        out_meta_reg  <= i_meta;
+                        out_valid_reg <= 1'b1;
+                    end
+
+                    // =============================================
+                    // 2x2 MaxPool
+                    // q=3에서만 output 생성
+                    // =============================================
+                    else if (pool_q == 2'd3) begin
+
+                        if (!pool_group_sel) begin
+                            out_data_reg <= {
+                                group0_final_max2,
+                                group0_final_max1,
+                                group0_final_max0
+                            };
+                        
+                            out_keep_reg <= group0_keep_reg;
+                        end
+                        else begin
+                            out_data_reg <= {
+                                group1_final_max2,
+                                group1_final_max1,
+                                group1_final_max0
+                            };
+                        
+                            out_keep_reg <= group1_keep_reg;
+                        end
+
+                        // Pool output metadata
+                        //
+                        // [18] layer_end
+                        // [17] tile_end = 항상 0
+                        // [16:12] out_ch_base
+                        // [11:0] pooled position
+                        out_meta_reg <= {
+                            pool_output_layer_end,
+                            1'b0,
+                            input_out_ch_base,
+                            pool_position
+                        };
+
+                        out_valid_reg <= 1'b1;
+                    end
+
+                    // Tile의 마지막 input beat를 수락한 순간
+                    if (input_tile_end) begin
+                        o_tile_in_done <= 1'b1;
+                    end
+                end
+            end
+        end
+    end
+    
+
     // =========================================================
     // Pool State Update
     // =========================================================
