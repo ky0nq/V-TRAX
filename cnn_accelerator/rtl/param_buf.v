@@ -33,7 +33,8 @@ module param_buf #(
     wire rsp_fire  = o_rd_rsp_valid && i_rd_rsp_ready;
 
     // Read request Access state condition
-    assign o_rd_req_ready = o_loaded && !loading && !i_load_start && !o_rd_rsp_valid;
+    // 응답이 같은 클럭에 수락되면 다음 요청을 바로 받는다 (연속 읽기. 핸드셰이크 정리 2026-09-23)
+    assign o_rd_req_ready = o_loaded && !loading && !i_load_start && (!o_rd_rsp_valid || i_rd_rsp_ready);
 
     // memory Read/Write
     always @(posedge clk) begin
