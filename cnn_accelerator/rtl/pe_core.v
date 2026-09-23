@@ -9,8 +9,8 @@ module pe_core (
 
     output wire o_act_ready,
 
-    input wire [23:0] i_wgt_data,
-    input wire        i_wgt_valid,
+    input  wire [23:0] i_wgt_data,
+    input  wire        i_wgt_valid,
 
     output wire o_wgt_ready,
 
@@ -90,9 +90,13 @@ module single_pe (
 
     reg signed [31:0] acc_reg;
 
-    reg signed [15:0] product;
-    reg signed [31:0] product_ext;
-    reg signed [31:0] acc_next;
+    // 곱을 한 단 레지스터로 끊는다 (타이밍 2026-09-23 : 곱 + 32b 누산이 한 클럭이면 100 MHz 에서 경계).
+    //   step 에서 곱과 토큰 (valid / last) 을 잡고, 다음 클럭에 누산한다. step 이 멈춰도 잡아 둔 곱은
+    //   그 다음 클럭에 누산되므로 stall 과 무관하다. 결과 pulse 는 마지막 MAC 에지에서 2 clk 뒤 (전에는 1 clk).
+    reg signed [15:0] product_q;
+    reg               pq_valid;
+    reg               pq_last;
+    wire signed [31:0] acc_next = acc_reg + {{16{product_q[15]}}, product_q};
 
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
@@ -101,34 +105,38 @@ module single_pe (
             o_result_valid <= 1'b0;
             act_out        <= 8'd0;
             weight_out     <= 8'd0;
+            product_q      <= 16'd0;
+            pq_valid       <= 1'b0;
+            pq_last        <= 1'b0;
         end else begin
             if (i_acc_clear) begin
                 acc_reg        <= 32'd0;
                 result_data    <= 32'd0;
                 o_result_valid <= 1'b0;
+                pq_valid       <= 1'b0;
+                pq_last        <= 1'b0;
             end else begin
                 o_result_valid <= 1'b0;  // 1 pulse
 
+                // 1 단 : step 에서 곱과 토큰을 잡는다 (i_step_en = 0 : pe stop)
+                pq_valid <= i_step_en && i_mac_valid;
+                pq_last  <= i_step_en && i_mac_valid && i_mac_last;
                 if (i_step_en) begin
                     act_out    <= act_in;
                     weight_out <= weight_in;
-                    // i_step_en = 0 : pe stop
-                    if (i_mac_valid) begin
-                        acc_reg <= acc_next;
-                        if (i_mac_last) begin
-                            result_data <= acc_next;
-                            o_result_valid <= 1'b1;
-                        end
+                    product_q  <= $signed(act_in) * $signed(weight_in);
+                end
+
+                // 2 단 : 잡아 둔 곱을 누산한다
+                if (pq_valid) begin
+                    acc_reg <= acc_next;
+                    if (pq_last) begin
+                        result_data    <= acc_next;
+                        o_result_valid <= 1'b1;
                     end
                 end
             end
         end
-    end
-
-    always @(*) begin
-        product     = $signed(act_in) * $signed(weight_in);
-        product_ext = {{16{product[15]}}, product};
-        acc_next    = acc_reg + product_ext;
     end
 endmodule
 
@@ -348,35 +356,25 @@ module act_skew (
 
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
-            data_d0_1 <= 8'd0;
-            data_d1_1 <= 8'd0;
-            data_d1_2 <= 8'd0;
-            data_d2_1 <= 8'd0;
-            data_d2_2 <= 8'd0;
-            data_d2_3 <= 8'd0;
+            data_d0_1 <= 8'd0; data_d1_1 <= 8'd0; data_d1_2 <= 8'd0;
+            data_d2_1 <= 8'd0; data_d2_2 <= 8'd0; data_d2_3 <= 8'd0;
         end else begin
             if (i_clear) begin
-                data_d0_1 <= 8'd0;
-                data_d1_1 <= 8'd0;
-                data_d1_2 <= 8'd0;
-                data_d2_1 <= 8'd0;
-                data_d2_2 <= 8'd0;
-                data_d2_3 <= 8'd0;
+                data_d0_1 <= 8'd0; data_d1_1 <= 8'd0; data_d1_2 <= 8'd0;
+                data_d2_1 <= 8'd0; data_d2_2 <= 8'd0; data_d2_3 <= 8'd0;
             end else begin
                 if (i_step_en) begin
-                    data_d0_1 <= feed_data[7:0];  // lane0 : 1 단
-                    data_d1_1 <= feed_data[15:8];
-                    data_d1_2 <= data_d1_1;  // lane1 : 2 단
-                    data_d2_1 <= feed_data[23:16];
-                    data_d2_2 <= data_d2_1;
-                    data_d2_3 <= data_d2_2;  // lane2 : 3 단
+                    data_d0_1 <= feed_data[7:0];                                          // lane0 : 1 단
+                    data_d1_1 <= feed_data[15:8];   data_d1_2 <= data_d1_1;               // lane1 : 2 단
+                    data_d2_1 <= feed_data[23:16];  data_d2_2 <= data_d2_1;  data_d2_3 <= data_d2_2;   // lane2 : 3 단
                 end
             end
         end
     end
 
-    assign o_data = (!rst_n || i_clear) ? 24'd0 :
-        {data_d2_3, data_d1_2, data_d0_1};
+    // clear / reset 은 위 레지스터에서 처리한다. 조합 mux 로 0 을 만들면 pe_cntl 상태 -> 곱셈기 -> 누산기가
+    // 한 경로가 되어 타이밍이 깨져서 뺐다 (2026-09-23). P_CLEAR 동안은 step_en=0 이라 값이 쓰이지 않는다
+    assign o_data = {data_d2_3, data_d1_2, data_d0_1};
 endmodule
 
 /*
@@ -411,32 +409,22 @@ module wgt_skew (
 
     always @(posedge clk, negedge rst_n) begin
         if (!rst_n) begin
-            data_d0_1 <= 8'd0;
-            data_d1_1 <= 8'd0;
-            data_d1_2 <= 8'd0;
-            data_d2_1 <= 8'd0;
-            data_d2_2 <= 8'd0;
-            data_d2_3 <= 8'd0;
+            data_d0_1 <= 8'd0; data_d1_1 <= 8'd0; data_d1_2 <= 8'd0;
+            data_d2_1 <= 8'd0; data_d2_2 <= 8'd0; data_d2_3 <= 8'd0;
         end else begin
             if (i_clear) begin
-                data_d0_1 <= 8'd0;
-                data_d1_1 <= 8'd0;
-                data_d1_2 <= 8'd0;
-                data_d2_1 <= 8'd0;
-                data_d2_2 <= 8'd0;
-                data_d2_3 <= 8'd0;
+                data_d0_1 <= 8'd0; data_d1_1 <= 8'd0; data_d1_2 <= 8'd0;
+                data_d2_1 <= 8'd0; data_d2_2 <= 8'd0; data_d2_3 <= 8'd0;
             end else begin
                 if (i_step_en) begin
-                    data_d0_1 <= feed_data[7:0];  // lane0 : 1 단
-                    data_d1_1 <= feed_data[15:8];
-                    data_d1_2 <= data_d1_1;  // lane1 : 2 단
-                    data_d2_1 <= feed_data[23:16];
-                    data_d2_2 <= data_d2_1;
-                    data_d2_3 <= data_d2_2;  // lane2 : 3 단
+                    data_d0_1 <= feed_data[7:0];                                          // lane0 : 1 단
+                    data_d1_1 <= feed_data[15:8];   data_d1_2 <= data_d1_1;               // lane1 : 2 단
+                    data_d2_1 <= feed_data[23:16];  data_d2_2 <= data_d2_1;  data_d2_3 <= data_d2_2;   // lane2 : 3 단
                 end
             end
         end
     end
 
-    assign o_data = (!rst_n || i_clear) ? 24'd0 : {data_d2_3, data_d1_2, data_d0_1};
+    // clear / reset 은 위 레지스터에서 처리한다 (act_skew 와 같은 이유로 조합 mux 를 뺐다 2026-09-23)
+    assign o_data = {data_d2_3, data_d1_2, data_d0_1};
 endmodule
