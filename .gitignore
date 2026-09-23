@@ -1,0 +1,40 @@
+# ---------- Vivado ----------
+*.cache/
+*.gen/
+*.runs/
+*.sim/
+*.hw/
+*.ip_user_files/
+.Xil/
+*.jou
+*.str
+*.wdb
+*.pb
+vivado*.backup.jou
+vivado*.backup.log
+
+# Block design canvas layout, not a source
+*.bda
+**/bd/*/ui/
+
+# ---------- Vitis ----------
+# The workspace is regenerated from the exported .xsa
+workspace/
+.metadata/
+_ide/
+Debug/
+Release/
+
+# ---------- Arduino ----------
+build/
+*.elf
+*.hex
+*.map
+
+# ---------- Python ----------
+__pycache__/
+*.pyc
+
+# ---------- OS ----------
+Thumbs.db
+.DS_Store
