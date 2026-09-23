@@ -3,7 +3,7 @@
 
 module cnn_cntl #(
     parameter integer NUM_LAYERS = 4,                       // 4  : Conv0, Conv1, fc1, fc2
-    parameter integer WBUF_WORDS = 64,                      // 64 : wgt_buf 의 Word 수 = chunk 최대 길이. K 가 이보다 크면 나눠 돈다 (fc1 만 해당)
+    parameter integer WBUF_WORDS = 256,                     // 256 : wgt_buf 반쪽 하나의 Word 수 = chunk 최대 길이 (버퍼 전체는 반쪽 2 개 = 512, 이중 버퍼 2026-09-23). K 가 이보다 크면 나눠 돈다 (fc1 4096 -> 16 chunk)
 
     // input_buf 는 물리 버퍼 하나 (24bit x 16384). 주소로 두 영역을 나눠, 레이어마다 읽을 영역과 쓸 영역을 맞바꾼다 (region_sel).
     parameter [`ACT_AW-1:0] REGION_A_BASE = 14'd0,          // 0    : 영역 A = 0 .. 8191.     이미지, Conv1 출력
@@ -50,7 +50,7 @@ module cnn_cntl #(
     parameter [`DIM_W-1:0]      L2_IN_W         = 7'd32,                // 32
     parameter [`DIM_W-1:0]      L2_IN_H         = 7'd32,                // 32
     parameter [`CH_W-1:0]       L2_IN_C         = 6'd4,                 // 4
-    parameter [`K_W-1:0]        L2_K            = 13'd4096,             // 4096 = 32 x 32 x 4. 64 Word 씩 64 chunk
+    parameter [`K_W-1:0]        L2_K            = 13'd4096,             // 4096 = 32 x 32 x 4. 256 Word 씩 16 chunk
     parameter [`CH_W-1:0]       L2_OUT_C        = 6'd32,                // 32   : oc_group 11개 (마지막은 2개, col_mask 011)
     parameter [`W_AW-1:0]       L2_W_BASE       = 16'd162,              // 162  = 54 + 108. 이 레이어는 11 x 4096 = 45,056 Word
     parameter [`PARAM_AW-1:0]   L2_PARAM_BASE   = 7'd10,                // 10   = 6 + 4. 32 레코드 (10..41)
@@ -102,10 +102,12 @@ module cnn_cntl #(
     output wire [`KEEP_W-1:0]    o_tile_row_mask,        // -> pe_cntl.i_tile_row_mask.   o_row_mask 와 같은 값
     output wire [`KEEP_W-1:0]    o_tile_col_mask,        // -> pe_cntl.i_tile_col_mask.   o_col_mask 와 같은 값
 
-    // ---- pe_cntl : Chunk 재적재 (K > 64 인 fc1 만. 추론당 693 회) --------------
+    // ---- pe_cntl : Chunk 재적재 (K > 256 인 fc1 만. 타일당 15 회, 추론당 165 회) ------
     //   pe_cntl 은 "다음 chunk 를 올려 달라" 만 말한다. 몇 번째 chunk 인지 (k_base) 와 길이는
-    //   weight 주소를 가진 cnn_cntl 이 스스로 센다 : k_base += 직전 길이, 길이 = min(K - k_base, 64).
-    input  wire                  i_chunk_req,            // <- pe_cntl.o_chunk_req.     Level. 앞 chunk 를 다 썼다. o_chunk_loaded 가 갈 때까지 유지된다
+    //   weight 주소를 가진 cnn_cntl 이 스스로 센다 : k_base += 직전 길이, 길이 = min(K - k_base, 256).
+    //   이중 버퍼 (2026-09-23) : 요청은 pe_cntl 이 지금 chunk 를 읽기 시작할 때 오고, 다음 chunk 는
+    //   다른 반쪽 (o_buf_half) 에 들어가므로 읽기와 적재가 겹친다.
+    input  wire                  i_chunk_req,            // <- pe_cntl.o_chunk_req.     Level. 다음 chunk 를 다른 반쪽에 올려 달라. o_chunk_loaded 가 갈 때까지 유지된다
     output wire                  o_chunk_loaded,         // -> pe_cntl.i_chunk_loaded.  다음 chunk 가 wgt_buf 에 다 들어온 뒤 1clk 펄스
 
     // ---- act_ld_unit -------------------------------------------------------
@@ -146,7 +148,8 @@ module cnn_cntl #(
     output wire                  o_wload_start,          // -> wgt_ld_unit.i_ld_start.   i_wload_ready=1 인 clk 에만 뜨는 1clk 펄스. 주소 · 길이는 같은 clk 에 유효
     input  wire                  i_wload_ready,          // <- wgt_ld_unit.o_ld_ready  (= IDLE && i_buf_free).  이 저장소의 wgt_ld_unit 에서는 아직 o_load_ready
     output wire [`W_AW-1:0]      o_mem_base,             // -> wgt_ld_unit.i_mem_base.   현재 Chunk 의 시작 Word 주소 = Lx_W_BASE + oc_group * K + k_base.  논리 주소라 16bit (전체 45,250 Word)
-    output wire [`CHUNK_W-1:0]   o_chunk_word_count,     // -> wgt_ld_unit.i_chunk_word_count.  적재할 Word 수 1 .. 64.  wgt_patch_gen 쪽 길이는 pe_cntl.o_chunk_word_count 가 낸다
+    output wire [`CHUNK_W-1:0]   o_chunk_word_count,     // -> wgt_ld_unit.i_chunk_word_count.  적재할 Word 수 1 .. 256.  wgt_patch_gen 쪽 길이는 pe_cntl.o_chunk_word_count 가 낸다
+    output wire                  o_buf_half,             // -> wgt_ld_unit.i_buf_half, wgt_patch_gen.i_buf_half.  이 chunk 가 놓이는 wgt_buf 반쪽 (0 = Word 0~255, 1 = 256~511). 적재는 i_ld_start 에서, reader 는 i_chunk_start 에서 래치한다 (이중 버퍼 2026-09-23)
     input  wire                  i_wload_done,           // <- wgt_ld_unit.o_ld_done.    마지막 Word 가 wgt_buf 에 저장된 뒤 1clk 펄스
 
     // ---- out_path ----------------------------------------------------------
@@ -389,17 +392,20 @@ module cnn_cntl #(
     reg [`K_W-1:0] svc_kbase;
     reg [`CHUNK_W-1:0] svc_len;
 
-    // 같은 레이어 · 같은 oc_group 이고 K 가 한 Chunk 에 들어가면 buffer 를
-    // 그대로 재사용한다. oc_group 이 안쪽 loop 라, 그룹이 하나뿐인 레이어에서만
-    // 걸린다. 그룹이 둘 이상인 Conv 는 타일마다 그룹이 바뀌어 매번 다시 적재한다.
-    reg wtag_valid;
-    reg [2:0] wtag_layer;
-    reg [`OCG_W-1:0] wtag_oc;
-    wire wload_skip = wtag_valid && (wtag_layer == layer_idx) &&
-                      (wtag_oc == oc_group) && (ly_k <= WBUF_WORDS);
-    // WBUF_WORDS = 64 : K 가 64 이하 (Conv0 27 / Conv1 54 / fc2 32) 일 때만 재사용 가능. fc1 (4096) 은 항상 다시 적재
+    // wgt_buf 는 반쪽 2 개 (각 WBUF_WORDS Word) 다. chunk 가 놓이는 반쪽 (buf_half) :
+    //   - K 가 한 chunk 에 들어가는 레이어 (Conv0 27 / Conv1 54 / fc2 32) : 반쪽 = oc_group 의 홀짝.
+    //     반쪽마다 태그 (레이어, oc_group) 를 두므로 그룹이 2 개인 Conv 는 두 그룹이 다 버퍼에 남아,
+    //     같은 레이어에서는 처음 두 타일 뒤로 다시 적재하지 않는다 (전에는 타일마다 28 / 55 clk 재적재).
+    //   - K 가 큰 레이어 (fc1 4096) : chunk 0 은 반쪽 0, 그 뒤로 번갈아. 읽는 반쪽의 반대쪽에 다음 chunk 를 미리 넣는다.
+    reg              buf_half;
+    reg              wtag_valid [0:1];
+    reg [2:0]        wtag_layer [0:1];
+    reg [`OCG_W-1:0] wtag_oc    [0:1];
+    wire first_half = (ly_k > WBUF_WORDS) ? 1'b0 : oc_group[0];   // 타일 첫 chunk 의 반쪽
+    wire wload_skip = wtag_valid[first_half] && (wtag_layer[first_half] == layer_idx) &&
+                      (wtag_oc[first_half] == oc_group) && (ly_k <= WBUF_WORDS);
 
-    // chunk 하나의 길이 = min(남은 k 수, WBUF_WORDS = 64)
+    // chunk 하나의 길이 = min(남은 k 수, WBUF_WORDS = 256)
     function [`CHUNK_W-1:0] chunk_len;
         input [`K_W-1:0] remain;
         begin
@@ -409,9 +415,9 @@ module cnn_cntl #(
 
     wire [`CHUNK_W-1:0] first_len = chunk_len(
         ly_k
-    );  // 타일의 첫 chunk : 27 / 54 / 64 / 32
+    );  // 타일의 첫 chunk : 27 / 54 / 256 / 32
 
-    // 타일 도중의 다음 chunk. 직전 chunk 바로 뒤에서 시작한다 (fc1 : 64, 128, ... 4032).
+    // 타일 도중의 다음 chunk. 직전 chunk 바로 뒤에서 시작한다 (fc1 : 256, 512, ... 3840).
     wire [`K_W-1:0]     nx_kbase = svc_kbase + {{(`K_W-`CHUNK_W){1'b0}}, svc_len};
     wire [`CHUNK_W-1:0] nx_len = chunk_len(ly_k - nx_kbase);
 
@@ -420,7 +426,7 @@ module cnn_cntl #(
 
     // Chunk 시작 주소를 여기서 끝까지 계산한다 (팀 결정 : wgt_ld_unit 은 i_mem_base 만 받는다).
     //   mem_base = Lx_W_BASE + oc_group * K + k_base
-    //   Conv1 og=1 첫 chunk : 54 + 1*54 + 0 = 108       fc1 og=3 세 번째 chunk : 162 + 3*4096 + 128 = 12,578
+    //   Conv1 og=1 첫 chunk : 54 + 1*54 + 0 = 108       fc1 og=3 세 번째 chunk : 162 + 3*4096 + 512 = 12,962
     //   곱은 최대 10 * 4096 = 40,960, 합은 최대 45,249 라 `W_AW = 16bit 에 들어간다.
     wire [`W_AW-1:0] og_ext = {{(`W_AW - `OCG_W) {1'b0}}, oc_group};
     wire [`W_AW-1:0] k_ext = {{(`W_AW - `K_W) {1'b0}}, ly_k};
@@ -432,6 +438,7 @@ module cnn_cntl #(
     assign o_wload_start      = (wsvc == W_ISSUE) && i_wload_ready;
     assign o_chunk_word_count = svc_len;
     assign o_chunk_loaded     = (wsvc == W_REPLY);  // W_REPLY 는 1clk
+    assign o_buf_half         = buf_half;
 
     // =========================================================================
     // Parameter RAM -> param_buf 일괄 적재 (C_PARAM_LOAD, 추론당 1회)
@@ -500,10 +507,12 @@ module cnn_cntl #(
             o_fc_tile_start <= 1'b0;
             wsvc <= W_IDLE;
             svc_kbase         <= {`K_W{1'b0}};     // `define K_W    13 → 13'd0 : K 1 ~ 4096 을 담는 폭. 적재할 chunk 의 시작 k
-            svc_len           <= {`CHUNK_W{1'b0}}; // `define CHUNK_W 7 →  7'd0 : chunk_len 1 ~ 64 (wgt_buf 가 64 word 라 64 를 담아야 해서 7bit)
-            wtag_valid <= 1'b0;
-            wtag_layer <= 3'd0;
-            wtag_oc           <= {`OCG_W{1'b0}};   // `define OCG_W   4 →  4'd0 : wgt_buf 에 지금 들어 있는 oc_group 태그
+            svc_len           <= {`CHUNK_W{1'b0}}; // `define CHUNK_W 9 →  9'd0 : chunk_len 1 ~ 256 (반쪽이 256 word 라 256 을 담아야 해서 9bit)
+            buf_half          <= 1'b0;
+            wtag_valid[0] <= 1'b0;  wtag_valid[1] <= 1'b0;
+            wtag_layer[0] <= 3'd0;  wtag_layer[1] <= 3'd0;
+            wtag_oc[0]        <= {`OCG_W{1'b0}};   // `define OCG_W   4 →  4'd0 : 반쪽 0 / 1 에 지금 들어 있는 (레이어, oc_group) 태그
+            wtag_oc[1]        <= {`OCG_W{1'b0}};
             pl_idx            <= {(`PARAM_AW+1){1'b0}}; // `define PARAM_AW 7 이지만 +1 = 8bit → 8'd0 : 주소가 아니라 개수(0~PARAM_TOTAL=43)를 세므로 1bit 더
             pl_busy <= 1'b0;
             pl_done <= 1'b0;
@@ -527,6 +536,7 @@ module cnn_cntl #(
                     if (chunk_accept) begin
                         svc_kbase <= nx_kbase;
                         svc_len   <= nx_len;
+                        buf_half  <= ~buf_half;                 // 다음 chunk 는 반대쪽 반쪽 (지금 읽는 쪽은 그대로)
                         wsvc      <= W_ISSUE;
                     end
                 end
@@ -534,14 +544,14 @@ module cnn_cntl #(
                 W_WAIT:
                 if (i_wload_done) begin                     // 1clk 펄스. 적재 중에는 항상 이 상태라 놓치지 않는다
                     if (state == C_PE_WAIT) begin           // 타일 도중의 chunk. 첫 chunk 는 C_W_LOAD 에서 온다
-                        wtag_valid <= 1'b0;                 // buffer 에 후속 Chunk 가 들어감
+                        wtag_valid[buf_half] <= 1'b0;       // 이 반쪽에는 후속 Chunk 가 들어갔다
                         wsvc <= W_REPLY;
                     end else begin
-                        first_chunk_rdy <= 1'b1;
-                        wtag_valid      <= 1'b1;
-                        wtag_layer      <= layer_idx;
-                        wtag_oc         <= oc_group;
-                        wsvc            <= W_IDLE;
+                        first_chunk_rdy      <= 1'b1;
+                        wtag_valid[buf_half] <= 1'b1;
+                        wtag_layer[buf_half] <= layer_idx;
+                        wtag_oc[buf_half]    <= oc_group;
+                        wsvc                 <= W_IDLE;
                     end
                 end
                 default: wsvc <= W_IDLE;                    // W_REPLY : o_chunk_loaded 1clk
@@ -567,7 +577,7 @@ module cnn_cntl #(
             case (state)
                 C_IDLE: begin
                     o_write_grant <= 1'b0;
-                    wtag_valid    <= 1'b0;
+                    wtag_valid[0] <= 1'b0;  wtag_valid[1] <= 1'b0;
                     ld_done_seen  <= 1'b0;
                     if (i_start_valid && o_start_ready) begin
                         o_ld_start <= 1'b1;                             // Image RAM -> input_buf
@@ -608,11 +618,12 @@ module cnn_cntl #(
                 end
 
                 C_W_LOAD: begin // this tile's first weight chunk - RAM owner = weight (0)
+                    buf_half <= first_half;                 // 첫 chunk 의 반쪽. 적재 (i_ld_start) 와 reader (i_chunk_start) 가 이 값을 래치한다
                     if (wload_skip) begin
                         first_chunk_rdy <= 1'b1;
                     end else if (!first_chunk_rdy && (wsvc == W_IDLE)) begin
                         svc_kbase     <= {`K_W{1'b0}};     // K_W 13 → 13'd0 : tile's first chunk => k_base = 0
-                        svc_len       <= first_len;        // = min(K, 64). Conv0 27 / Conv1 54 / fc1 64 / fc2 32
+                        svc_len       <= first_len;        // = min(K, 256). Conv0 27 / Conv1 54 / fc1 256 / fc2 32
                         wsvc <= W_ISSUE;
                     end
 
@@ -650,7 +661,7 @@ module cnn_cntl #(
                 end
 
                 // PE execute. 여기서는 탈출 조건만 본다.
-                // 타일 도중의 next Chunk (fc1 : 타일당 63 회) 는 이 always 블록 위쪽의
+                // 타일 도중의 next Chunk (fc1 : 타일당 15 회) 는 이 always 블록 위쪽의
                 // Weight 적재 서비스 case (wsvc) 가 처리한다 : pe_cntl 의 i_chunk_req 를
                 // chunk_accept 로 받아 nx_kbase / nx_len 을 올리고, 끝나면 o_chunk_loaded 를 낸다.
                 // 다음 타일 조건 (요구사항 14) : tile_in_done + i_tile_ready (= pe_cntl IDLE && 수집기 비어 있음)
@@ -747,7 +758,7 @@ endmodule
 // -----------------------------------------------------------------------------
 
 module pe_cntl #(
-    parameter integer WBUF_WORDS = 64                     // 64 : wgt_buf 의 Word 수 = chunk 최대 길이. K 가 이보다 크면 chunk 로 나눠 돈다 (fc1 의 4096 -> 64 chunk)
+    parameter integer WBUF_WORDS = 256                    // 256 : wgt_buf 반쪽 하나의 Word 수 = chunk 최대 길이. K 가 이보다 크면 chunk 로 나눠 돈다 (fc1 의 4096 -> 16 chunk)
 ) (
     input wire clk,
     input wire rst_n,
@@ -759,15 +770,17 @@ module pe_cntl #(
     input  wire [`KEEP_W-1:0]    i_tile_row_mask,        // <- cnn_cntl.o_tile_row_mask.  유효 PE 행 (출력 위치)
     input  wire [`KEEP_W-1:0]    i_tile_col_mask,        // <- cnn_cntl.o_tile_col_mask.  유효 PE 열 (출력 채널)
 
-    // ---- cnn_cntl : 타일 중간 Chunk 재적재 (K > 64 일 때만) --------------------
+    // ---- cnn_cntl : 타일 중간 Chunk 재적재 (K > 256 일 때만) -------------------
     //   명세 (2026-09-22 시트 R579~584) 는 아직 6 신호 버전이다 : o_chunk_req_valid / i_chunk_req_ready /
     //   o_chunk_k_base / o_chunk_len / i_chunk_done_valid / o_chunk_done_ready. 09-22 오전 결정으로
     //   아래 2 신호로 줄였고 k_base · len 은 cnn_cntl 이 센다. 시트 쪽을 고쳐야 한다.
-    output wire                  o_chunk_req,            // [명세 ~] -> cnn_cntl.i_chunk_req.     Level. 앞 chunk 를 다 썼으니 다음 chunk 를 올려 달라. i_chunk_loaded 까지 유지.  명세 이름 o_chunk_req_valid
-    input  wire                  i_chunk_loaded,         // [명세 ~] <- cnn_cntl.o_chunk_loaded.  다음 chunk 가 wgt_buf 에 다 들어온 뒤 1clk 펄스 -> P_PREFILL.  명세 이름 i_chunk_done_valid
+    //   이중 버퍼 (2026-09-23) : wgt_buf 가 반쪽 2 개라, chunk 를 읽기 시작하는 P_PREFILL 에서 바로 다음 chunk 를
+    //   요청한다 (다른 반쪽에 들어간다). 지금 chunk 를 다 주입했을 때 다음 것이 이미 와 있으면 기다리지 않는다.
+    output wire                  o_chunk_req,            // [명세 ~] -> cnn_cntl.i_chunk_req.     Level. 다음 chunk 를 다른 반쪽에 올려 달라. P_PREFILL 에서 올리고 i_chunk_loaded 까지 유지.  명세 이름 o_chunk_req_valid
+    input  wire                  i_chunk_loaded,         // [명세 ~] <- cnn_cntl.o_chunk_loaded.  다음 chunk 가 wgt_buf 에 다 들어온 뒤 1clk 펄스 -> next_ready.  명세 이름 i_chunk_done_valid
 
     // ---- wgt_ld_unit -------------------------------------------------------
-    output wire                  o_wbuf_free,            // -> wgt_ld_unit.i_buf_free (팀 결정 2026-09-21. 이 저장소에서는 아직 wgt_path.i_buffer_free).  읽는 중인 chunk 를 덮어쓰지 않게 하는 허가
+    output wire                  o_wbuf_free,            // -> wgt_ld_unit.i_buf_free.  적재해도 되는 반쪽이 있다. 0 은 "이 chunk 를 읽는 중이고 다른 반쪽에 다음 chunk 가 이미 들어 있다" (이중 버퍼가 꽉 참) 일 때뿐
 
     // ---- wgt_patch_gen -----------------------------------------------------
     output wire                  o_chunk_start,          // -> wgt_path.i_reader_start     (wgt_patch_gen.i_start).      chunk 마다 1clk (P_PREFILL)
@@ -804,9 +817,9 @@ module pe_cntl #(
     localparam [2:0] P_DONE = 3'd6;
 
     localparam [`K_W-1:0] K_ONE = 1;  // `define K_W    13
-    localparam [`CHUNK_W-1:0] C_ONE = 1;  // `define CHUNK_W 7
+    localparam [`CHUNK_W-1:0] C_ONE = 1;  // `define CHUNK_W 9
 
-    // chunk 하나의 길이 = min(남은 beat 수, WBUF_WORDS = 64).  K = 27 -> 27,  K = 4096 -> 64, 64, ... 64
+    // chunk 하나의 길이 = min(남은 beat 수, WBUF_WORDS = 256).  K = 27 -> 27,  K = 4096 -> 256, 256, ... 256
     function [`CHUNK_W-1:0] chunk_len;
         input [`K_W-1:0] remain;
         begin
@@ -824,6 +837,8 @@ module pe_cntl #(
     reg [`KEEP_W-1:0]   row_mask_q;         // 유효 PE 행 (출력 위치). 꼬리 타일은 011 / 001
     reg [`KEEP_W-1:0]   col_mask_q;         // 유효 PE 열 (출력 채널)
     reg                 reader_done_seen;   // i_chunk_done   (1clk 펄스) 을 봤다
+    reg                 next_req;           // o_chunk_req : 다음 chunk 요청 (level). P_PREFILL 에서 올리고 i_chunk_loaded 에 내린다
+    reg                 next_ready;         // 다음 chunk 가 다른 반쪽에 들어와 있다. 그 chunk 의 P_PREFILL 에서 지운다
     reg                 tile_in_done_seen;  // i_tile_in_done (1clk 펄스) 을 봤다
     reg                 space_seen;         // P_IDLE 에서 i_result_space_ready=1 을 봤다. 타일 명령 fire 에 지운다
     reg [4:0]           valid_pipe;         // 대각선 d = r + c 의 PE 가 보는 "이번 step 에 MAC 한다" 토큰
@@ -848,17 +863,17 @@ module pe_cntl #(
     //   타일 활성 중 0 인 신호라 step 단위로 걸면 첫 inject 에서 멈춘다.
     assign o_tile_ready = (state == P_IDLE) && (i_result_space_ready || space_seen);
 
-    // 앞 chunk 를 다 주입했고 (P_CHUNK_WAIT), reader 도 다 넘겼다고 알려 온 뒤에 요청한다.
-    // Level 이라 cnn_cntl 이 늦게 봐도 사라지지 않는다. i_chunk_loaded 를 받으면 P_PREFILL 로 가며 내려간다.
-    assign o_chunk_req = (state == P_CHUNK_WAIT) && reader_done_seen;
+    // 다음 chunk 요청 (level) : chunk 를 읽기 시작하는 P_PREFILL 에서 남은 beat 가 이 chunk 보다 많으면 올린다.
+    //   cnn_cntl 이 다른 반쪽에 적재하고 i_chunk_loaded 를 주면 내린다 (그 사이 level 유지).
+    //   전에는 chunk 를 다 주입한 P_CHUNK_WAIT 에서 요청해 적재 (~65 clk) 를 chunk 마다 기다렸다 (이중 버퍼 2026-09-23).
+    assign o_chunk_req = next_req;
 
-    // wgt_buf 덮어쓰기 허가 : 타일이 없거나, chunk 대기 중이고 reader 가 마지막 Word 를 넘겼다 (reader_done_seen).
-    //   P_CHUNK_WAIT 는 이 chunk 의 마지막 beat 를 주입한 뒤에 들어오고, reader 는 chunk 길이만큼만 읽으므로
-    //   reader_done_seen=1 이면 reader 에 남은 읽기도 없고 feeder 에 남은 Word 도 없다.
-    //   (예전의 i_reader_idle / i_weight_feeder_empty / o_reader_issue_en 은 2026-09-22 팀 결정으로 없앴다.
-    //    wgt_patch_gen · wgt_feeder 표에 받는 / 내는 포트가 없는 신호였다.)
-    assign o_wbuf_free        = (state == P_IDLE) ||
-                                ((state == P_CHUNK_WAIT) && reader_done_seen);
+    // wgt_buf 덮어쓰기 허가 : 반쪽이 2 개라 거의 항상 1 이다. 0 은 "이 chunk 를 읽는 중 (rd_active) 이고 다른
+    //   반쪽에 다음 chunk 가 이미 들어 있다 (next_ready)" 일 때뿐이다 (더 적재하면 읽는 반쪽을 덮는다).
+    //   reader 는 chunk 길이만큼만 읽고 i_chunk_done 뒤에는 wgt_buf 를 읽지 않는다 (feeder 의 Word 는 복사본).
+    //   (예전의 i_reader_idle / i_weight_feeder_empty / o_reader_issue_en 은 2026-09-22 팀 결정으로 없앴다.)
+    wire rd_active = feeding && !reader_done_seen;
+    assign o_wbuf_free        = (state == P_IDLE) || !(rd_active && next_ready);
 
     assign o_chunk_start        = (state == P_PREFILL);  // P_PREFILL 은 1clk
     assign o_chunk_word_count   = cur_len;
@@ -893,6 +908,8 @@ module pe_cntl #(
             row_mask_q        <= {`KEEP_W{1'b0}};
             col_mask_q        <= {`KEEP_W{1'b0}};
             reader_done_seen  <= 1'b0;
+            next_req          <= 1'b0;
+            next_ready        <= 1'b0;
             tile_in_done_seen <= 1'b0;
             space_seen        <= 1'b0;
             valid_pipe        <= 5'b00000;
@@ -906,6 +923,10 @@ module pe_cntl #(
             // 1 pulse signal
             if (i_chunk_done)   reader_done_seen <= 1'b1;
             if (i_tile_in_done) tile_in_done_seen <= 1'b1;
+            if (i_chunk_loaded) begin                       // 다음 chunk 가 다른 반쪽에 들어왔다
+                next_req   <= 1'b0;
+                next_ready <= 1'b1;
+            end
 
             case (state)
                 P_IDLE: begin
@@ -913,6 +934,8 @@ module pe_cntl #(
                     if (i_result_space_ready) space_seen <= 1'b1;
                     if (i_tile_valid && o_tile_ready) begin                 // o_tile_ready = 1 -> now clk 
                         space_seen <= 1'b0;                 // 이 타일이 끝난 뒤 수집기가 비는 것을 다시 봐야 한다
+                        next_req   <= 1'b0;
+                        next_ready <= 1'b0;
                         k_left     <= k_init;
                         c_left     <= chunk_len(k_init);
                         cur_len    <= chunk_len(k_init);
@@ -930,6 +953,8 @@ module pe_cntl #(
 
                 P_PREFILL: begin
                     reader_done_seen <= i_chunk_done;       // new chunk -> signal LOW set
+                    next_ready       <= 1'b0;               // 이 chunk 를 이제 읽기 시작한다
+                    next_req         <= (k_left > WBUF_WORDS);   // 이 chunk 뒤에 beat 가 더 남았으면 다음 chunk 를 지금 요청 (다른 반쪽에 적재)
                     state <= P_FEED;
                 end
 
@@ -946,9 +971,9 @@ module pe_cntl #(
                     end
                 end
 
-                // step = 0 으로 배열을 그대로 두고, 다음 chunk 가 올라오기만 기다린다.
+                // step = 0 으로 배열을 그대로 두고 다음 chunk 를 기다린다. 이중 버퍼라 보통 이미 와 있어 1clk 만 머문다.
                 P_CHUNK_WAIT: begin
-                    if (i_chunk_loaded) begin
+                    if (next_ready || i_chunk_loaded) begin
                         c_left  <= chunk_len(k_left);
                         cur_len <= chunk_len(k_left);
                         state   <= P_PREFILL;
@@ -1011,11 +1036,13 @@ endmodule
 //
 // [2] 타일 중간 Chunk reload  (pe_cntl : request , cnn_cntl : response)
 //       pe_cntl                                  cnn_cntl
-//       o_chunk_req    ---------------------->  i_chunk_req        (Level : 다음 chunk 를 올려 달라)
+//       o_chunk_req    ---------------------->  i_chunk_req        (Level : 다음 chunk 를 다른 반쪽에 올려 달라)
 //       i_chunk_loaded <----------------------  o_chunk_loaded     (1clk  : 다 올렸다)
 //
 //     몇 번째 chunk 인지 (k_base) 와 길이는 cnn_cntl 이 스스로 센다. 두 모듈이 같은 WBUF_WORDS 를
 //     쓰므로 pe_cntl 이 reader 에 주는 길이와 cnn_cntl 이 적재한 길이는 항상 같다 (TB 가 검사한다).
+//     wgt_buf 는 반쪽 2 개 (각 WBUF_WORDS) 의 이중 버퍼다 (2026-09-23) : pe_cntl 은 chunk 를 읽기 시작하는
+//     P_PREFILL 에서 바로 다음 chunk 를 요청하고, cnn_cntl 은 반대쪽 반쪽 (o_buf_half) 에 적재한다.
 //
 //     cnn_cntl 은 C_PE_WAIT 에서 이 요청을 받아 wgt_ld_unit 명령으로 바꾼다.
 //     그 동안 타일 / 레이어 index 는 바뀌지 않는다.
@@ -1027,7 +1054,7 @@ endmodule
 
 module top_cnn_cntl #(
     parameter integer NUM_LAYERS = 4,
-    parameter integer WBUF_WORDS = 64,
+    parameter integer WBUF_WORDS = 256,                    // wgt_buf 반쪽 하나 = chunk 최대 길이 (버퍼 전체 512)
 
     parameter [`ACT_AW-1:0] REGION_A_BASE = 14'd0,
     parameter [`ACT_AW-1:0] REGION_B_BASE = 14'd8192,
@@ -1142,6 +1169,7 @@ module top_cnn_cntl #(
     input  wire                  i_wload_ready,          // [C] <- wgt_ld_unit.o_ld_ready  (= IDLE && i_buf_free)
     output wire [31:0]           o_mem_base,             // [C] -> wgt_ld_unit.i_mem_base (R185, 32b).  cnn_cntl 의 16b 논리 Word 주소 (0 ~ 45249) 를 0 확장
     output wire [`CHUNK_W-1:0]   o_load_chunk_len,       // [C] -> wgt_path.i_chunk_len         (wgt_ld_unit.i_chunk_len)
+    output wire                  o_buf_half,             // [C] -> wgt_path.i_buf_half          (wgt_ld_unit / wgt_patch_gen .i_buf_half : chunk 가 놓이는 wgt_buf 반쪽)
     input  wire                  i_wload_done,           // [C] <- wgt_ld_unit.o_ld_done.  Chunk 적재 완료 1clk 펄스
     output wire                  o_wbuf_free,            // [P] -> wgt_path.i_buffer_free       (wgt_ld_unit.i_buffer_free : 읽는 중인 chunk 를 덮어쓰지 않게)
 
@@ -1346,6 +1374,7 @@ module top_cnn_cntl #(
         .i_wload_ready(i_wload_ready),
         .o_mem_base(mem_base_16),
         .o_chunk_word_count(o_load_chunk_len),
+        .o_buf_half(o_buf_half),
         .i_wload_done(i_wload_done),
         .o_ram_owner(o_ram_owner),
         .i_ram_idle(i_ram_idle),
