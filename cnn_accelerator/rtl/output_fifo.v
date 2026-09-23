@@ -21,7 +21,7 @@ module output_fifo (
 
     // Tile configuration handshake
     output wire o_cfg_ready,
-    
+
     // PE result space status
     output wire o_result_space_ready,
 
@@ -51,6 +51,23 @@ module output_fifo (
     reg         tile_last_reg;
     reg         is_fc_reg;
     reg  [ 6:0] conv_w_reg;
+    reg  [ 2:0] conv_w_sh_reg;   // log2(conv_w). W 는 2 의 거듭제곱 (64 / 32 / 16)
+
+    // 2 의 거듭제곱 (1 ~ 64) 의 log2. 그 밖의 값은 최상위 1 의 자리 (타이밍 : 나눗셈 대신 shift 용)
+    function [2:0] f_log2_7;
+        input [6:0] v;
+        begin
+            casez (v)
+                7'b1??????: f_log2_7 = 3'd6;
+                7'b01?????: f_log2_7 = 3'd5;
+                7'b001????: f_log2_7 = 3'd4;
+                7'b0001???: f_log2_7 = 3'd3;
+                7'b00001??: f_log2_7 = 3'd2;
+                7'b000001?: f_log2_7 = 3'd1;
+                default:    f_log2_7 = 3'd0;
+            endcase
+        end
+    endfunction
 
     // output state register
     reg         tile_active;
@@ -195,7 +212,19 @@ module output_fifo (
 
     wire [11:0] current_position;
 
-    assign current_position = is_fc_reg ? 12'd0 : patch_base_reg + out_row;
+    // 패치 순번 (2x2 블록 Z 순서, 명세 R369 / R483 : W=64 이면 패치 0..8 -> pos 0,1,64,65,2,3,66,67,4)
+    // -> 화소 위치 y * W + x.  W 가 2 의 거듭제곱이라 shift 로 계산한다 (2026-09-23. 그 전에는 raster 로
+    // 내서 pooling 의 q 순서 검사에서 막혔다)
+    wire [11:0] cur_patch = patch_base_reg + {10'd0, out_row};
+    wire [ 9:0] blk       = cur_patch[11:2];                                   // 2x2 블록 번호
+    wire [ 1:0] q         = cur_patch[1:0];                                    // 블록 안 : 0 (0,0) 1 (1,0) 2 (0,1) 3 (1,1)
+    wire [ 2:0] wpr_sh    = (conv_w_sh_reg == 3'd0) ? 3'd0 : (conv_w_sh_reg - 3'd1);   // log2(W/2)
+    wire [ 9:0] by        = blk >> wpr_sh;
+    wire [ 9:0] bx        = blk & ((10'd1 << wpr_sh) - 10'd1);
+    wire [11:0] pos_y     = {1'b0, by, 1'b0} + {11'd0, q[1]};
+    wire [11:0] pos_x     = {1'b0, bx, 1'b0} + {11'd0, q[0]};
+
+    assign current_position = is_fc_reg ? 12'd0 : ((pos_y << conv_w_sh_reg) | pos_x);
     assign o_meta = {
         tile_last_reg && last_valid_row,  // [18] layer_end
         last_valid_row,  // [17] tile_end
@@ -220,6 +249,7 @@ module output_fifo (
             tile_last_reg   <= 1'b0;
             is_fc_reg       <= 1'b0;
             conv_w_reg      <= 7'd0;
+            conv_w_sh_reg   <= 3'd0;
 
             tile_active     <= 1'b0;
             out_row         <= 2'd0;
@@ -232,6 +262,7 @@ module output_fifo (
                 tile_last_reg   <= i_tile_last;
                 is_fc_reg       <= i_is_fc;
                 conv_w_reg      <= i_conv_w;
+                conv_w_sh_reg   <= f_log2_7(i_conv_w);
 
                 tile_active     <= 1'b1;
 
