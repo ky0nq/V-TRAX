@@ -31,7 +31,8 @@
  *   PWR addr= data=                     param_buf write, data = 32-bit bias (address pairing is checked too)
  *   LCFG L= ...                         o_layer_cfg_valid + the descriptor ports that still exist
  *                                       (2026-09-22: o_out_w / o_out_h / o_in_zp / o_conv_h were dropped
- *                                        from cnn_cntl, so the line carries outc=, conv_w=, pool_c= only)
+ *                                        from cnn_cntl, so the line carries outc=, conv_w=, conv_h=, pool_c=;
+ *                                        o_conv_h was put back the same day)
  *   WLOAD L= base= og= kb= len= ram=    wload fired, ram = base + og*K + kb
  *   TCFG L= tile= pos= rm= cm= ocb= ... o_tile_cfg_valid + tile config
  *   TSTART PG|FC                        o_pg_tile_start / o_fc_tile_start
@@ -55,8 +56,8 @@
  *   --runs N   inferences to generate (default 1)
  *   -o FILE    output file
  *
- *   --full  = Candidate ID 32 (64x64x3, fc1 out 32)  = tb_top_cnn_cntl_full
- *   --small = TB with SMALL=1 (16x16x3, fc1 out 6)   = tb_top_cnn_cntl
+ *   --full  = Candidate ID 32 (64x64x3, fc1 out 32)  = tb_top_cnn_cntl_full   (WBUF_WORDS 256)
+ *   --small = TB with SMALL=1 (16x16x3, fc1 out 6)   = tb_top_cnn_cntl        (WBUF_WORDS 64, so fc1 K=256 is still 4 chunks)
  *
  * Getting the RTL trace (xsim 2020.2, from the project root):
  *   xvlog -i cnn_accelerator.srcs/sources_1/new \
@@ -79,6 +80,10 @@
  *   - The wrapper's o_pos_base / o_mem_base / o_param_base / o_param_wr_addr are now
  *     14 / 32 / 6 / 6 bits wide (receiver widths). Values are unchanged; check_widths()
  *     still uses the cnn_cntl internal widths.
+ *   - 2026-09-23 wgt_buf double buffer (two halves of WBUF_WORDS, 256 in the real design):
+ *     chunk n -> half n%2, pe_cntl requests chunk n+1 at RSTART n (event order unchanged),
+ *     and single-chunk layers put oc_group g in half g%2 with one tag per half, so a
+ *     2-group Conv loads its weights only twice per layer (WLOAD count changed).
  */
 #include <stdarg.h>
 #include <stdio.h>
@@ -97,7 +102,7 @@
 #define DIM_W       7   /* W / H                 */
 
 #define NUM_LAYERS  4
-#define WBUF_WORDS 64   /* wgt_buf depth = max chunk length */
+static int g_wbuf = 256; /* wgt_buf HALF depth = max chunk length: 256 (FULL) / 64 (SMALL keeps fc1 multi-chunk). set from config */
 #define PE_N        9   /* 3 x 3 PE              */
 #define PIPE_N      5   /* valid_pipe / last_pipe depth = diagonal d = r + c (0..4) */
 
@@ -122,10 +127,11 @@ typedef struct {
     int img_w, img_h;
     int fc1_out;
     int region_a, region_b;     /* start of the two input_buf regions, swapped every layer */
+    int wbuf;                   /* wgt_buf half depth = max chunk length (top_cnn_cntl WBUF_WORDS) */
 } config_t;
 
-static const config_t CFG_FULL  = { "FULL",  64, 64, 32, 0, 8192 };
-static const config_t CFG_SMALL = { "SMALL", 16, 16,  6, 0, 2048 };
+static const config_t CFG_FULL  = { "FULL",  64, 64, 32, 0, 8192, 256 };
+static const config_t CFG_SMALL = { "SMALL", 16, 16,  6, 0, 2048,  64 };
 
 static int ceil_div(int a, int b) { return (a + b - 1) / b; }
 static int imin(int a, int b)     { return (a < b) ? a : b; }
@@ -304,8 +310,8 @@ typedef struct {
     const layer_t *layer;
     int layer_idx;
     int oc_group;
-    /* tag of what wgt_buf holds right now */
-    int tag_valid, tag_layer, tag_oc;
+    /* tag of what each wgt_buf half holds right now (2026-09-23 double buffer: half 0 / 1) */
+    int tag_valid[2], tag_layer[2], tag_oc[2];
 } cnn_ctx_t;
 
 static cnn_ctx_t g_cnn;
@@ -321,13 +327,17 @@ static void cnn_issue_wload(int k_base, int len)
     g_stat[g_cnn.layer_idx].wloads++;
 }
 
-/* handle a chunk request from pe_cntl (wsvc inside C_PE_WAIT) */
+/* handle a chunk request from pe_cntl (wsvc inside C_PE_WAIT).
+ * Double buffer (2026-09-23): chunk n of a multi-chunk tile goes to half n % 2, and pe_cntl asks for
+ * chunk n+1 as soon as it starts reading chunk n, so the load overlaps the feed. The event order
+ * (RSTART n, CREQ n+1, WLOAD n+1, ... RSTART n+1) is the same as before, only the timing moved. */
 static void cnn_chunk_service(int k_base, int len)
 {
+    int half = (k_base / g_wbuf) & 1;
     emit("CREQ kb=%d len=%d", k_base, len);
     g_stat[g_cnn.layer_idx].creqs++;
     cnn_issue_wload(k_base, len);
-    g_cnn.tag_valid = 0;        /* buffer now holds a later chunk; the first chunk is gone */
+    g_cnn.tag_valid[half] = 0;  /* this half now holds a later chunk */
 }
 
 /* ---------------------------------------------------------------------------
@@ -343,7 +353,7 @@ static void pe_cntl_tile(int k_total, int row_mask, int col_mask)
     unsigned valid_pipe = 0, last_pipe = 0;
     int mv[PE_N], ml[PE_N], last_at[PE_N];
     int n_inject = 0, n_step = 0, n_clr = 0, n_creq = 0;
-    int k_base = 0, cur_len = imin(k_total, WBUF_WORDS);
+    int k_base = 0, cur_len = imin(k_total, g_wbuf);
     int k_cnt, n, exit_after;
     long macs = 0;
 
@@ -377,9 +387,12 @@ static void pe_cntl_tile(int k_total, int row_mask, int col_mask)
         k_base += cur_len;
         if (k_base == k_total) break;
 
-        /* P_CHUNK_WAIT: stop without clearing, ask for the next chunk */
+        /* next chunk. In the RTL (2026-09-23 double buffer) pe_cntl raises the request in P_PREFILL of
+         * the chunk just started and cnn_cntl loads it into the other half while the beats above are
+         * fed; the beats emit no events, so CREQ / WLOAD land here in the trace, after RSTART n and
+         * before RSTART n+1, exactly as before. P_CHUNK_WAIT then lasts 1 clk (not modelled: no event). */
         {
-            int next_len = imin(k_total - k_base, WBUF_WORDS);
+            int next_len = imin(k_total - k_base, g_wbuf);
             cnn_chunk_service(k_base, next_len);
             n_creq++;
             cur_len = next_len;
@@ -446,7 +459,8 @@ static void run_inference(const layer_t *L, const config_t *c)
     emit("PLDONE");                 /* 1clk after param_buf stored the last bias */
     emit("OWNER 0");                /* stays at weight (0) for the whole tile loop */
 
-    g_cnn.tag_valid = 0;            /* cleared in C_IDLE, so the first tile of a second inference loads again */
+    g_cnn.tag_valid[0] = 0;         /* cleared in C_IDLE, so the first tile of a second inference loads again */
+    g_cnn.tag_valid[1] = 0;
 
     for (l = 0; l < NUM_LAYERS; l++) {
         const layer_t *y = &L[l];
@@ -461,10 +475,10 @@ static void run_inference(const layer_t *L, const config_t *c)
 
         /* C_SET: layer_cfg and output_cfg on the same clk */
         emit("LCFG L=%d ocfg=1 src=%d dst=%d in=%dx%dx%d outc=%d stride=%d pad=%d "
-             "K=%d fc=%d pool=%d conv_w=%d pool_c=%d final=%d relu=%d pbase=%d wbase=%d qm=%08x qs=%d",
+             "K=%d fc=%d pool=%d conv_w=%d conv_h=%d pool_c=%d final=%d relu=%d pbase=%d wbase=%d qm=%08x qs=%d",
              l, src, dst, y->in_w, y->in_h, y->in_c, y->out_c,
              y->stride, y->pad_en, y->k_total, y->is_fc, y->pool_en,
-             y->out_w, y->out_c,                        /* o_pool_in_w = pre-pool width, o_pool_c = out_c */
+             y->out_w, y->out_h, y->out_c,              /* o_pool_in_w / o_pool_in_h = pre-pool size, o_pool_c = out_c */
              final, y->relu, y->param_base, y->w_base, QUANT_M_DEFAULT, QUANT_S_DEFAULT);
 
         /* tile order: pos_group outer, oc_group inner
@@ -486,16 +500,19 @@ static void run_inference(const layer_t *L, const config_t *c)
 
                 g_cnn.oc_group = og;
 
-                /* C_W_LOAD: reuse the buffer if same layer, same oc_group and K fits one chunk.
-                 *   oc_group is the inner loop, so a Conv with 2+ groups changes group every
-                 *   tile and reloads every time. Only single-group layers get the reuse. */
-                skip = g_cnn.tag_valid && (g_cnn.tag_layer == l) && (g_cnn.tag_oc == og) &&
-                       (y->k_total <= WBUF_WORDS);
-                if (!skip) {
-                    cnn_issue_wload(0, imin(y->k_total, WBUF_WORDS));
-                    g_cnn.tag_valid = 1;
-                    g_cnn.tag_layer = l;
-                    g_cnn.tag_oc    = og;
+                /* C_W_LOAD: the tile's first chunk goes to half `fh` = oc_group parity when K fits one
+                 *   chunk (so both groups of a 2-group Conv stay resident and only the first two tiles
+                 *   of the layer load), else half 0. Reuse when that half holds (layer, oc_group). */
+                {
+                    int fh = (y->k_total > g_wbuf) ? 0 : (og & 1);
+                    skip = g_cnn.tag_valid[fh] && (g_cnn.tag_layer[fh] == l) && (g_cnn.tag_oc[fh] == og) &&
+                           (y->k_total <= g_wbuf);
+                    if (!skip) {
+                        cnn_issue_wload(0, imin(y->k_total, g_wbuf));
+                        g_cnn.tag_valid[fh] = 1;
+                        g_cnn.tag_layer[fh] = l;
+                        g_cnn.tag_oc[fh]    = og;
+                    }
                 }
 
                 /* C_TILE_CFG */
@@ -543,7 +560,7 @@ static void print_summary(const layer_t *L, const config_t *c, int runs)
                  y->in_w, y->in_h, y->in_c, y->out_w, y->out_h, y->out_c, y->pool_en ? " +pool" : "");
         printf("  %-6s %-24s %5d %6d %5d %6ld %6d %6ld %6ld %8ld %9ld\n",
                y->name, shape, y->k_total, ceil_div(y->out_pix, 3), ceil_div(y->out_c, 3),
-               g_stat[l].tiles / runs, ceil_div(y->k_total, WBUF_WORDS),
+               g_stat[l].tiles / runs, ceil_div(y->k_total, g_wbuf),
                g_stat[l].wloads / runs, g_stat[l].creqs / runs,
                g_stat[l].beats / runs, g_stat[l].macs / runs);
         t.tiles += g_stat[l].tiles;   t.wloads += g_stat[l].wloads;  t.creqs += g_stat[l].creqs;
@@ -587,6 +604,7 @@ int main(int argc, char **argv)
     }
     if (runs < 1) runs = 1;
 
+    g_wbuf = cfg.wbuf;
     build_network(L, &cfg);
     bad = check_widths(L, &cfg);
     if (bad) printf("  %d config value(s) exceed the RTL widths, results may differ from the RTL\n", bad);
