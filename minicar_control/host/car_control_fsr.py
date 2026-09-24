@@ -9,7 +9,7 @@ import serial
 # Change this to the COM port shown for the Zybo.
 # Example: "COM7"
 # ==================================================
-SERIAL_PORT = "COM10"
+SERIAL_PORT = "COM14"
 BAUD_RATE = 115200
 
 SEND_PERIOD_MS = 20

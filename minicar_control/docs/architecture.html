@@ -126,19 +126,20 @@
 </style>
 
 <div class="page">
-  <p class="eyebrow">INTERFACE ARCHITECTURE — WIRELESS MINI-CAR CONTROL (ICD v0.2)</p>
+  <p class="eyebrow">INTERFACE ARCHITECTURE — WIRELESS MINI-CAR CONTROL (ICD v0.3)</p>
   <h1>무선 미니카 제어 시스템 아키텍처</h1>
   <p class="lede">
-    확정된 ICD v0.2를 기준으로 다시 그렸다. 시스템은 <b>Sensor → Zybo → ESP32 #1(무선 브릿지) → ESP32 #2(차량 제어) → L298N → TT Motor ×4</b>
-    로 이어지는 단일 파이프라인이며, <b>IF-01~IF-06 여섯 개 인터페이스</b>로 경계가 정의된다. Zybo가 만든 8-byte
-    <b>CommandPacket</b>은 변환 없이 UART와 ESP-NOW를 그대로 통과하고, Vehicle Controller는 통신 방식과 무관하게
-    <b>DriverCommand</b> 구조체만 입력으로 받는다. <b>Sensor부터 Motor까지 전 구간을 실물로 통합해 동작을 확인했다.</b>
+    센서 취득이 Zybo에서 <b>ESP32 #3</b>로 분리되면서 4노드 구조가 되었다. 두 종류의 8-byte 패킷이 파이프라인을 돈다 —
+    <b>SensorPacket</b>(<code>A5 5A</code>)은 페달 원시값을 Zybo로 올리고, <b>CommandPacket</b>(<code>AA 55</code>)은
+    Zybo가 만든 주행 명령을 차량으로 내린다. <b>ESP32 #1은 양방향 허브</b>로서 두 패킷 모두를 검증만 하고
+    재가공 없이 통과시키며, 두 흐름은 같은 UART 페어의 서로 반대 방향을 쓴다. SOF가 달라 스트림이 섞이지 않는다.
+    <b>Sensor부터 Motor까지 전 구간을 실물로 통합해 동작을 확인했다.</b>
   </p>
 
   <figure>
     <div class="diagram-card">
       <div class="diagram-scroll">
-        <svg viewBox="0 0 1400 1040" role="img" aria-label="무선 미니카 제어 시스템 아키텍처: Sensor가 측정한 Steering/Acceleration/Brake 값이 Zybo에서 DriverCommand로 해석되고, 8바이트 CommandPacket으로 인코딩되어 UART로 ESP32 1로, 다시 ESP-NOW 무선으로 ESP32 2로 전달된다. ESP32 2는 패킷을 검증해 DriverCommand로 복원하고 차량 상태를 갱신한 뒤 GPIO와 PWM으로 L298N을 구동하며, L298N은 H-Bridge 전력으로 좌우 TT 모터 4개를 구동한다. 300밀리초 무응답 Failsafe와 Flags 비트0 Emergency Stop이 안전 기능으로 별도 표시되어 있다.">
+        <svg viewBox="0 0 1400 1600" role="img" aria-label="무선 미니카 제어 시스템 아키텍처 v0.3: FSR 두 개가 ADS1115로 들어가고, ESP32 3번이 I2C로 읽어 8바이트 SensorPacket을 만들어 ESP-NOW로 ESP32 1번 허브에 보낸다. 허브는 이를 UART로 Zybo에 전달하고, Zybo는 원시값을 0에서 5단계로 변환한 뒤 PC 키보드 조향과 합쳐 8바이트 CommandPacket을 만들어 같은 UART의 반대 방향으로 허브에 돌려보낸다. 허브는 이를 다시 ESP-NOW로 ESP32 2번 차량 제어기에 중계하고, 차량 제어기는 GPIO와 PWM으로 L298N을 구동해 좌우 TT 모터 네 개를 돌린다. 센서 링크 200밀리초, PC 링크 500밀리초, 차량 수신 300밀리초의 세 가지 타임아웃과 Emergency Stop이 안전 장치로 표시되어 있다.">
           <defs>
             <marker id="ar-flow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent-flow)"/>
@@ -149,236 +150,300 @@
             <marker id="ar-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent-actuation)"/>
             </marker>
+            <marker id="ar-sensor" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent-spec)"/>
+            </marker>
           </defs>
 
-          <!-- ============ MAIN PIPELINE ============ -->
-          <!-- Sensor -->
-          <rect x="60" y="40" width="400" height="85" rx="8" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/>
-          <text x="80" y="65" class="svg-label-title" font-size="14.5">Sensor</text>
-          <text x="80" y="80" class="svg-label-faint" font-size="9.5">(물리 입력 측정)</text>
-          <rect x="220" y="50" width="110" height="20" rx="4" fill="var(--surface-2)" stroke="var(--line)"/>
-          <text x="275" y="64" text-anchor="middle" class="svg-label-sub" font-size="8.5">Steering → ±90°</text>
-          <rect x="220" y="74" width="110" height="20" rx="4" fill="var(--surface-2)" stroke="var(--line)"/>
-          <text x="275" y="88" text-anchor="middle" class="svg-label-sub" font-size="8.5">Accel → 0~5</text>
-          <rect x="335" y="74" width="105" height="20" rx="4" fill="var(--surface-2)" stroke="var(--line)"/>
-          <text x="387" y="88" text-anchor="middle" class="svg-label-sub" font-size="8.5">Brake → 0~5</text>
-          <text x="80" y="112" class="svg-label-faint" font-size="9">FSR ×2 → ADS1115 (0x48) · 전압 범위 TBD</text>
+          <!-- ============ SENSOR ACQUISITION ============ -->
+          <rect x="60" y="40" width="400" height="90" rx="8" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/>
+          <text x="80" y="66" class="svg-label-title" font-size="14.5">FSR ×2</text>
+          <text x="80" y="82" class="svg-label-faint" font-size="9.5">페달 압력 측정</text>
+          <rect x="250" y="52" width="95" height="20" rx="4" fill="var(--surface-2)" stroke="var(--line)"/>
+          <text x="297" y="66" text-anchor="middle" class="svg-label-sub" font-size="8.5">Accel → A0</text>
+          <rect x="352" y="52" width="95" height="20" rx="4" fill="var(--surface-2)" stroke="var(--line)"/>
+          <text x="399" y="66" text-anchor="middle" class="svg-label-sub" font-size="8.5">Brake → A1</text>
+          <text x="80" y="108" class="svg-label-faint" font-size="9">전압 범위 · 임계값 TBD</text>
 
-          <line x1="260" y1="125" x2="260" y2="172" stroke="var(--accent-flow)" stroke-width="2" marker-end="url(#ar-flow)"/>
-          <text x="278" y="145" class="svg-arrow-label" font-size="10" fill="var(--accent-flow)" font-weight="600">IF-01 · I2C1 (MIO12/13) · ADS1115</text>
-          <text x="278" y="158" class="svg-arrow-label" font-size="9.5" fill="var(--accent-flow)">Raw Measurement · A0=Accel / A1=Brake</text>
+          <line x1="260" y1="130" x2="260" y2="183" stroke="var(--accent-spec)" stroke-width="2" marker-end="url(#ar-sensor)"/>
+          <text x="278" y="150" class="svg-arrow-label" font-size="10" fill="var(--accent-spec)" font-weight="600">IF-01 · Analog Voltage</text>
+          <text x="278" y="163" class="svg-arrow-label" font-size="9.5" fill="var(--accent-spec)">분압 회로 (TBD)</text>
 
-          <!-- Zybo -->
-          <rect x="60" y="178" width="400" height="110" rx="8" fill="var(--surface)" stroke="var(--accent-hub)" stroke-width="2.2"/>
-          <text x="80" y="203" class="svg-label-title" font-size="15">Zybo</text>
-          <text x="80" y="220" class="svg-label-sub" font-size="10.5">Sensor 해석 → DriverCommand 생성</text>
-          <text x="80" y="248" class="svg-mono" font-size="9.5">steering:int8 · accel:uint8 · brake:uint8</text>
-          <text x="80" y="262" class="svg-mono" font-size="9.5">emergencyStop:bool</text>
-          <text x="80" y="280" class="svg-label-faint" font-size="9">→ CommandPacket 8-byte 인코딩</text>
+          <rect x="60" y="190" width="400" height="85" rx="8" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/>
+          <text x="80" y="216" class="svg-label-title" font-size="14.5">ADS1115</text>
+          <text x="80" y="232" class="svg-label-sub" font-size="10.5">16-bit ADC · Addr 0x48 (ADDR→GND)</text>
+          <text x="80" y="250" class="svg-label-faint" font-size="9">PGA ±4.096V · Single-shot · 860 SPS</text>
+          <text x="80" y="264" class="svg-label-faint" font-size="9">1 LSB = 125 µV · 3.3V 만재 ≈ 26400 counts</text>
 
-          <line x1="260" y1="288" x2="260" y2="335" stroke="var(--accent-flow)" stroke-width="2" marker-end="url(#ar-flow)"/>
-          <text x="278" y="308" class="svg-arrow-label" font-size="10" fill="var(--accent-flow)" font-weight="600">IF-02 · UART 115200 8-N-1</text>
-          <text x="278" y="321" class="svg-arrow-label" font-size="9.5" fill="var(--accent-flow)">8-byte Packet · 100Hz (10ms)</text>
-          <text x="278" y="332" class="svg-arrow-label" font-size="8.5" fill="var(--accent-flow)">ESP32 #1측 확정: RX=GPIO16 · TX=GPIO17 (Serial2)</text>
+          <line x1="260" y1="275" x2="260" y2="328" stroke="var(--accent-spec)" stroke-width="2" marker-end="url(#ar-sensor)"/>
+          <text x="278" y="295" class="svg-arrow-label" font-size="10" fill="var(--accent-spec)" font-weight="600">IF-02 · I2C 100 kHz</text>
+          <text x="278" y="308" class="svg-arrow-label" font-size="9.5" fill="var(--accent-spec)">SDA=GPIO21 · SCL=GPIO22</text>
 
-          <!-- ESP32 #1 -->
-          <rect x="60" y="341" width="400" height="85" rx="8" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/>
-          <text x="80" y="366" class="svg-label-title" font-size="14.5">ESP32 #1</text>
-          <text x="80" y="382" class="svg-label-sub" font-size="10.5">Wireless Bridge</text>
-          <text x="80" y="400" class="svg-label-faint" font-size="9">SOF · CRC · 범위 검증만 수행</text>
-          <text x="80" y="413" class="svg-label-faint" font-size="9">(차량 제어 로직 없음, Packet 재가공 없음)</text>
+          <rect x="60" y="335" width="400" height="100" rx="8" fill="var(--surface)" stroke="var(--accent-hub)" stroke-width="2.2"/>
+          <text x="80" y="361" class="svg-label-title" font-size="15">ESP32 #3 — Sensor Node</text>
+          <text x="80" y="378" class="svg-label-sub" font-size="10.5">A0/A1 읽기 → SensorPacket 인코딩</text>
+          <text x="80" y="398" class="svg-label-faint" font-size="9">주기 50Hz · 자기보정 (작업시간이 주기에 누적되지 않음)</text>
+          <text x="80" y="412" class="svg-label-faint" font-size="9">MAC 38:3E:51:CB:14:40</text>
+          <text x="80" y="426" class="svg-label-faint" font-size="9" fill="var(--accent-warn)">I2C 읽기 실패 시 송신 생략 → Zybo가 링크 상실로 판단</text>
 
-          <line x1="260" y1="426" x2="260" y2="473" stroke="var(--accent-wireless)" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#ar-wireless)"/>
-          <text x="278" y="446" class="svg-arrow-label" font-size="10" fill="var(--accent-wireless)" font-weight="600">IF-03 · ESP-NOW · Ch.1</text>
-          <text x="278" y="459" class="svg-arrow-label" font-size="9.5" fill="var(--accent-wireless)">8-byte Packet · 100Hz</text>
-          <text x="278" y="470" class="svg-arrow-label" font-size="8.5" fill="var(--accent-wireless)">esp_wifi_set_channel(1) 양쪽 고정 · 수신측 발신 MAC 필터링</text>
+          <line x1="260" y1="435" x2="260" y2="498" stroke="var(--accent-wireless)" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#ar-wireless)"/>
+          <text x="278" y="455" class="svg-arrow-label" font-size="10" fill="var(--accent-wireless)" font-weight="600">IF-03 · ESP-NOW · Ch.1</text>
+          <text x="278" y="468" class="svg-arrow-label" font-size="9.5" fill="var(--accent-wireless)">SensorPacket 8-byte · 50Hz</text>
+          <text x="278" y="480" class="svg-arrow-label" font-size="8.5" fill="var(--accent-wireless)">수신측 발신 MAC 필터링 · SOF/CRC/범위 검증</text>
 
-          <!-- ESP32 #2 -->
-          <rect x="60" y="479" width="400" height="175" rx="8" fill="var(--surface)" stroke="var(--accent-hub)" stroke-width="2.2"/>
-          <text x="80" y="504" class="svg-label-title" font-size="14.5">ESP32 #2</text>
-          <text x="80" y="520" class="svg-label-sub" font-size="10.5">Packet Decode (100Hz) → Vehicle Control (50Hz)</text>
-          <text x="80" y="538" class="svg-label-faint" font-size="9">Validation → DriverCommand 복원</text>
-          <line x1="70" y1="549" x2="450" y2="549" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3"/>
-          <text x="250" y="543" text-anchor="start" class="svg-arrow-label" font-size="9" fill="var(--accent-flow)" font-weight="600">IF-04 · SW Interface (DriverCommand)</text>
-          <text x="80" y="566" class="svg-label-sub" font-size="10">Vehicle Controller</text>
-          <text x="80" y="582" class="svg-label-faint" font-size="9">State Update → Accel/Brake Dynamics</text>
-          <text x="80" y="596" class="svg-label-faint" font-size="9">→ Steering Mixing (Differential)</text>
-          <text x="80" y="614" class="svg-label-faint" font-size="9" fill="var(--accent-warn)">→ Failsafe(300ms) / Emergency Stop 감시</text>
-          <text x="80" y="636" class="svg-label-faint" font-size="9">Left/Right Motor Command 산출</text>
+          <!-- ============ HUB (sensor channel) ============ -->
+          <rect x="60" y="505" width="400" height="100" rx="8" fill="var(--surface-2)" stroke="var(--accent-hub)" stroke-width="2.2"/>
+          <text x="80" y="531" class="svg-label-title" font-size="15">ESP32 #1 — Wireless Hub</text>
+          <text x="80" y="548" class="svg-label-sub" font-size="10.5">Sensor 채널 : ESP-NOW RX → UART TX</text>
+          <text x="80" y="568" class="svg-label-faint" font-size="9">검증만 수행 · Payload 재가공 없음</text>
+          <text x="80" y="582" class="svg-label-faint" font-size="9">MAC B0:3F:D3:75:17:50</text>
+          <text x="80" y="596" class="svg-label-faint" font-size="9" fill="var(--accent-flow)" font-weight="600">↓ 아래 Command 채널과 동일한 물리 보드</text>
 
-          <line x1="260" y1="654" x2="260" y2="701" stroke="var(--accent-actuation)" stroke-width="2" marker-end="url(#ar-act)"/>
-          <text x="278" y="674" class="svg-arrow-label" font-size="10" fill="var(--accent-actuation)" font-weight="600">IF-05 · GPIO + PWM</text>
-          <text x="278" y="687" class="svg-arrow-label" font-size="9.5" fill="var(--accent-actuation)">5kHz / 8bit · L/R Motor Command</text>
+          <line x1="260" y1="605" x2="260" y2="668" stroke="var(--accent-spec)" stroke-width="2" marker-end="url(#ar-sensor)"/>
+          <text x="278" y="625" class="svg-arrow-label" font-size="10" fill="var(--accent-spec)" font-weight="600">IF-04 · UART 115200 8-N-1</text>
+          <text x="278" y="638" class="svg-arrow-label" font-size="9.5" fill="var(--accent-spec)">SensorPacket · ESP32 TX GPIO17 → Zybo RX MIO14 (JF9)</text>
+          <text x="278" y="650" class="svg-arrow-label" font-size="8.5" fill="var(--accent-spec)">UART 페어의 한쪽 방향 — IF-05와 물리적으로 같은 링크</text>
 
-          <!-- L298N -->
-          <rect x="60" y="707" width="400" height="85" rx="8" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/>
-          <text x="80" y="732" class="svg-label-title" font-size="14.5">L298N</text>
-          <text x="80" y="748" class="svg-label-sub" font-size="10.5">H-Bridge Motor Driver</text>
-          <text x="80" y="766" class="svg-label-faint" font-size="9">Left: IN1/IN2/ENA · Right: IN3/IN4/ENB</text>
-          <text x="80" y="779" class="svg-label-faint" font-size="9">Right는 장착 방향 반대 → 논리 반전</text>
+          <!-- ============ ZYBO ============ -->
+          <rect x="60" y="675" width="400" height="190" rx="8" fill="var(--surface)" stroke="var(--accent-hub)" stroke-width="2.2"/>
+          <text x="80" y="701" class="svg-label-title" font-size="15">Zybo — Command Synthesis</text>
+          <text x="80" y="718" class="svg-label-sub" font-size="10.5">SensorPacket → Raw → Level 0~5</text>
+          <line x1="70" y1="730" x2="450" y2="730" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="80" y="748" class="svg-mono" font-size="9.5">steering:int8 · accel:uint8 · brake:uint8</text>
+          <text x="80" y="762" class="svg-mono" font-size="9.5">emergencyStop:bool</text>
+          <text x="80" y="782" class="svg-label-faint" font-size="9">Brake &gt; 0 이면 Accel 강제 0</text>
+          <text x="80" y="796" class="svg-label-faint" font-size="9">제어 주기 50Hz · 마감시각 기반 (부하와 무관)</text>
+          <text x="80" y="812" class="svg-label-faint" font-size="9" fill="var(--accent-warn)">Sensor 200ms / PC 500ms 무응답 → E-Stop Flag</text>
+          <text x="80" y="832" class="svg-label-sub" font-size="10">← PC Keyboard (UART1 / MIO48·49)</text>
+          <text x="80" y="848" class="svg-label-faint" font-size="9">K,&lt;steering&gt;,&lt;estop&gt; ASCII · 조향 및 E-Stop 입력</text>
 
-          <line x1="260" y1="792" x2="260" y2="836" stroke="var(--accent-actuation)" stroke-width="2.2" marker-end="url(#ar-act)"/>
-          <text x="278" y="815" class="svg-arrow-label" font-size="10" fill="var(--accent-actuation)" font-weight="600">IF-06 · H-Bridge Power</text>
-          <text x="278" y="828" class="svg-arrow-label" font-size="9.5" fill="var(--accent-actuation)">Motor Voltage / Current</text>
+          <line x1="260" y1="865" x2="260" y2="928" stroke="var(--accent-flow)" stroke-width="2" marker-end="url(#ar-flow)"/>
+          <text x="278" y="885" class="svg-arrow-label" font-size="10" fill="var(--accent-flow)" font-weight="600">IF-05 · UART 115200 8-N-1</text>
+          <text x="278" y="898" class="svg-arrow-label" font-size="9.5" fill="var(--accent-flow)">CommandPacket · Zybo TX MIO15 (JF10) → ESP32 RX GPIO16</text>
+          <text x="278" y="910" class="svg-arrow-label" font-size="8.5" fill="var(--accent-flow)">IF-04의 반대 방향 — SOF가 달라 스트림이 섞이지 않음</text>
 
-          <!-- Motors -->
-          <rect x="60" y="838" width="190" height="90" rx="8" fill="var(--surface)" stroke="var(--accent-actuation)" stroke-width="1.6"/>
-          <text x="155" y="872" text-anchor="middle" class="svg-label-title" font-size="13">Left TT Motor ×2</text>
-          <text x="155" y="890" text-anchor="middle" class="svg-label-faint" font-size="9">IN1/IN2/ENA 구동</text>
+          <!-- ============ HUB (command channel) ============ -->
+          <rect x="60" y="935" width="400" height="100" rx="8" fill="var(--surface-2)" stroke="var(--accent-hub)" stroke-width="2.2"/>
+          <text x="80" y="961" class="svg-label-title" font-size="15">ESP32 #1 — Wireless Hub</text>
+          <text x="80" y="978" class="svg-label-sub" font-size="10.5">Command 채널 : UART RX → ESP-NOW TX</text>
+          <text x="80" y="998" class="svg-label-faint" font-size="9">SOF · CRC · 범위 검증만 · 차량 제어 로직 없음</text>
+          <text x="80" y="1012" class="svg-label-faint" font-size="9" fill="var(--accent-flow)" font-weight="600">↑ 위 Sensor 채널과 동일한 물리 보드</text>
+          <text x="80" y="1026" class="svg-label-faint" font-size="9">두 채널은 독립 · 서로의 Payload를 보지 않음</text>
 
-          <rect x="270" y="838" width="190" height="90" rx="8" fill="var(--surface)" stroke="var(--accent-actuation)" stroke-width="1.6"/>
-          <text x="365" y="872" text-anchor="middle" class="svg-label-title" font-size="13">Right TT Motor ×2</text>
-          <text x="365" y="890" text-anchor="middle" class="svg-label-faint" font-size="9">IN3/IN4/ENB 구동</text>
+          <line x1="260" y1="1035" x2="260" y2="1098" stroke="var(--accent-wireless)" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#ar-wireless)"/>
+          <text x="278" y="1055" class="svg-arrow-label" font-size="10" fill="var(--accent-wireless)" font-weight="600">IF-06 · ESP-NOW · Ch.1</text>
+          <text x="278" y="1068" class="svg-arrow-label" font-size="9.5" fill="var(--accent-wireless)">CommandPacket 8-byte · 50Hz</text>
+          <text x="278" y="1080" class="svg-arrow-label" font-size="8.5" fill="var(--accent-wireless)">esp_wifi_set_channel(1) 양쪽 고정 · 발신 MAC 필터링</text>
+
+          <!-- ============ VEHICLE ============ -->
+          <rect x="60" y="1105" width="400" height="160" rx="8" fill="var(--surface)" stroke="var(--accent-hub)" stroke-width="2.2"/>
+          <text x="80" y="1131" class="svg-label-title" font-size="15">ESP32 #2 — Vehicle Control</text>
+          <text x="80" y="1148" class="svg-label-sub" font-size="10.5">Packet Decode → DriverCommand 복원</text>
+          <line x1="70" y1="1160" x2="450" y2="1160" stroke="var(--line)" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="250" y="1154" text-anchor="start" class="svg-arrow-label" font-size="9" fill="var(--accent-flow)" font-weight="600">IF-07 · SW Interface</text>
+          <text x="80" y="1178" class="svg-label-sub" font-size="10">Vehicle Controller (50Hz)</text>
+          <text x="80" y="1194" class="svg-label-faint" font-size="9">State Update → Accel/Brake Dynamics</text>
+          <text x="80" y="1208" class="svg-label-faint" font-size="9">→ Differential Steering Mixing</text>
+          <text x="80" y="1224" class="svg-label-faint" font-size="9" fill="var(--accent-warn)">→ Failsafe(300ms) / Emergency Stop 감시</text>
+          <text x="80" y="1244" class="svg-label-faint" font-size="9">MAC B0:3F:D3:64:04:14 · Left/Right Motor Command 산출</text>
+
+          <line x1="260" y1="1265" x2="260" y2="1323" stroke="var(--accent-actuation)" stroke-width="2" marker-end="url(#ar-act)"/>
+          <text x="278" y="1287" class="svg-arrow-label" font-size="10" fill="var(--accent-actuation)" font-weight="600">IF-08 · GPIO + PWM</text>
+          <text x="278" y="1300" class="svg-arrow-label" font-size="9.5" fill="var(--accent-actuation)">5 kHz / 8 bit · L/R Motor Command</text>
+
+          <rect x="60" y="1330" width="400" height="85" rx="8" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.6"/>
+          <text x="80" y="1356" class="svg-label-title" font-size="14.5">L298N</text>
+          <text x="80" y="1372" class="svg-label-sub" font-size="10.5">H-Bridge Motor Driver</text>
+          <text x="80" y="1390" class="svg-label-faint" font-size="9">Left: IN1/IN2/ENA · Right: IN3/IN4/ENB</text>
+          <text x="80" y="1404" class="svg-label-faint" font-size="9">Right는 장착 방향 반대 → 논리 반전</text>
+
+          <line x1="260" y1="1415" x2="260" y2="1468" stroke="var(--accent-actuation)" stroke-width="2.2" marker-end="url(#ar-act)"/>
+          <text x="278" y="1440" class="svg-arrow-label" font-size="10" fill="var(--accent-actuation)" font-weight="600">IF-09 · H-Bridge Power</text>
+          <text x="278" y="1453" class="svg-arrow-label" font-size="9.5" fill="var(--accent-actuation)">Motor Voltage / Current</text>
+
+          <rect x="60" y="1475" width="190" height="85" rx="8" fill="var(--surface)" stroke="var(--accent-actuation)" stroke-width="1.6"/>
+          <text x="155" y="1508" text-anchor="middle" class="svg-label-title" font-size="13">Left TT Motor ×2</text>
+          <text x="155" y="1526" text-anchor="middle" class="svg-label-faint" font-size="9">IN1/IN2/ENA 구동</text>
+
+          <rect x="270" y="1475" width="190" height="85" rx="8" fill="var(--surface)" stroke="var(--accent-actuation)" stroke-width="1.6"/>
+          <text x="365" y="1508" text-anchor="middle" class="svg-label-title" font-size="13">Right TT Motor ×2</text>
+          <text x="365" y="1526" text-anchor="middle" class="svg-label-faint" font-size="9">IN3/IN4/ENB 구동</text>
 
           <!-- ============ REFERENCE PANELS ============ -->
-          <rect x="560" y="40" width="780" height="104" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4" stroke-dasharray="4 3"/>
-          <text x="578" y="62" class="svg-label-sub" font-size="11" fill="var(--accent-spec)" font-weight="600">TBD 항목</text>
-          <text x="578" y="80" class="svg-label-faint" font-size="9.5">FSR 전압 범위 · ADC Resolution · Accel·Brake Threshold(현재 임시값) · Steering Calibration</text>
-          <text x="578" y="97" class="svg-label-faint" font-size="9.5">최종 Motor 전원 · 최종 튜닝 Parameter</text>
-          <text x="578" y="114" class="svg-label-faint" font-size="9.5" fill="var(--accent-actuation)" font-weight="600">확정(실물 검증 완료): ESP32 #1 MAC B0:3F:D3:75:17:50 · ESP32 #2 MAC B0:3F:D3:64:04:14</text>
-          <text x="578" y="131" class="svg-label-faint" font-size="9.5" fill="var(--accent-actuation)" font-weight="600">ESP32 #1 UART RX16/TX17 · Zybo UART0 MIO14/15 (Pmod JF) · Zybo I2C1 MIO12/13</text>
+          <rect x="560" y="40" width="780" height="110" rx="8" fill="var(--surface)" stroke="var(--accent-actuation)" stroke-width="1.4"/>
+          <text x="578" y="62" class="svg-label-sub" font-size="11" fill="var(--accent-actuation)" font-weight="600">노드 / MAC (실물 검증 완료)</text>
+          <text x="578" y="82" class="svg-label-faint" font-size="9.5">ESP32 #1 Hub &nbsp; B0:3F:D3:75:17:50 &nbsp;·&nbsp; UART2 RX=GPIO16 / TX=GPIO17</text>
+          <text x="578" y="99" class="svg-label-faint" font-size="9.5">ESP32 #2 Vehicle &nbsp; B0:3F:D3:64:04:14 &nbsp;·&nbsp; L298N 25·26·27 / 32·14·13</text>
+          <text x="578" y="116" class="svg-label-faint" font-size="9.5">ESP32 #3 Sensor &nbsp; 38:3E:51:CB:14:40 &nbsp;·&nbsp; I2C SDA=GPIO21 / SCL=GPIO22</text>
+          <text x="578" y="136" class="svg-label-faint" font-size="9.5">Zybo &nbsp; UART0 MIO14(RX)/MIO15(TX) = Pmod JF9/JF10 &nbsp;·&nbsp; UART1 MIO48/49 = PC</text>
 
-          <rect x="560" y="178" width="380" height="110" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
-          <text x="578" y="200" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">struct DriverCommand</text>
-          <text x="578" y="220" class="svg-mono" font-size="9.5">int8_t  steering;  // -90~+90</text>
-          <text x="578" y="235" class="svg-mono" font-size="9.5">uint8_t accel;     // 0~5</text>
-          <text x="578" y="250" class="svg-mono" font-size="9.5">uint8_t brake;     // 0~5</text>
-          <text x="578" y="265" class="svg-mono" font-size="9.5">bool    emergencyStop;</text>
-          <text x="578" y="281" class="svg-label-faint" font-size="9">Application Layer 공통 Command (통신 방식 무관)</text>
-
-          <rect x="980" y="178" width="380" height="110" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
-          <text x="998" y="200" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">Command 의미</text>
-          <text x="998" y="219" class="svg-label-faint" font-size="9.5">Steering: 10° 단위, 19단계(-90~+90)</text>
-          <text x="998" y="236" class="svg-label-faint" font-size="9.5">Accel/Brake ≠ 속도값 — “요청 강도”</text>
-          <text x="998" y="253" class="svg-label-faint" font-size="9.5">(0=없음 ~ 5=매우 강함)</text>
-          <text x="998" y="272" class="svg-label-faint" font-size="9.5">Brake &gt; 0 이면 Accel보다 항상 우선</text>
-
-          <rect x="560" y="341" width="800" height="138" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
-          <text x="578" y="363" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">CommandPacket — 8 byte (IF-02 / IF-03 공용, 재가공 없음)</text>
-          <g font-family="var(--font-mono)">
-            <!-- byte cells -->
-            <g transform="translate(578,378)">
-              <!-- 8 cells -->
-              <rect x="0" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
-              <text x="46" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte0</text>
-              <text x="46" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">0xAA</text>
-
-              <rect x="97" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
-              <text x="143" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte1</text>
-              <text x="143" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">0x55</text>
-
-              <rect x="194" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
-              <text x="240" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte2</text>
-              <text x="240" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">SEQ</text>
-
-              <rect x="291" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
-              <text x="337" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte3</text>
-              <text x="337" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">STEER</text>
-
-              <rect x="388" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
-              <text x="434" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte4</text>
-              <text x="434" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">ACCEL</text>
-
-              <rect x="485" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
-              <text x="531" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte5</text>
-              <text x="531" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">BRAKE</text>
-
-              <rect x="582" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
-              <text x="628" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte6</text>
-              <text x="628" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">FLAGS</text>
-
-              <rect x="679" y="0" width="92" height="34" fill="var(--surface-2)" stroke="var(--accent-warn)" stroke-width="1.6"/>
-              <text x="725" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte7</text>
-              <text x="725" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">CRC8</text>
-            </g>
+          <rect x="560" y="190" width="780" height="150" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
+          <text x="578" y="212" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">SensorPacket — 8 byte (IF-03 / IF-04 공용)</text>
+          <g transform="translate(578,226)">
+            <rect x="0" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="44" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte0</text>
+            <text x="44" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">0xA5</text>
+            <rect x="93" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="137" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte1</text>
+            <text x="137" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">0x5A</text>
+            <rect x="186" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="230" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte2</text>
+            <text x="230" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">SEQ</text>
+            <rect x="279" y="0" width="181" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="369" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte3~4</text>
+            <text x="369" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">ACCEL_RAW (int16)</text>
+            <rect x="465" y="0" width="181" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="555" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte5~6</text>
+            <text x="555" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">BRAKE_RAW (int16)</text>
+            <rect x="651" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--accent-warn)" stroke-width="1.6"/>
+            <text x="695" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte7</text>
+            <text x="695" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">CRC8</text>
           </g>
-          <text x="578" y="440" class="svg-label-faint" font-size="9.5">SOF 0xAA/0x55 → 유실 시 재동기화 · SEQ 0~255(유실 감지, 1~2개 무시) · STEER -90~+90(10° 단위, 19단계)</text>
-          <text x="578" y="456" class="svg-label-faint" font-size="9.5">ACCEL/BRAKE 0~5(레벨 — 우측 Vehicle Control Loop 표 참고) · FLAGS 0x00=정상 / 0x01=Emergency Stop</text>
-          <text x="578" y="472" class="svg-label-faint" font-size="9.5">CRC-8 · Poly 0x07 · Init 0x00 · 대상 Byte0~6 · struct CommandPacket __attribute__((packed)); sizeof==8</text>
+          <text x="578" y="290" class="svg-label-faint" font-size="9.5">ADS1115 원시 counts를 그대로 전송 — Level 변환은 Zybo에서만 수행 (판단 지점을 한 곳에 유지)</text>
+          <text x="578" y="306" class="svg-label-faint" font-size="9.5">CRC-8 · Poly 0x07 · Init 0x00 · 대상 Byte0~6 · Little-endian int16 · sizeof==8</text>
+          <text x="578" y="325" class="svg-label-faint" font-size="9.5" fill="var(--accent-warn)" font-weight="600">범위 검증: −1000 ≤ raw ≤ 26400 (3.3V 초과 = 배선 이상) · ESP32 #1과 Zybo 양쪽에서 검사</text>
 
-          <rect x="560" y="479" width="380" height="175" rx="8" fill="var(--surface)" stroke="var(--accent-warn)" stroke-width="1.6"/>
-          <text x="578" y="502" class="svg-label-sub" font-size="10.5" fill="var(--accent-warn)" font-weight="600">Failsafe / Emergency Stop</text>
-          <text x="578" y="524" class="svg-label-faint" font-size="9.5">Failsafe: 정상 Packet 300ms 미수신</text>
-          <text x="578" y="539" class="svg-label-faint" font-size="9.5">→ 즉시 정지 (accel=0, brake=5, speed=0)</text>
-          <text x="578" y="561" class="svg-label-faint" font-size="9.5">E-Stop: Flags bit0=1 수신</text>
-          <text x="578" y="576" class="svg-label-faint" font-size="9.5">→ 최우선 · Accel/Brake/Steering 무시 · Motor 0</text>
-          <text x="578" y="598" class="svg-label-faint" font-size="9.5">실물 코드: 둘 다 동일한 hardStop()</text>
-          <text x="578" y="613" class="svg-label-faint" font-size="9.5">경로로 수렴 (모터 즉시 0)</text>
-          <text x="578" y="635" class="svg-label-faint" font-size="9.5">Sequence 1~2개 유실만으로는</text>
-          <text x="578" y="650" class="svg-label-faint" font-size="9.5">Failsafe를 트리거하지 않음</text>
+          <rect x="560" y="370" width="780" height="175" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
+          <text x="578" y="392" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">CommandPacket — 8 byte (IF-05 / IF-06 공용, 재가공 없음)</text>
+          <g transform="translate(578,406)">
+            <rect x="0" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="44" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte0</text>
+            <text x="44" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">0xAA</text>
+            <rect x="93" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="137" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte1</text>
+            <text x="137" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">0x55</text>
+            <rect x="186" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="230" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte2</text>
+            <text x="230" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">SEQ</text>
+            <rect x="279" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="323" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte3</text>
+            <text x="323" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">STEER</text>
+            <rect x="372" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="416" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte4</text>
+            <text x="416" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">ACCEL</text>
+            <rect x="465" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="509" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte5</text>
+            <text x="509" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">BRAKE</text>
+            <rect x="558" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="602" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte6</text>
+            <text x="602" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">FLAGS</text>
+            <rect x="651" y="0" width="88" height="34" fill="var(--surface-2)" stroke="var(--accent-warn)" stroke-width="1.6"/>
+            <text x="695" y="14" text-anchor="middle" class="svg-label-faint" font-size="8.5">Byte7</text>
+            <text x="695" y="28" text-anchor="middle" class="svg-mono" font-size="10.5" font-weight="600">CRC8</text>
+          </g>
+          <text x="578" y="470" class="svg-label-faint" font-size="9.5">STEER −90~+90 (10° 단위 19단계) · ACCEL/BRAKE 0~5 = 속도가 아닌 “요청 강도” · Brake &gt; 0 이면 Accel보다 우선</text>
+          <text x="578" y="486" class="svg-label-faint" font-size="9.5">FLAGS bit0 = Emergency Stop · SEQ 0~255 (유실 감지용, 1~2개 유실로는 Failsafe 미발동)</text>
+          <text x="578" y="502" class="svg-label-faint" font-size="9.5">CRC-8 · Poly 0x07 · Init 0x00 · 대상 Byte0~6 · __attribute__((packed)) · sizeof==8</text>
+          <text x="578" y="524" class="svg-label-faint" font-size="9.5">범위 검증 3중화: Zybo 생성 시 · ESP32 #1 중계 시 · ESP32 #2 수신 시</text>
 
-          <rect x="980" y="479" width="380" height="175" rx="8" fill="var(--surface)" stroke="var(--accent-actuation)" stroke-width="1.4"/>
-          <text x="998" y="502" class="svg-label-sub" font-size="10.5" fill="var(--accent-actuation)" font-weight="600">Vehicle Control Loop (50Hz)</text>
-          <text x="998" y="522" class="svg-label-faint" font-size="9.5">Accel Lv1~5: +8/+14/+22/+32/+45 (unit/s)</text>
-          <text x="998" y="538" class="svg-label-faint" font-size="9.5">Brake Lv1~5: -10/-18/-30/-50/-80 (unit/s)</text>
-          <text x="998" y="558" class="svg-label-faint" font-size="9.5">Steering: ±90°, 180°/sec 응답</text>
-          <text x="998" y="574" class="svg-label-faint" font-size="9.5">(0°→90° 약 0.5초)</text>
-          <text x="998" y="594" class="svg-label-faint" font-size="9.5">Differential Steering Mixing</text>
-          <text x="998" y="610" class="svg-label-faint" font-size="9.5">TURN_GAIN=0.35 (최대 조향 시 안쪽 65%)</text>
-          <text x="998" y="632" class="svg-label-faint" font-size="9.5">vehicleSpeed는 가상 상태값(0~100)</text>
-          <text x="998" y="647" class="svg-label-faint" font-size="9.5">— 실제 km/h 아님 (Encoder 추가 전)</text>
+          <rect x="560" y="580" width="380" height="215" rx="8" fill="var(--surface)" stroke="var(--accent-warn)" stroke-width="1.6"/>
+          <text x="578" y="603" class="svg-label-sub" font-size="10.5" fill="var(--accent-warn)" font-weight="600">Timeout / Failsafe</text>
+          <text x="578" y="625" class="svg-label-faint" font-size="9.5">Sensor Link · 200 ms (Zybo)</text>
+          <text x="578" y="640" class="svg-label-faint" font-size="9.5">→ E-Stop Flag 송신</text>
+          <text x="578" y="662" class="svg-label-faint" font-size="9.5">PC Link · 500 ms (Zybo)</text>
+          <text x="578" y="677" class="svg-label-faint" font-size="9.5">→ Steering 0 + E-Stop Flag latch</text>
+          <text x="578" y="699" class="svg-label-faint" font-size="9.5">Command · 300 ms (ESP32 #2)</text>
+          <text x="578" y="714" class="svg-label-faint" font-size="9.5">→ hardStop() · Motor 즉시 0</text>
+          <text x="578" y="736" class="svg-label-faint" font-size="9.5" font-weight="600">세 타임아웃 모두 벽시계 기준</text>
+          <text x="578" y="751" class="svg-label-faint" font-size="9.5">루프 횟수가 아니므로 CPU 부하나</text>
+          <text x="578" y="766" class="svg-label-faint" font-size="9.5">노드 간 클럭 드리프트와 무관하다</text>
+          <text x="578" y="785" class="svg-label-faint" font-size="9.5" fill="var(--accent-warn)">E-Stop과 Failsafe는 동일 hardStop() 수렴</text>
 
-          <rect x="560" y="707" width="380" height="85" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
-          <text x="578" y="729" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">L298N GPIO 배선</text>
-          <text x="578" y="748" class="svg-label-faint" font-size="9.5">Left — IN1:GPIO25 · IN2:GPIO26 · ENA:GPIO27</text>
-          <text x="578" y="764" class="svg-label-faint" font-size="9.5">Right — IN3:GPIO32 · IN4:GPIO14 · ENB:GPIO13</text>
-          <text x="578" y="781" class="svg-label-faint" font-size="9.5">Right 논리 반전 (장착 방향 반대)</text>
+          <rect x="980" y="580" width="360" height="215" rx="8" fill="var(--surface)" stroke="var(--accent-warn)" stroke-width="1.6"/>
+          <text x="998" y="603" class="svg-label-sub" font-size="10.5" fill="var(--accent-warn)" font-weight="600">Sensor 신뢰성 검증</text>
+          <text x="998" y="625" class="svg-label-faint" font-size="9.5">CRC는 바이트가 살아왔음만 증명할 뿐</text>
+          <text x="998" y="640" class="svg-label-faint" font-size="9.5">값이 타당함을 보장하지 않는다.</text>
+          <text x="998" y="662" class="svg-label-faint" font-size="9.5" font-weight="600">1. 범위</text>
+          <text x="998" y="677" class="svg-label-faint" font-size="9.5">−1000 ≤ raw ≤ 26400</text>
+          <text x="998" y="692" class="svg-label-faint" font-size="9.5">(3.3V 초과 = 물리적으로 불가능)</text>
+          <text x="998" y="714" class="svg-label-faint" font-size="9.5" font-weight="600">2. 변화율 (Zybo)</text>
+          <text x="998" y="729" class="svg-label-faint" font-size="9.5">|Δraw| ≤ 15000 / 20ms 샘플</text>
+          <text x="998" y="744" class="svg-label-faint" font-size="9.5">FSR 단선으로 레일까지 튀는 것을 차단</text>
+          <text x="998" y="766" class="svg-label-faint" font-size="9.5">거부된 샘플은 갱신하지 않음</text>
+          <text x="998" y="785" class="svg-label-faint" font-size="9.5">→ 지속되면 200ms 후 Sensor LOST</text>
 
-          <rect x="980" y="707" width="380" height="85" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
-          <text x="998" y="729" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">PWM 사양</text>
-          <text x="998" y="748" class="svg-label-faint" font-size="9.5">Frequency 5 kHz</text>
-          <text x="998" y="764" class="svg-label-faint" font-size="9.5">Resolution 8 bit (0~255)</text>
-          <text x="998" y="781" class="svg-label-faint" font-size="9.5">ENA/ENB에 Speed 값 출력</text>
+          <rect x="560" y="835" width="380" height="200" rx="8" fill="var(--surface)" stroke="var(--accent-actuation)" stroke-width="1.4"/>
+          <text x="578" y="858" class="svg-label-sub" font-size="10.5" fill="var(--accent-actuation)" font-weight="600">Vehicle Control Loop (50Hz)</text>
+          <text x="578" y="879" class="svg-label-faint" font-size="9.5">Accel Lv1~5: +8/+14/+22/+32/+45 (unit/s)</text>
+          <text x="578" y="895" class="svg-label-faint" font-size="9.5">Brake Lv1~5: −10/−18/−30/−50/−80 (unit/s)</text>
+          <text x="578" y="911" class="svg-label-faint" font-size="9.5">Coast: −4 (unit/s)</text>
+          <text x="578" y="932" class="svg-label-faint" font-size="9.5">Steering ±90°, 180°/sec (0°→90° ≈ 0.5s)</text>
+          <text x="578" y="948" class="svg-label-faint" font-size="9.5">Differential Mixing · TURN_GAIN 0.35</text>
+          <text x="578" y="964" class="svg-label-faint" font-size="9.5">(최대 조향 시 안쪽 모터 65%)</text>
+          <text x="578" y="985" class="svg-label-faint" font-size="9.5">MOTOR_START_SPEED 10 · MIN_PWM 65</text>
+          <text x="578" y="1001" class="svg-label-faint" font-size="9.5">vehicleSpeed는 가상 상태값 (0~100)</text>
+          <text x="578" y="1017" class="svg-label-faint" font-size="9.5">— 실제 km/h 아님 (Encoder 추가 전)</text>
+
+          <rect x="980" y="835" width="360" height="200" rx="8" fill="var(--surface)" stroke="var(--accent-spec)" stroke-width="1.4"/>
+          <text x="998" y="858" class="svg-label-sub" font-size="10.5" fill="var(--accent-spec)" font-weight="600">L298N 배선 / PWM</text>
+          <text x="998" y="879" class="svg-label-faint" font-size="9.5">Left — IN1:25 · IN2:26 · ENA:27</text>
+          <text x="998" y="895" class="svg-label-faint" font-size="9.5">Right — IN3:32 · IN4:14 · ENB:13</text>
+          <text x="998" y="911" class="svg-label-faint" font-size="9.5">Right 논리 반전 (장착 방향 반대)</text>
+          <text x="998" y="932" class="svg-label-faint" font-size="9.5">PWM Frequency 5 kHz</text>
+          <text x="998" y="948" class="svg-label-faint" font-size="9.5">Resolution 8 bit (0~255)</text>
+          <text x="998" y="964" class="svg-label-faint" font-size="9.5">ENA/ENB에 Speed 값 출력</text>
+          <text x="998" y="985" class="svg-label-sub" font-size="10" fill="var(--accent-spec)" font-weight="600">TBD</text>
+          <text x="998" y="1001" class="svg-label-faint" font-size="9.5">FSR 분압 회로 · Accel/Brake 임계값</text>
+          <text x="998" y="1017" class="svg-label-faint" font-size="9.5">Steering 보정 · 최종 모터 전원</text>
 
           <!-- ============ LEGEND ============ -->
-          <g transform="translate(60,975)">
-            <line x1="0" y1="0" x2="30" y2="0" stroke="var(--accent-flow)" stroke-width="2.4"/>
-            <text x="38" y="4" class="svg-arrow-label" font-size="11">측정·명령 데이터 (IF-01·02·04)</text>
-
-            <line x1="380" y1="0" x2="410" y2="0" stroke="var(--accent-wireless)" stroke-width="2.4" stroke-dasharray="7 5"/>
-            <text x="418" y="4" class="svg-arrow-label" font-size="11">무선 — ESP-NOW (IF-03)</text>
-
-            <line x1="680" y1="0" x2="710" y2="0" stroke="var(--accent-actuation)" stroke-width="2.4"/>
-            <text x="718" y="4" class="svg-arrow-label" font-size="11">물리 구동 — GPIO·PWM·모터 전력 (IF-05·06)</text>
+          <g transform="translate(560,1090)">
+            <line x1="0" y1="0" x2="30" y2="0" stroke="var(--accent-spec)" stroke-width="2.4"/>
+            <text x="38" y="4" class="svg-arrow-label" font-size="11">센서 측정값 (IF-01·02·04)</text>
+            <line x1="330" y1="0" x2="360" y2="0" stroke="var(--accent-flow)" stroke-width="2.4"/>
+            <text x="368" y="4" class="svg-arrow-label" font-size="11">주행 명령 (IF-05·07)</text>
           </g>
-          <g transform="translate(60,1000)">
-            <rect x="0" y="-9" width="26" height="16" fill="none" stroke="var(--accent-spec)" stroke-width="1.4" stroke-dasharray="4 3"/>
-            <text x="34" y="4" class="svg-arrow-label" font-size="11">규격/구조체 참조 (Packet·Struct·Pin·TBD)</text>
-
-            <rect x="420" y="-9" width="26" height="16" fill="none" stroke="var(--accent-warn)" stroke-width="1.6"/>
-            <text x="454" y="4" class="svg-arrow-label" font-size="11">안전 기능 (Failsafe·Emergency Stop)</text>
+          <g transform="translate(560,1120)">
+            <line x1="0" y1="0" x2="30" y2="0" stroke="var(--accent-wireless)" stroke-width="2.4" stroke-dasharray="7 5"/>
+            <text x="38" y="4" class="svg-arrow-label" font-size="11">무선 — ESP-NOW Ch.1 (IF-03·06)</text>
+            <line x1="330" y1="0" x2="360" y2="0" stroke="var(--accent-actuation)" stroke-width="2.4"/>
+            <text x="368" y="4" class="svg-arrow-label" font-size="11">물리 구동 (IF-08·09)</text>
+          </g>
+          <g transform="translate(560,1150)">
+            <rect x="0" y="-9" width="26" height="16" fill="none" stroke="var(--accent-warn)" stroke-width="1.6"/>
+            <text x="34" y="4" class="svg-arrow-label" font-size="11">안전 기능 (Timeout · E-Stop · 센서 검증)</text>
           </g>
         </svg>
       </div>
     </div>
     <figcaption>
-      Zybo가 Sensor Measurement를 해석해 만든 <b>DriverCommand</b>는 8-byte <b>CommandPacket</b>(AA·55·SEQ·STR·ACC·BRK·FLAGS·CRC)으로
-      인코딩되어 <b>UART(IF-02)</b>로 ESP32 #1에 전달되고, ESP32 #1은 SOF·CRC·범위를 검증한 뒤 같은 패킷을 재가공 없이
-      <b>ESP-NOW(IF-03)</b>로 ESP32 #2에 중계한다. ESP32 #2는 발신 MAC과 패킷을 다시 검증해 DriverCommand로 복원한 뒤(<b>IF-04</b>),
-      Vehicle Controller가 상태를 갱신하고 Differential Steering으로 좌/우 모터 명령을 산출해 <b>GPIO+PWM(IF-05)</b>으로 L298N을
-      구동한다. Vehicle Controller는 통신 방식을 모르며 오직 DriverCommand 구조체만 입력으로 받으므로, 통신 계층(UART/ESP-NOW)이
-      바뀌어도 차량 제어 로직은 그대로 유지된다. <b>Failsafe(300ms 무응답)</b>와 <b>Emergency Stop(Flags bit0)</b>은 트리거 조건은
-      다르지만, 실물 코드에서는 둘 다 동일한 hardStop() 경로로 수렴해 모터를 즉시 0으로 만든다.
+      센서 취득이 <b>ESP32 #3</b>로 분리되면서, 파이프라인에는 서로 다른 SOF를 가진 <b>두 종류의 8-byte 패킷</b>이 돈다.
+      ESP32 #3이 ADS1115 원시 counts를 <b>SensorPacket</b>(<code>A5 5A</code>)에 담아 ESP-NOW로 올리면(IF-03),
+      <b>ESP32 #1 허브</b>가 검증 후 재가공 없이 UART로 Zybo에 넘긴다(IF-04). Zybo는 원시값을 Level 0~5로 변환하고
+      PC 키보드 조향·E-Stop과 합쳐 <b>CommandPacket</b>(<code>AA 55</code>)을 만들어 <b>같은 UART 페어의 반대 방향</b>으로
+      허브에 돌려보내며(IF-05), 허브는 이를 다시 ESP-NOW로 ESP32 #2에 중계한다(IF-06). 허브의 두 채널은 서로의 Payload를
+      보지 않고, SOF가 다르므로 한 물리 링크를 공유해도 스트림이 섞이지 않는다. Level 변환이라는 <b>유일한 판단 지점은 Zybo</b>에만
+      존재하며, 나머지 노드는 검증·중계·구동만 한다.
     </figcaption>
   </figure>
 
   <div class="notes">
     <h2>모듈별 책임</h2>
     <p>
-      <b>Zybo</b>는 “무엇을 할 것인가”만 결정한다(Measurement 해석 → Command 생성). <b>ESP32 #1</b>은 “명령을 전달한다”에 한정되며
-      SOF/CRC/범위 검증 외의 판단은 하지 않는다. <b>ESP32 #2</b>는 “그 명령을 어떻게 차량 동작으로 만들 것인가”를 담당하며 수신 단계에서
-      발신 MAC과 CRC를 다시 검증해 신뢰할 수 없는 Packet을 걸러낸다. <b>L298N</b>은 “계산된 출력대로 실제 전력을 공급한다”만 수행한다.
-      각 모듈이 자신의 책임 밖 판단(예: ESP32 #1의 차량 동역학 계산, L298N의 제어 판단)을 하지 않도록 경계를 지키는 것이 이 ICD의
-      핵심이다.
+      <b>ESP32 #3</b>는 “측정해서 올린다”만 한다 — 임계값을 모르고 Level로도 바꾸지 않는다. 원시 counts를 그대로 보내는 이유는
+      판단 지점을 한 곳에 모으기 위해서다. <b>ESP32 #1</b>은 “전달한다”에 한정되며, 두 방향 모두 SOF/CRC/범위 검증 외의
+      판단을 하지 않고 Payload를 건드리지 않는다. <b>Zybo</b>는 “무엇을 할 것인가”를 결정한다 — 센서 해석, PC 입력 병합,
+      타임아웃 감시, Command 생성이 전부 여기 모여 있다. <b>ESP32 #2</b>는 “그 명령을 어떻게 차량 동작으로 만들 것인가”를
+      담당하고, <b>L298N</b>은 “계산된 출력대로 전력을 공급한다”만 수행한다. 각 모듈이 자기 책임 밖 판단을 하지 않도록
+      경계를 지키는 것이 이 ICD의 핵심이다.
+    </p>
+    <h2>v0.2 → v0.3 변경</h2>
+    <p>
+      센서 취득이 <b>Zybo의 I2C1(MIO12/13)에서 ESP32 #3</b>로 이동했다. Zybo는 더 이상 I2C를 사용하지 않으며, ADS1115는
+      ESP32 #3에 GPIO21/22로 연결된다. 이에 따라 <b>SensorPacket(A5 5A)</b>이 새로 정의되었고, Zybo↔ESP32 #1 UART는
+      <b>단방향에서 양방향</b>이 되었다. 인터페이스 번호도 IF-01~06에서 <b>IF-01~09</b>로 재편되었다. Command 송신률은
+      v0.2의 100Hz에서 <b>50Hz</b>로 되돌렸다 — 센서가 50Hz로 도착하므로 그보다 빠른 명령 생성은 같은 샘플을 다시 보내는 것에
+      불과하다. 새 무선 홉이 생긴 만큼 <b>Sensor Link 200ms 타임아웃</b>이 추가되었고, 모든 타임아웃은 루프 횟수가 아닌
+      벽시계 기준으로 통일했다.
     </p>
     <h2>확정 / 미확정</h2>
     <p>
-      Command 범위(Steering ±90°/10°, Accel·Brake 0~5), 8-byte Packet 구조, UART(115200/8-N-1/100Hz), ESP-NOW(Ch.1 명시적 고정,
-      8-byte, 발신 MAC 필터링), <b>ESP32 #1 MAC(B0:3F:D3:75:17:50)</b>과 <b>ESP32 #2 MAC(B0:3F:D3:64:04:14)</b>, ESP32 #1측
-      UART 핀(RX16/TX17), <b>Zybo측 UART0(MIO14/15)·I2C1(MIO12/13)</b>, ESP32 #2 제어 주기(50Hz)와 Failsafe(300ms),
-      L298N 핀 배정(25·26·27 / 32·14·13)은 <b>확정</b>되었고, <b>Sensor부터 Motor까지 전 구간을 실물로 통합해 동작을
-      확인했다.</b> 남은 <b>TBD</b>는 FSR 전압 범위와 ADC Resolution, Accel/Brake 임계값(현재 값은 임시), Steering 보정,
-      최종 모터 전원과 튜닝 파라미터다.
+      Command 범위(Steering ±90°/10°, Accel·Brake 0~5), 두 패킷 구조와 CRC-8, UART(115200/8-N-1, 양방향),
+      ESP-NOW(Ch.1 명시적 고정, 발신 MAC 필터링), <b>세 ESP32의 MAC</b>, <b>Zybo UART0 MIO14/15(Pmod JF9/JF10)</b>과
+      <b>UART1 MIO48/49</b>, ESP32 #3 I2C 핀(GPIO21/22), 제어 주기(Zybo·#2·#3 모두 50Hz), 세 타임아웃(200/500/300ms),
+      센서 검증 한계(범위 −1000~26400, 변화율 15000/샘플), L298N 핀 배정(25·26·27 / 32·14·13)은 <b>확정</b>되었고,
+      <b>Sensor부터 Motor까지 전 구간을 실물로 통합해 동작을 확인했다.</b> 남은 <b>TBD</b>는 FSR 분압 회로와 전압 범위,
+      Accel/Brake 임계값(현재 값은 임시), Steering 보정, 최종 모터 전원과 튜닝 파라미터다.
     </p>
   </div>
 </div>

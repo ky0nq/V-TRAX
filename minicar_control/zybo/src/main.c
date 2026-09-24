@@ -1,7 +1,6 @@
 #include "xparameters.h"
 #include "xuartps.h"
 #include "xuartps_hw.h"
-#include "xiicps.h"
 #include "xil_printf.h"
 #include "xstatus.h"
 #include "sleep.h"
@@ -9,35 +8,86 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 
-XUartPs Uart0;   // Zybo -> ESP32 #1
-XUartPs Uart1;   // PC <-> Zybo
-XIicPs Iic;      // ADS1115
+// ==================================================
+// UART
+//
+// UART0:
+//   TX -> ESP32 #1 -> ESP32 #2 Vehicle
+//   RX <- ESP32 #1 <- ESP32 #3 Sensor
+//
+// UART1:
+//   PC Keyboard Control
+//   Debug Output
+// ==================================================
+XUartPs Uart0;
+XUartPs Uart1;
 
 
-#define FLAG_EMERGENCY_STOP       0x01
+// ==================================================
+// Safety
+// ==================================================
+#define FLAG_EMERGENCY_STOP        0x01
 
-#define ADS1115_ADDR              0x48
-#define ADS1115_REG_CONVERSION    0x00
-#define ADS1115_REG_CONFIG        0x01
+// Wall-clock timeouts.
+//
+// These used to be loop-iteration counts, which tied the safety
+// timing to how long one pass of the loop happened to take. The
+// sensor node sends at a fixed 50 Hz from its own clock, so any
+// drift between the two rates changed how long "lost" took to
+// trigger. Real time removes that coupling.
+#define PC_COMMAND_TIMEOUT_MS      500
+#define SENSOR_TIMEOUT_MS          200
 
-#define I2C_CLOCK_HZ              100000
-
-// Wall-clock timeout. The control loop period is not constant
-// (ADS1115 conversion waits and the periodic debug line both add
-// to it), so counting loop iterations would make this safety
-// constant drift with CPU load.
-#define PC_COMMAND_TIMEOUT_MS     500
-
-// Command rate to ESP32 #1: 10 ms period = 100 Hz.
-#define CONTROL_PERIOD_US         10000
-
-// Consecutive ADS1115 failures tolerated before the I2C
-// controller is reset.
-#define I2C_FAILURE_LIMIT         5
+// Command output rate to ESP32 #1: 20 ms = 50 Hz, matching the
+// sensor node so commands carry fresh samples.
+#define CONTROL_PERIOD_US          20000
 
 
+// ==================================================
+// Sensor Plausibility Limits
+//
+// The sensor path only checked SOF and CRC, so a corrupt but
+// CRC-valid sample, a wrong PGA setting, or broken FSR wiring
+// could be read straight through as full throttle.
+//
+// ADS1115 at PGA +/-4.096 V gives 32767 counts for 4.096 V. The
+// dividers run from 3.3 V, so nothing above ~26400 counts is
+// physically reachable; anything higher means a fault.
+// ==================================================
+#define SENSOR_RAW_MAX             26400
+#define SENSOR_RAW_MIN             (-1000)
+
+// Largest believable change between two 20 ms samples. A pedal
+// pressed as fast as a person can manage still takes ~80 ms to
+// travel full scale (~6600 counts per sample), so this leaves
+// more than 2x headroom while still rejecting an instantaneous
+// zero-to-full jump.
+#define SENSOR_MAX_STEP            15000
+
+
+// ==================================================
+// VEHICLE COMMAND PACKET
+//
+// Zybo
+//   -> UART0 TX
+//   -> ESP32 #1
+//   -> ESP-NOW
+//   -> ESP32 #2
+//
+// 8 bytes
+//
+// Byte 0 : 0xAA
+// Byte 1 : 0x55
+// Byte 2 : sequence
+// Byte 3 : steering
+// Byte 4 : accel
+// Byte 5 : brake
+// Byte 6 : flags
+// Byte 7 : CRC8
+// ==================================================
 typedef struct __attribute__((packed))
 {
     uint8_t sof1;
@@ -46,6 +96,7 @@ typedef struct __attribute__((packed))
     uint8_t sequence;
 
     int8_t steering;
+
     uint8_t accel;
     uint8_t brake;
 
@@ -56,12 +107,50 @@ typedef struct __attribute__((packed))
 } CommandPacket;
 
 
-static uint8_t sequenceNumber = 0;
+// ==================================================
+// SENSOR PACKET
+//
+// ESP32 #3
+//   -> ESP-NOW
+//   -> ESP32 #1
+//   -> UART0 RX
+//   -> Zybo
+//
+// 8 bytes
+//
+// Byte 0 : 0xA5
+// Byte 1 : 0x5A
+// Byte 2 : sequence
+// Byte 3~4 : accelRaw
+// Byte 5~6 : brakeRaw
+// Byte 7 : CRC8
+// ==================================================
+typedef struct __attribute__((packed))
+{
+    uint8_t sof1;
+    uint8_t sof2;
+
+    uint8_t sequence;
+
+    int16_t accelRaw;
+    int16_t brakeRaw;
+
+    uint8_t crc;
+
+} SensorPacket;
 
 
 // ==================================================
-// FSR thresholds
-// Placeholder levels. Calibrate against real FSR readings.
+// Command Sequence
+// ==================================================
+static uint8_t commandSequence = 0;
+
+
+// ==================================================
+// FSR Threshold
+//
+// Placeholder values.
+// Recalibrate once the cushion/plate is fitted.
 // ==================================================
 static const int16_t accelThreshold[5] =
 {
@@ -84,17 +173,113 @@ static const int16_t brakeThreshold[5] =
 
 
 // ==================================================
-// PC Command State
+// PC Control State
 // ==================================================
 static int8_t pcSteering = 0;
 
+
+// Start latched in E-STOP for safety.
 static uint8_t pcEmergencyStop = 1;
+
 
 static char pcRxLine[32];
 
+
 static uint32_t pcRxIndex = 0;
 
+
+// Cleared until the first valid line arrives, so the link reads
+// as lost at boot instead of looking fresh against a zeroed
+// timestamp.
+static int pcLinkEverSeen = 0;
+
+
 static XTime lastPcCommandTime;
+
+
+// ==================================================
+// Wireless Sensor State
+// ==================================================
+static int16_t latestAccelRaw = 0;
+
+
+static int16_t latestBrakeRaw = 0;
+
+
+static uint8_t latestSensorSequence = 0;
+
+
+static int sensorLinkEverSeen = 0;
+
+
+static XTime lastSensorPacketTime;
+
+
+// Cleared whenever the link drops, so the first sample after a
+// recovery is not rejected for jumping away from a stale one.
+static int sensorHistoryValid = 0;
+
+
+// ==================================================
+// UART0 Sensor Packet Parser
+// ==================================================
+static uint8_t sensorRxBuffer[8];
+
+
+static uint32_t sensorRxIndex = 0;
+
+
+// ==================================================
+// CRC-8
+//
+// Polynomial = 0x07
+// Initial = 0x00
+// ==================================================
+uint8_t calculateCRC8(
+    const uint8_t *data,
+    uint32_t length
+)
+{
+    uint8_t crc = 0x00;
+
+
+    for (
+        uint32_t i = 0;
+        i < length;
+        i++
+    )
+    {
+        crc ^= data[i];
+
+
+        for (
+            int bit = 0;
+            bit < 8;
+            bit++
+        )
+        {
+            if (
+                crc
+                &
+                0x80
+            )
+            {
+                crc =
+                    (crc << 1)
+                    ^
+                    0x07;
+            }
+            else
+            {
+                crc <<=
+                    1;
+            }
+        }
+    }
+
+
+    return crc;
+}
 
 
 // ==================================================
@@ -123,9 +308,9 @@ uint32_t elapsedMs(
 // ==================================================
 // Microseconds elapsed since a global timer timestamp
 //
-// Only valid for short intervals. The 1e6 scaling overflows
-// a 64-bit count after roughly 15 hours, so this is used for
-// intra-cycle timing while elapsedMs covers the long ones.
+// Only valid for short intervals. The 1e6 scaling overflows a
+// 64-bit count after roughly 15 hours, so this covers one loop
+// pass while elapsedMs covers the link timeouts.
 // ==================================================
 uint32_t elapsedUs(
     XTime since
@@ -150,9 +335,9 @@ uint32_t elapsedUs(
 // ==================================================
 // Hold the control loop period
 //
-// A bare usleep() is added on top of the work above it, so
-// the real period would drift with I2C and UART load. This
-// sleeps only the remainder of the period instead.
+// A bare usleep() is added on top of the work above it, so the
+// real period would drift with UART and debug load. This sleeps
+// only the remainder of the period instead.
 // ==================================================
 void holdControlPeriod(
     XTime cycleStart
@@ -164,7 +349,11 @@ void holdControlPeriod(
         );
 
 
-    if (usedUs < CONTROL_PERIOD_US)
+    if (
+        usedUs
+        <
+        CONTROL_PERIOD_US
+    )
     {
         usleep(
             CONTROL_PERIOD_US - usedUs
@@ -174,46 +363,13 @@ void holdControlPeriod(
 
 
 // ==================================================
-// CRC-8
-// ==================================================
-uint8_t calculateCRC8(
-    const uint8_t *data,
-    uint32_t length
-)
-{
-    uint8_t crc = 0x00;
-
-    for (uint32_t i = 0;
-         i < length;
-         i++)
-    {
-        crc ^= data[i];
-
-        for (int bit = 0;
-             bit < 8;
-             bit++)
-        {
-            if (crc & 0x80)
-            {
-                crc =
-                    (crc << 1)
-                    ^
-                    0x07;
-            }
-            else
-            {
-                crc <<= 1;
-            }
-        }
-    }
-
-    return crc;
-}
-
-
-// ==================================================
-// UART0
-// Zybo -> ESP32 #1
+// UART0 Init
+//
+// UART0:
+//   TX = MIO15 / JF10
+//   RX = MIO14 / JF9
+//
+// Baud = 115200
 // ==================================================
 int initUART0(void)
 {
@@ -222,7 +378,12 @@ int initUART0(void)
             XPAR_XUARTPS_0_DEVICE_ID
         );
 
-    if (Config == NULL)
+
+    if (
+        Config
+        ==
+        NULL
+    )
     {
         return XST_FAILURE;
     }
@@ -236,7 +397,11 @@ int initUART0(void)
         );
 
 
-    if (Status != XST_SUCCESS)
+    if (
+        Status
+        !=
+        XST_SUCCESS
+    )
     {
         return XST_FAILURE;
     }
@@ -251,8 +416,10 @@ int initUART0(void)
 
 
 // ==================================================
-// UART1
-// PC <-> Zybo
+// UART1 Init
+//
+// UART1 = PC / COM10
+// Baud = 115200
 // ==================================================
 int initUART1(void)
 {
@@ -262,7 +429,11 @@ int initUART1(void)
         );
 
 
-    if (Config == NULL)
+    if (
+        Config
+        ==
+        NULL
+    )
     {
         return XST_FAILURE;
     }
@@ -276,7 +447,11 @@ int initUART1(void)
         );
 
 
-    if (Status != XST_SUCCESS)
+    if (
+        Status
+        !=
+        XST_SUCCESS
+    )
     {
         return XST_FAILURE;
     }
@@ -291,7 +466,15 @@ int initUART1(void)
 
 
 // ==================================================
-// UART0 -> ESP32 #1 Packet
+// Send Vehicle Command
+//
+// Zybo UART0 TX
+//      v
+// ESP32 #1 GPIO16 RX
+//      v
+// ESP-NOW
+//      v
+// ESP32 #2
 // ==================================================
 void sendCommandPacket(
     int8_t steering,
@@ -306,20 +489,26 @@ void sendCommandPacket(
     packet.sof1 =
         0xAA;
 
+
     packet.sof2 =
         0x55;
 
+
     packet.sequence =
-        sequenceNumber++;
+        commandSequence++;
+
 
     packet.steering =
         steering;
 
+
     packet.accel =
         accel;
 
+
     packet.brake =
         brake;
+
 
     packet.flags =
         flags;
@@ -327,7 +516,7 @@ void sendCommandPacket(
 
     packet.crc =
         calculateCRC8(
-            (uint8_t *)&packet,
+            (const uint8_t *)&packet,
             7
         );
 
@@ -348,345 +537,407 @@ void sendCommandPacket(
 
 
 // ==================================================
-// I2C1
-// ==================================================
-int initI2C(void)
-{
-    XIicPs_Config *Config =
-        XIicPs_LookupConfig(
-            XPAR_XIICPS_0_DEVICE_ID
-        );
-
-
-    if (Config == NULL)
-    {
-        return XST_FAILURE;
-    }
-
-
-    int Status =
-        XIicPs_CfgInitialize(
-            &Iic,
-            Config,
-            Config->BaseAddress
-        );
-
-
-    if (Status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
-
-
-    Status =
-        XIicPs_SelfTest(
-            &Iic
-        );
-
-
-    if (Status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
-
-
-    Status =
-        XIicPs_SetSClk(
-            &Iic,
-            I2C_CLOCK_HZ
-        );
-
-
-    if (Status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
-
-
-    xil_printf(
-        "I2C1 INIT OK\r\n"
-    );
-
-
-    return XST_SUCCESS;
-}
-
-
-// ==================================================
-// I2C Bus Recovery
+// Sensor Raw Plausibility
 //
-// Aborts any transfer in progress and returns the PS I2C
-// controller to a known state, so a transient glitch on the
-// bus cannot wedge it until the next power cycle.
-//
-// XIicPs_Reset restores register defaults, so the serial
-// clock has to be programmed again afterwards.
+// Rejects readings the hardware cannot actually produce.
 // ==================================================
-int recoverI2C(void)
-{
-    XIicPs_Reset(
-        &Iic
-    );
-
-
-    return
-        XIicPs_SetSClk(
-            &Iic,
-            I2C_CLOCK_HZ
-        );
-}
-
-
-// ==================================================
-// ADS1115 Config
-// ==================================================
-int ADS1115_WriteConfig(
-    uint16_t config
+int sensorRawInRange(
+    int16_t raw
 )
 {
-    uint8_t tx[3];
-
-
-    tx[0] =
-        ADS1115_REG_CONFIG;
-
-    tx[1] =
-        (uint8_t)(
-            (config >> 8)
-            &
-            0xFF
-        );
-
-    tx[2] =
-        (uint8_t)(
-            config
-            &
-            0xFF
-        );
-
-
-    int Status =
-        XIicPs_MasterSendPolled(
-            &Iic,
-            tx,
-            3,
-            ADS1115_ADDR
-        );
-
-
-    if (Status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
-
-
-    while (
-        XIicPs_BusIsBusy(
-            &Iic
-        )
+    return (
+        raw >= SENSOR_RAW_MIN
+        &&
+        raw <= SENSOR_RAW_MAX
     );
-
-
-    return XST_SUCCESS;
 }
 
 
 // ==================================================
-// ADS1115 Conversion Read
+// Absolute difference between two raw readings
 // ==================================================
-int ADS1115_ReadConversion(
-    int16_t *value
+int32_t sensorRawStep(
+    int16_t a,
+    int16_t b
 )
 {
-    uint8_t pointer =
-        ADS1115_REG_CONVERSION;
-
-    uint8_t rx[2];
-
-
-    int Status =
-        XIicPs_MasterSendPolled(
-            &Iic,
-            &pointer,
-            1,
-            ADS1115_ADDR
-        );
+    int32_t diff =
+        (int32_t)a
+        -
+        (int32_t)b;
 
 
-    if (Status != XST_SUCCESS)
+    return (
+        diff < 0
+            ? -diff
+            : diff
+    );
+}
+
+
+// ==================================================
+// Validate Sensor Packet
+// ==================================================
+int validateSensorPacket(
+    const SensorPacket *packet
+)
+{
+    // Header
+    if (
+        packet->sof1
+        !=
+        0xA5
+    )
     {
-        return XST_FAILURE;
+        return 0;
     }
 
 
-    while (
-        XIicPs_BusIsBusy(
-            &Iic
-        )
-    );
-
-
-    Status =
-        XIicPs_MasterRecvPolled(
-            &Iic,
-            rx,
-            2,
-            ADS1115_ADDR
-        );
-
-
-    if (Status != XST_SUCCESS)
+    if (
+        packet->sof2
+        !=
+        0x5A
+    )
     {
-        return XST_FAILURE;
+        return 0;
     }
 
 
-    while (
-        XIicPs_BusIsBusy(
-            &Iic
+    // CRC
+    uint8_t expectedCRC =
+        calculateCRC8(
+            (const uint8_t *)packet,
+            7
+        );
+
+
+    if (
+        expectedCRC
+        !=
+        packet->crc
+    )
+    {
+        return 0;
+    }
+
+
+    // Range
+    //
+    // A CRC only proves the bytes survived the link, not that
+    // the reading means anything.
+    if (
+        !sensorRawInRange(
+            packet->accelRaw
         )
-    );
+        ||
+        !sensorRawInRange(
+            packet->brakeRaw
+        )
+    )
+    {
+        return 0;
+    }
 
 
-    *value =
-        (int16_t)(
-            (
-                (uint16_t)rx[0]
-                <<
-                8
+    return 1;
+}
+
+
+// ==================================================
+// Process Wireless Sensor UART
+//
+// ESP32 #1 GPIO17 TX
+//      v
+// Zybo JF9 / MIO14 / UART0 RX
+//
+// Sensor packet header:
+//
+// A5 5A
+//
+// Return:
+//   1 = valid packet received
+//   0 = no new valid packet
+// ==================================================
+int processSensorUART(void)
+{
+    int validPacketReceived = 0;
+
+
+    // Drain the UART0 RX FIFO completely.
+    while (
+        XUartPs_IsReceiveData(
+            Uart0.Config.BaseAddress
+        )
+    )
+    {
+        uint8_t data =
+            (uint8_t)
+            XUartPs_ReadReg(
+                Uart0.Config.BaseAddress,
+                XUARTPS_FIFO_OFFSET
+            );
+
+
+        // ==========================================
+        // Byte 0
+        // Find 0xA5
+        // ==========================================
+        if (
+            sensorRxIndex
+            ==
+            0
+        )
+        {
+            if (
+                data
+                ==
+                0xA5
             )
-            |
-            rx[1]
-        );
+            {
+                sensorRxBuffer[0] =
+                    data;
 
 
-    return XST_SUCCESS;
+                sensorRxIndex =
+                    1;
+            }
+
+
+            continue;
+        }
+
+
+        // ==========================================
+        // Byte 1
+        // Confirm 0x5A
+        // ==========================================
+        if (
+            sensorRxIndex
+            ==
+            1
+        )
+        {
+            if (
+                data
+                ==
+                0x5A
+            )
+            {
+                sensorRxBuffer[1] =
+                    data;
+
+
+                sensorRxIndex =
+                    2;
+            }
+            else
+            {
+                // Bad header
+                sensorRxIndex =
+                    0;
+
+
+                // If this byte is itself 0xA5 it can start
+                // a new packet.
+                if (
+                    data
+                    ==
+                    0xA5
+                )
+                {
+                    sensorRxBuffer[0] =
+                        data;
+
+
+                    sensorRxIndex =
+                        1;
+                }
+            }
+
+
+            continue;
+        }
+
+
+        // ==========================================
+        // Byte 2 ~ Byte 7
+        // ==========================================
+        sensorRxBuffer[
+            sensorRxIndex
+        ] =
+            data;
+
+
+        sensorRxIndex++;
+
+
+        // ==========================================
+        // Complete 8-byte SensorPacket
+        // ==========================================
+        if (
+            sensorRxIndex
+            ==
+            8
+        )
+        {
+            SensorPacket packet;
+
+
+            memcpy(
+                &packet,
+                sensorRxBuffer,
+                sizeof(packet)
+            );
+
+
+            // --------------------------------------
+            // Header + CRC
+            // --------------------------------------
+            if (
+                validateSensorPacket(
+                    &packet
+                )
+            )
+            {
+                // --------------------------------------
+                // Slew
+                //
+                // A reading can sit inside the valid range
+                // and still be impossible. An FSR that goes
+                // open circuit pulls its divider to the rail
+                // within one sample, and only the size of
+                // the jump gives that away.
+                // --------------------------------------
+                int accept = 1;
+
+
+                if (
+                    sensorHistoryValid
+                )
+                {
+                    if (
+                        sensorRawStep(
+                            packet.accelRaw,
+                            latestAccelRaw
+                        )
+                        >
+                        SENSOR_MAX_STEP
+                        ||
+                        sensorRawStep(
+                            packet.brakeRaw,
+                            latestBrakeRaw
+                        )
+                        >
+                        SENSOR_MAX_STEP
+                    )
+                    {
+                        accept = 0;
+                    }
+                }
+
+
+                if (accept)
+                {
+                    latestAccelRaw =
+                        packet.accelRaw;
+
+
+                    latestBrakeRaw =
+                        packet.brakeRaw;
+
+
+                    latestSensorSequence =
+                        packet.sequence;
+
+
+                    sensorHistoryValid =
+                        1;
+
+
+                    validPacketReceived =
+                        1;
+                }
+            }
+
+
+            // Ready for the next packet
+            sensorRxIndex =
+                0;
+        }
+    }
+
+
+    return validPacketReceived;
 }
 
 
 // ==================================================
-// ADS1115 Channel Read
-// ==================================================
-int ADS1115_ReadChannel(
-    uint8_t channel,
-    int16_t *value
-)
-{
-    if (channel > 3)
-    {
-        return XST_FAILURE;
-    }
-
-
-    uint16_t mux =
-        (uint16_t)(
-            4
-            +
-            channel
-        );
-
-
-    uint16_t config =
-          0x8000
-        | (mux << 12)
-        | 0x0200
-        | 0x0100
-        | 0x00E0
-        | 0x0003;
-
-
-    int Status =
-        ADS1115_WriteConfig(
-            config
-        );
-
-
-    if (Status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
-
-
-    usleep(
-        2000
-    );
-
-
-    return
-        ADS1115_ReadConversion(
-            value
-        );
-}
-
-
-// ==================================================
-// FSR Read
-// A0 = Accel
-// A1 = Brake
-// ==================================================
-int readPressureSensors(
-    int16_t *accelRaw,
-    int16_t *brakeRaw
-)
-{
-    int Status =
-        ADS1115_ReadChannel(
-            0,
-            accelRaw
-        );
-
-
-    if (Status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
-
-
-    Status =
-        ADS1115_ReadChannel(
-            1,
-            brakeRaw
-        );
-
-
-    if (Status != XST_SUCCESS)
-    {
-        return XST_FAILURE;
-    }
-
-
-    return XST_SUCCESS;
-}
-
-
-// ==================================================
-// RAW -> Level 0~5
+// FSR RAW -> Level 0~5
 // ==================================================
 uint8_t rawToLevel(
     int16_t raw,
     const int16_t threshold[5]
 )
 {
-    if (raw < 0)
+    if (
+        raw
+        <
+        0
+    )
     {
-        raw = 0;
+        raw =
+            0;
     }
 
 
-    if (raw < threshold[0])
+    if (
+        raw
+        <
+        threshold[0]
+    )
+    {
         return 0;
+    }
 
-    if (raw < threshold[1])
+
+    if (
+        raw
+        <
+        threshold[1]
+    )
+    {
         return 1;
+    }
 
-    if (raw < threshold[2])
+
+    if (
+        raw
+        <
+        threshold[2]
+    )
+    {
         return 2;
+    }
 
-    if (raw < threshold[3])
+
+    if (
+        raw
+        <
+        threshold[3]
+    )
+    {
         return 3;
+    }
 
-    if (raw < threshold[4])
+
+    if (
+        raw
+        <
+        threshold[4]
+    )
+    {
         return 4;
+    }
 
 
     return 5;
@@ -694,14 +945,26 @@ uint8_t rawToLevel(
 
 
 // ==================================================
-// PC command:
+// Parse PC Command
+//
+// Format:
+//
 // K,<steering>,<estop>
+//
+// Example:
+//
+// K,0,0
+// K,-30,0
+// K,40,0
+// K,0,1
 // ==================================================
 int parsePCCommand(
     const char *line
 )
 {
     int steeringValue;
+
+
     int estopValue;
 
 
@@ -720,8 +983,10 @@ int parsePCCommand(
     }
 
 
+    // Steering Range
     if (
-        steeringValue < -90 ||
+        steeringValue < -90
+        ||
         steeringValue > 90
     )
     {
@@ -729,8 +994,13 @@ int parsePCCommand(
     }
 
 
+    // Steering 10-degree step
     if (
-        (steeringValue % 10)
+        (
+            steeringValue
+            %
+            10
+        )
         !=
         0
     )
@@ -739,8 +1009,10 @@ int parsePCCommand(
     }
 
 
+    // E-stop
     if (
-        estopValue != 0 &&
+        estopValue != 0
+        &&
         estopValue != 1
     )
     {
@@ -749,10 +1021,13 @@ int parsePCCommand(
 
 
     pcSteering =
-        (int8_t)steeringValue;
+        (int8_t)
+        steeringValue;
+
 
     pcEmergencyStop =
-        (uint8_t)estopValue;
+        (uint8_t)
+        estopValue;
 
 
     return 1;
@@ -760,7 +1035,7 @@ int parsePCCommand(
 
 
 // ==================================================
-// UART1 PC RX
+// Process PC UART1
 // ==================================================
 int processPCSerial(void)
 {
@@ -782,15 +1057,27 @@ int processPCSerial(void)
             );
 
 
-        if (c == '\r')
+        // CR ignore
+        if (
+            c
+            ==
+            '\r'
+        )
         {
             continue;
         }
 
 
-        if (c == '\n')
+        // End of line
+        if (
+            c
+            ==
+            '\n'
+        )
         {
-            pcRxLine[pcRxIndex] =
+            pcRxLine[
+                pcRxIndex
+            ] =
                 '\0';
 
 
@@ -813,17 +1100,21 @@ int processPCSerial(void)
         }
 
 
+        // Normal character
         if (
             pcRxIndex
             <
             sizeof(pcRxLine) - 1
         )
         {
-            pcRxLine[pcRxIndex++] =
+            pcRxLine[
+                pcRxIndex++
+            ] =
                 (char)c;
         }
         else
         {
+            // overflow protection
             pcRxIndex =
                 0;
         }
@@ -842,51 +1133,48 @@ int main(void)
     int Status;
 
 
-    // UART0 -> ESP32
+    // ==================================================
+    // UART0
+    //
+    // Zybo <-> ESP32 #1
+    // ==================================================
     Status =
         initUART0();
 
-    if (Status != XST_SUCCESS)
+
+    if (
+        Status
+        !=
+        XST_SUCCESS
+    )
     {
         return XST_FAILURE;
     }
 
 
-    // UART1 -> PC
+    // ==================================================
+    // UART1
+    //
+    // PC <-> Zybo
+    // ==================================================
     Status =
         initUART1();
 
-    if (Status != XST_SUCCESS)
+
+    if (
+        Status
+        !=
+        XST_SUCCESS
+    )
     {
         return XST_FAILURE;
     }
 
 
-    // ADS1115
-    Status =
-        initI2C();
-
-    if (Status != XST_SUCCESS)
-    {
-        xil_printf(
-            "I2C1 INIT FAILED\r\n"
-        );
-
-        return XST_FAILURE;
-    }
-
-
-    int16_t accelRaw =
-        0;
-
-    int16_t brakeRaw =
-        0;
-
-
+    // ==================================================
+    // Runtime State
+    // ==================================================
     uint32_t debugCounter =
-        0;
-
-    uint32_t i2cFailureCount =
         0;
 
 
@@ -895,21 +1183,36 @@ int main(void)
     );
 
 
+    XTime_GetTime(
+        &lastSensorPacketTime
+    );
+
+
+    // ==================================================
+    // Startup Debug
+    // ==================================================
     xil_printf(
         "\r\n"
         "========================================\r\n"
-        " ZYBO HYBRID VEHICLE CONTROL\r\n"
+        " ZYBO WIRELESS SENSOR VEHICLE CONTROL\r\n"
         "========================================\r\n"
-        "LEFT/RIGHT : PC Steering\r\n"
-        "SPACE      : Emergency Stop\r\n"
-        "FSR A0     : Acceleration\r\n"
-        "FSR A1     : Brake\r\n"
-        "UART0      : ESP32 #1 Command\r\n"
-        "UART1      : PC Control + Debug\r\n"
+        "PC Steering : UART1 / COM10\r\n"
+        "Sensor RX   : UART0 RX / JF9 / MIO14\r\n"
+        "Vehicle TX  : UART0 TX / JF10 / MIO15\r\n"
+        "\r\n"
+        "Sensor path:\r\n"
+        "FSR -> ADS1115 -> ESP32 #3\r\n"
+        "    -> ESP-NOW -> ESP32 #1 -> Zybo\r\n"
+        "\r\n"
+        "Vehicle path:\r\n"
+        "Zybo -> ESP32 #1 -> ESP-NOW -> ESP32 #2\r\n"
         "========================================\r\n"
     );
 
 
+    // ==================================================
+    // MAIN LOOP
+    // ==================================================
     while (1)
     {
         XTime cycleStart;
@@ -919,9 +1222,9 @@ int main(void)
         );
 
 
-        // ==========================================
-        // PC steering / E-stop
-        // ==========================================
+        // ==============================================
+        // 1. PC Steering / E-Stop
+        // ==============================================
         if (
             processPCSerial()
         )
@@ -929,158 +1232,183 @@ int main(void)
             XTime_GetTime(
                 &lastPcCommandTime
             );
+
+
+            pcLinkEverSeen =
+                1;
         }
 
 
-        uint32_t pcSilenceMs =
-            elapsedMs(
-                lastPcCommandTime
+        int pcLinkOK =
+            (
+                pcLinkEverSeen
+                &&
+                elapsedMs(
+                    lastPcCommandTime
+                )
+                <=
+                PC_COMMAND_TIMEOUT_MS
             );
 
 
-        // PC link timeout
+        // PC communication timeout
         if (
-            pcSilenceMs
-            >
-            PC_COMMAND_TIMEOUT_MS
+            !pcLinkOK
         )
         {
             pcSteering =
                 0;
+
 
             pcEmergencyStop =
                 1;
         }
 
 
-        // ==========================================
-        // FSR read
-        // ==========================================
-        Status =
-            readPressureSensors(
-                &accelRaw,
-                &brakeRaw
-            );
-
-
-        if (Status != XST_SUCCESS)
+        // ==============================================
+        // 2. Wireless Sensor Receive
+        //
+        // ESP32 #1 GPIO17
+        //       v
+        // Zybo UART0 RX
+        // ==============================================
+        if (
+            processSensorUART()
+        )
         {
-            sendCommandPacket(
-                0,
-                0,
-                0,
-                FLAG_EMERGENCY_STOP
+            XTime_GetTime(
+                &lastSensorPacketTime
             );
 
 
-            i2cFailureCount++;
-
-
-            if (
-                i2cFailureCount
-                >=
-                I2C_FAILURE_LIMIT
-            )
-            {
-                i2cFailureCount =
-                    0;
-
-
-                if (
-                    recoverI2C()
-                    ==
-                    XST_SUCCESS
-                )
-                {
-                    xil_printf(
-                        "I2C BUS RESET\r\n"
-                    );
-                }
-                else
-                {
-                    xil_printf(
-                        "I2C BUS RESET FAILED\r\n"
-                    );
-                }
-            }
-
-
-            if (
-                (debugCounter % 20)
-                ==
-                0
-            )
-            {
-                xil_printf(
-                    "ADS1115 READ ERROR -> E-STOP\r\n"
-                );
-            }
-
-
-            debugCounter++;
-
-
-            holdControlPeriod(
-                cycleStart
-            );
-
-
-            continue;
+            sensorLinkEverSeen =
+                1;
         }
 
 
-        i2cFailureCount =
-            0;
-
-
-        // ==========================================
-        // FSR RAW -> Level
-        // ==========================================
-        uint8_t accelLevel =
-            rawToLevel(
-                accelRaw,
-                accelThreshold
+        // ==============================================
+        // 3. Sensor Link State
+        //
+        // No accepted packet for SENSOR_TIMEOUT_MS
+        // => Sensor LOST
+        // ==============================================
+        int sensorLinkOK =
+            (
+                sensorLinkEverSeen
+                &&
+                elapsedMs(
+                    lastSensorPacketTime
+                )
+                <=
+                SENSOR_TIMEOUT_MS
             );
 
 
-        uint8_t brakeLevel =
-            rawToLevel(
-                brakeRaw,
-                brakeThreshold
-            );
-
-
-        // Brake priority
-        if (brakeLevel > 0)
+        // Drop the slew reference so the first sample after a
+        // recovery is not measured against a stale one.
+        if (
+            !sensorLinkOK
+        )
         {
-            accelLevel =
+            sensorHistoryValid =
                 0;
         }
 
 
-        // ==========================================
-        // Emergency stop
-        // ==========================================
+        // ==============================================
+        // 4. RAW -> Level
+        // ==============================================
+        uint8_t accelLevel =
+            0;
+
+
+        uint8_t brakeLevel =
+            0;
+
+
+        if (
+            sensorLinkOK
+        )
+        {
+            accelLevel =
+                rawToLevel(
+                    latestAccelRaw,
+                    accelThreshold
+                );
+
+
+            brakeLevel =
+                rawToLevel(
+                    latestBrakeRaw,
+                    brakeThreshold
+                );
+
+
+            // ==========================================
+            // Brake Priority
+            // ==========================================
+            if (
+                brakeLevel
+                >
+                0
+            )
+            {
+                accelLevel =
+                    0;
+            }
+        }
+
+
+        // ==============================================
+        // 5. Safety / E-STOP
+        // ==============================================
         uint8_t flags =
             0;
 
 
-        if (pcEmergencyStop)
+        // PC E-stop
+        if (
+            pcEmergencyStop
+        )
         {
             flags |=
                 FLAG_EMERGENCY_STOP;
+        }
 
+
+        // Sensor wireless link lost
+        if (
+            !sensorLinkOK
+        )
+        {
+            flags |=
+                FLAG_EMERGENCY_STOP;
+        }
+
+
+        // Any E-stop
+        if (
+            flags
+            &
+            FLAG_EMERGENCY_STOP
+        )
+        {
             accelLevel =
                 0;
+
 
             brakeLevel =
                 0;
         }
 
 
-        // ==========================================
-        // Final command -> ESP32 #1
-        // ==========================================
+        // ==============================================
+        // 6. Vehicle Command Send
+        //
+        // Zybo
+        //   -> ESP32 #1
+        //   -> ESP32 #2
+        // ==============================================
         sendCommandPacket(
             pcSteering,
             accelLevel,
@@ -1089,32 +1417,61 @@ int main(void)
         );
 
 
-        // ==========================================
-        // Debug -> COM10
+        // ==============================================
+        // 7. Debug
         //
-        // Every 20th cycle keeps this near 5 Hz at a 100 Hz
-        // control rate, so the debug line does not double the
-        // UART1 load when the period is shortened.
-        // ==========================================
+        // 10 loops -> about 5 Hz
+        // ==============================================
         if (
-            (debugCounter % 20)
+            (
+                debugCounter
+                %
+                10
+            )
             ==
             0
         )
         {
             xil_printf(
-                "FSR ACC_RAW=%d A=%d BRAKE_RAW=%d B=%d STEER=%d ESTOP=%d PC=%d\r\n",
-                accelRaw,
+                "SENSOR_SEQ=%d "
+                "ACC_RAW=%d A=%d "
+                "BRAKE_RAW=%d B=%d "
+                "SENSOR=%s "
+                "STEER=%d "
+                "ESTOP=%d "
+                "PC=%s\r\n",
+
+                latestSensorSequence,
+
+                latestAccelRaw,
                 accelLevel,
-                brakeRaw,
+
+                latestBrakeRaw,
                 brakeLevel,
+
+                sensorLinkOK
+                    ?
+                    "OK"
+                    :
+                    "LOST",
+
                 pcSteering,
-                pcEmergencyStop,
+
                 (
-                    pcSilenceMs
-                    <=
-                    PC_COMMAND_TIMEOUT_MS
+                    flags
+                    &
+                    FLAG_EMERGENCY_STOP
                 )
+                    ?
+                    1
+                    :
+                    0,
+
+                pcLinkOK
+                    ?
+                    "OK"
+                    :
+                    "LOST"
             );
         }
 
@@ -1122,6 +1479,9 @@ int main(void)
         debugCounter++;
 
 
+        // ==============================================
+        // 50 Hz
+        // ==============================================
         holdControlPeriod(
             cycleStart
         );
