@@ -14,14 +14,13 @@ module wgt_path (
     input wire rst_n,
 
     input  wire        i_ld_start,
-    input  wire [31:0] i_mem_base,
+    input  wire [15:0] i_mem_base,
     input  wire [ 8:0] i_chunk_word_count,   // reader 가 읽을 chunk 길이 1 ~ 256 (pe_cntl.o_chunk_word_count)
     input  wire [ 8:0] i_load_chunk_len,     // 적재할 chunk 길이 1 ~ 256      (cnn_cntl.o_chunk_word_count)
     input  wire        i_buf_half,           // chunk 가 놓이는 wgt_buf 반쪽 (cnn_cntl.o_buf_half). 적재는 i_ld_start, reader 는 i_chunk_start 에서 래치
-    output wire        o_mem_rd_en,
-    output wire [31:0] o_mem_rd_addr,
+    //output wire        o_mem_rd_en,
+    output wire [15:0] o_mem_rd_addr,
     input  wire [23:0] i_mem_rdata,
-    input  wire        i_mem_rvalid,
     output wire        o_ld_done,
     output wire        o_ld_ready,
     input  wire        i_buf_free,
@@ -61,10 +60,9 @@ module wgt_path (
         .i_mem_base         (i_mem_base),
         .i_chunk_word_count (i_load_chunk_len),
         .i_buf_half         (i_buf_half),
-        .o_mem_rd_en        (o_mem_rd_en),
+        //.o_mem_rd_en        (o_mem_rd_en),
         .o_mem_rd_addr      (o_mem_rd_addr),
         .i_mem_rdata        (i_mem_rdata),
-        .i_mem_rvalid       (i_mem_rvalid),
         .o_buf_we           (buf_we),
         .o_buf_waddr        (buf_waddr),
         .o_buf_wdata        (buf_wdata),
@@ -129,14 +127,13 @@ module wgt_ld_unit (
     input wire rst_n,
 
     input wire        i_ld_start,
-    input wire [31:0] i_mem_base,
+    input wire [15:0] i_mem_base,
     input wire [ 8:0] i_chunk_word_count,
     input wire        i_buf_half,
 
-    output wire        o_mem_rd_en,
-    output wire [31:0] o_mem_rd_addr,
+    //output wire        o_mem_rd_en,
+    output wire [15:0] o_mem_rd_addr,
     input  wire [23:0] i_mem_rdata,
-    input  wire        i_mem_rvalid,
 
     output wire        o_buf_we,
     output wire [ 8:0] o_buf_waddr,
@@ -149,7 +146,7 @@ module wgt_ld_unit (
     localparam S_IDLE = 1'd0, S_WAIT = 1'd1;
 
     reg [ 1:0] state;
-    reg [31:0] mem_base;
+    reg [15:0] mem_base;
     reg [ 8:0] chunk_len;
     reg [ 8:0] idx;
     reg        buf_half;
@@ -157,12 +154,12 @@ module wgt_ld_unit (
     assign o_ld_ready = rst_n && (state == S_IDLE) && i_buf_free;
 
     wire start_load = i_ld_start && o_ld_ready;
-    wire accept_rsp = (state == S_WAIT) && i_mem_rvalid;
+    wire accept_rsp = (state == S_WAIT);
     wire last_word = (idx == chunk_len - 9'd1);
 
-    assign o_mem_rd_en = rst_n && ((start_load && (i_chunk_word_count != 9'd0)) || (accept_rsp && !last_word));
-    assign o_mem_rd_addr =(state == S_IDLE) ? 
-        i_mem_base : mem_base + {23'd0, idx} + 32'd1;
+    //assign o_mem_rd_en = rst_n && ((start_load && (i_chunk_word_count != 9'd0)) || (accept_rsp && !last_word));
+    assign o_mem_rd_addr = (state == S_IDLE) ? i_mem_base
+            : mem_base + {7'd0, idx} + 16'd1;
 
     assign o_buf_we = rst_n && accept_rsp;
     assign o_buf_waddr = {buf_half, idx[7:0]};
@@ -171,7 +168,7 @@ module wgt_ld_unit (
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state     <= S_IDLE;
-            mem_base  <= 32'd0;
+            mem_base  <= 16'd0;
             chunk_len <= 9'd0;
             idx       <= 9'd0;
             buf_half  <= 1'b0;
