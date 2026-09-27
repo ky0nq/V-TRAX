@@ -68,15 +68,15 @@ module cnn_cntl #(
 
     // ---- per layer Requant M / S  ----------------------------------------
     //   q = sat_int8( round( (acc + bias) * M / 2^S ) ).  레이어의 모든 출력 채널에 공통.
-    //   S 의 사용 범위는 0 ~ 30. 기본값 M = 2^30, S = 30 은 "그대로 통과" (x * 2^30 / 2^30).
-    //   실제 값은 SW export 에서 받아 인스턴스에서 덮어쓴다. 최종 FC (L3) 는 명세상 M / S 를 쓰지 않는다.
-    parameter [31:0] L0_QM = 32'h4000_0000,
+    //   S 의 사용 범위는 0 ~ 30. 기본값 = Model C export (ModelC_HW_TOP_READY_20260923_020957/HW_TOP_TEST/hw_params.txt). 2026-09-24
+    //   다른 모델이면 인스턴스에서 덮어쓴다. L3 는 최종 FC2 의 ANGLE_MULT / ANGLE_SHIFT (1 LSB = 1 도).
+    parameter [31:0] L0_QM = 32'd1351983,
     parameter [ 5:0] L0_QS = 6'd30,
-    parameter [31:0] L1_QM = 32'h4000_0000,
+    parameter [31:0] L1_QM = 32'd2697078,
     parameter [ 5:0] L1_QS = 6'd30,
-    parameter [31:0] L2_QM = 32'h4000_0000,
+    parameter [31:0] L2_QM = 32'd487088,
     parameter [ 5:0] L2_QS = 6'd30,
-    parameter [31:0] L3_QM = 32'h4000_0000,
+    parameter [31:0] L3_QM = 32'd1441906,
     parameter [ 5:0] L3_QS = 6'd30
 ) (
     input wire clk,
@@ -87,13 +87,8 @@ module cnn_cntl #(
     output wire                     o_start_ready,          // -> cnn_accel_top.o_start_ready (CSR).  IDLE 이고 done_status=0 일 때만 1
     output wire                     o_busy,                 // -> cnn_accel_top.o_busy (CSR BUSY)
     output wire                     o_ram_owner,            // -> cnn_accel_top.o_ram_owner (밖의 RAM 중재).  0=weight, 1=param
-    input wire                      i_ram_idle,             // <- cnn_accel_top.i_ram_idle
-    output wire                     o_param_mem_req_valid,  // -> cnn_accel_top.o_param_req_valid (밖의 Param RAM)
     output wire [`PARAM_AW-1:0]     o_param_mem_addr,       // -> cnn_accel_top.o_param_addr.  논리 레코드 번호 0 .. 42
-    input wire                      i_param_mem_req_ready,  // <- cnn_accel_top.i_param_req_ready
     input  wire [31:0]              i_param_mem_data,       // <- Param RAM.  signed INT32 Bias 1개 (팀 결정 2026-09-21 : 96bit 레코드는 쓰지 않는다)
-    input wire                      i_param_mem_rsp_valid,  // <- cnn_accel_top.i_param_rsp_valid
-    output wire                     o_param_mem_rsp_ready,  // -> cnn_accel_top.o_param_rsp_ready
 
     // ---- pe_cntl : tile cmd -------------
     output wire                  o_tile_valid,           // -> pe_cntl.i_tile_valid.      fire = valid && ready
@@ -447,8 +442,10 @@ module cnn_cntl #(
     //   레코드는 레이어 순서로 빈틈없이 쌓여 있다고 본다 (L*_PARAM_BASE 가
     //   앞 레이어의 base + out_c). 그래서 마지막 레이어의 base + out_c 가
     //   전체 개수다.
-    //   요청은 한 번에 하나만 띄운다 (!pl_busy). 43 레코드면 100clk 대라
-    //   42 만 clk 짜리 추론에서 문제가 되지 않는다.
+    //   읽기는 weight 와 같은 고정 지연이다 : 주소 (o_param_mem_addr, 밖에서는 o_ram_rd_addr) 를
+    //   낸 다음 clk 에 i_param_mem_data 가 온다. 핸드셰이크 없음 (2026-09-23, AXI4-Lite 래퍼 연결).
+    //   pl_busy = 0 인 clk 에 주소를 내고, 다음 clk (pl_busy = 1) 에 그 데이터를 param_buf 에 쓴다.
+    //   레코드당 2 clk. 43 레코드면 100clk 대라 42 만 clk 짜리 추론에서 문제가 되지 않는다.
     // =========================================================================
     localparam [`PARAM_AW:0] PARAM_TOTAL =
           (NUM_LAYERS <= 1) ? (L0_PARAM_BASE + L0_OUT_C) :
@@ -465,12 +462,10 @@ module cnn_cntl #(
 
     assign o_ram_owner = (state == C_PARAM_LOAD);
 
-    assign o_param_mem_req_valid = (state == C_PARAM_LOAD) && pl_more && !pl_busy;
     assign o_param_mem_addr = pl_idx[`PARAM_AW-1:0];
-    assign o_param_mem_rsp_ready = pl_busy;
 
-    wire pmem_req_fire = o_param_mem_req_valid && i_param_mem_req_ready;
-    wire pmem_rsp_fire = i_param_mem_rsp_valid && o_param_mem_rsp_ready;
+    wire pmem_req_fire = (state == C_PARAM_LOAD) && pl_more && !pl_busy;   // 이 clk 의 주소가 유효 (읽기 발행)
+    wire pmem_rsp_fire = pl_busy;                                            // 앞 clk 주소의 데이터가 이 clk 에 있다
 
     assign o_param_wr_en = pmem_rsp_fire;
     assign o_param_wr_addr = pl_addr_q;
@@ -600,7 +595,7 @@ module cnn_cntl #(
                 end
 
                 C_PARAM_LOAD: begin // one load per inference - RAM owner = param (1)
-                    if (pl_done && i_ram_idle) state <= C_SET;
+                    if (pl_done) state <= C_SET;
                 end
 
                 C_SET: begin // layer descriptor + output path setting 
@@ -627,10 +622,9 @@ module cnn_cntl #(
                         wsvc <= W_ISSUE;
                     end
 
-                    // Parameters already loaded initially; no owner change. (i_ram_idle)
-                    // Keep this. We must wait for the previous chunk's reads to fully drain before opening the next tile. &#10;
-                    // This ensures the invariant that the shared RAM is completely idle during `tile_cfg`.
-                    if (first_chunk_rdy && i_ram_idle && (wsvc == W_IDLE)) begin
+                    // Parameters already loaded initially; no owner change.
+                    // 공유 RAM 은 고정 지연이라 밖의 idle 신호를 기다리지 않는다 (밖의 idle 입력 제거 2026-09-23).
+                    if (first_chunk_rdy && (wsvc == W_IDLE)) begin
                         state <= C_TILE_CFG;
                     end
                 end
@@ -1108,13 +1102,13 @@ module top_cnn_cntl #(
     parameter                 L3_RELU       = 1'b0,
 
     // 레이어별 Requant M / S (cnn_cntl 로 그대로 내려간다)
-    parameter [31:0] L0_QM = 32'h4000_0000,
+    parameter [31:0] L0_QM = 32'd1463994,
     parameter [ 5:0] L0_QS = 6'd30,
-    parameter [31:0] L1_QM = 32'h4000_0000,
+    parameter [31:0] L1_QM = 32'd4487009,
     parameter [ 5:0] L1_QS = 6'd30,
-    parameter [31:0] L2_QM = 32'h4000_0000,
+    parameter [31:0] L2_QM = 32'd849386,
     parameter [ 5:0] L2_QS = 6'd30,
-    parameter [31:0] L3_QM = 32'h4000_0000,
+    parameter [31:0] L3_QM = 32'd1046256,
     parameter [ 5:0] L3_QS = 6'd30
 ) (
     input wire clk,
@@ -1167,7 +1161,7 @@ module top_cnn_cntl #(
     // ---- wgt_ld_unit -------------------------------------------------------
     output wire                  o_wload_start,          // [C] -> wgt_ld_unit.i_ld_start.  o_ld_ready 를 본 clk 의 1clk 펄스
     input  wire                  i_wload_ready,          // [C] <- wgt_ld_unit.o_ld_ready  (= IDLE && i_buf_free)
-    output wire [31:0]           o_mem_base,             // [C] -> wgt_ld_unit.i_mem_base (R185, 32b).  cnn_cntl 의 16b 논리 Word 주소 (0 ~ 45249) 를 0 확장
+    output wire [15:0]           o_mem_base,             // [C] -> wgt_ld_unit.i_mem_base (R185, 32b).  cnn_cntl 의 16b 논리 Word 주소 (0 ~ 45249) 를 0 확장
     output wire [`CHUNK_W-1:0]   o_load_chunk_len,       // [C] -> wgt_path.i_chunk_len         (wgt_ld_unit.i_chunk_len)
     output wire                  o_buf_half,             // [C] -> wgt_path.i_buf_half          (wgt_ld_unit / wgt_patch_gen .i_buf_half : chunk 가 놓이는 wgt_buf 반쪽)
     input  wire                  i_wload_done,           // [C] <- wgt_ld_unit.o_ld_done.  Chunk 적재 완료 1clk 펄스
@@ -1197,13 +1191,8 @@ module top_cnn_cntl #(
 
     // ---- RAM (Read Parameter) ---------------------------------------------
     output wire                  o_ram_owner,            // [C] -> cnn_accel_top.o_ram_owner        (가속기 밖 RAM 중재. 0=weight, 1=param)
-    input  wire                  i_ram_idle,             // [C] <- cnn_accel_top.i_ram_idle         (가속기 밖 RAM 중재)
-    output wire                  o_param_mem_req_valid,  // [C] -> cnn_accel_top.o_param_req_valid  (가속기 밖 Param RAM)
     output wire [`PARAM_AW-1:0]  o_param_mem_addr,       // [C] -> cnn_accel_top.o_param_addr       (논리 레코드 번호)
-    input  wire                  i_param_mem_req_ready,  // [C] <- cnn_accel_top.i_param_req_ready
     input  wire [31:0]           i_param_mem_data,       // [C] <- Param RAM.  signed INT32 Bias
-    input  wire                  i_param_mem_rsp_valid,  // [C] <- cnn_accel_top.i_param_rsp_valid
-    output wire                  o_param_mem_rsp_ready,  // [C] -> cnn_accel_top.o_param_rsp_ready
 
     // ---- param_buf ---------------------------------------------------------
     output wire                  o_param_wr_en,          // [C] -> out_path.i_param_wr_en       (param_buf.i_wr_en)
@@ -1255,7 +1244,7 @@ module top_cnn_cntl #(
     wire [`W_AW-1:0]     mem_base_16;
     wire [`PARAM_AW-1:0] param_base_7, param_wr_addr_7;
     assign o_pos_base      = {2'b00, pos_base_12};
-    assign o_mem_base      = {16'd0, mem_base_16};
+    assign o_mem_base      = mem_base_16;
     assign o_param_base    = param_base_7[5:0];
     assign o_param_wr_addr = param_wr_addr_7[5:0];
 
@@ -1377,13 +1366,8 @@ module top_cnn_cntl #(
         .o_buf_half(o_buf_half),
         .i_wload_done(i_wload_done),
         .o_ram_owner(o_ram_owner),
-        .i_ram_idle(i_ram_idle),
-        .o_param_mem_req_valid(o_param_mem_req_valid),
         .o_param_mem_addr(o_param_mem_addr),
-        .i_param_mem_req_ready(i_param_mem_req_ready),
         .i_param_mem_data(i_param_mem_data),
-        .i_param_mem_rsp_valid(i_param_mem_rsp_valid),
-        .o_param_mem_rsp_ready(o_param_mem_rsp_ready),
         .o_param_wr_en(o_param_wr_en),
         .o_param_wr_addr(param_wr_addr_7),
         .o_param_wr_data(o_param_wr_data),
