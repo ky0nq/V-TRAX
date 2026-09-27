@@ -4,10 +4,12 @@
 module top_cnn #(
     parameter [31:0] IMG_RAM_BASE = 32'd0,
     parameter [12:0] IMG_WORDS    = 13'd4096,
-    parameter [31:0] L0_QM = 32'h4000_0000,  parameter [5:0] L0_QS = 6'd30,
-    parameter [31:0] L1_QM = 32'h4000_0000,  parameter [5:0] L1_QS = 6'd30,
-    parameter [31:0] L2_QM = 32'h4000_0000,  parameter [5:0] L2_QS = 6'd30,
-    parameter [31:0] L3_QM = 32'h4000_0000,  parameter [5:0] L3_QS = 6'd30
+    // Requant M / S 기본값 = Model C export (ModelC_HW_TOP_READY_20260923_020957/HW_TOP_TEST/hw_params.txt). 2026-09-24
+    //   q = sat_int8( round( (acc + bias) * M / 2^S ) ).  L3 = 최종 FC2 의 ANGLE_MULT / ANGLE_SHIFT (1 LSB = 1 도)
+    parameter [31:0] L0_QM = 32'd1463994,   parameter [5:0] L0_QS = 6'd30,
+    parameter [31:0] L1_QM = 32'd4487009,   parameter [5:0] L1_QS = 6'd30,
+    parameter [31:0] L2_QM = 32'd849386,    parameter [5:0] L2_QS = 6'd30,
+    parameter [31:0] L3_QM = 32'd1046256,   parameter [5:0] L3_QS = 6'd30
 ) (
     input  wire         clk,
     input  wire         rst_n,
@@ -23,25 +25,14 @@ module top_cnn #(
     output wire         o_irq,
 
     // ---- Image RAM -------------------------------------------------------
-    output wire         o_img_rd_en,
     output wire [11:0]  o_img_rd_addr,
     input  wire [23:0]  i_img_rdata,
 
-    // ---- Weight RAM ------------------------------------------------------
-    output wire         o_wgt_rd_en,
-    output wire [31:0]  o_wgt_rd_addr,
-    input  wire [23:0]  i_wgt_rdata,
-    input  wire         i_wgt_rvalid,
-
-    // ---- Param RAM + 공유 RAM 중재 -------------------------------------------
-    output wire         o_ram_owner,
-    input  wire         i_ram_idle,
-    output wire         o_param_mem_req_valid,
-    output wire [6:0]   o_param_mem_addr,
-    input  wire         i_param_mem_req_ready,
-    input  wire [31:0]  i_param_mem_data,
-    input  wire         i_param_mem_rsp_valid,
-    output wire         o_param_mem_rsp_ready,
+    // ---- 공유 RAM (Weight + Bias) : 주소 다음 clk 에 데이터, 핸드셰이크 없음 ------------
+    //   word 0 .. 45249     : weight (i_rdata[23:0] 사용)
+    //   word 45250 .. 45292 : bias   (i_rdata[31:0] 사용).  영역 구분은 주소로만 한다
+    output wire [15:0]  o_ram_rd_addr,
+    input  wire [31:0]  i_rdata,
 
     // ---- 디버그 -------------------------------------------------------------
     output wire [2:0]   o_layer_idx,
@@ -64,7 +55,7 @@ module top_cnn #(
 
     // ---- top_cnn_cntl -> wgt_path ----------------------------------------
     wire         c_wload_start;
-    wire [31:0]  c_mem_base;
+    wire [15:0]  c_mem_base;
     wire [ 8:0]  c_load_chunk_len;
     wire         c_buf_half;
     wire         c_wbuf_free;
@@ -120,8 +111,16 @@ module top_cnn #(
     wire         r_tile_in_done, r_layer_done, r_done_status;
     wire [31:0]  r_final_result;
 
+    wire [15:0] wgt_rd_addr;
+    wire [6:0]  param_mem_addr;
+
     assign o_done_status  = r_done_status;
     assign o_final_result = r_final_result[7:0];
+
+    // 공유 RAM 주소 : bias 적재 중 (cnn_cntl C_PARAM_LOAD, ram_owner = 1) 에는 bias 영역, 그 외에는 weight 주소
+    localparam [15:0] PRM_RAM_BASE = 16'd45250;   // = fc2 weight 끝 다음 word (16'hB0C2)
+    wire ram_owner;                               // cnn_cntl.o_ram_owner. top_cnn 안에서만 쓴다
+    assign o_ram_rd_addr = ram_owner ? (PRM_RAM_BASE + {9'd0, param_mem_addr}) : wgt_rd_addr;
 
     top_cnn_cntl #(
         .L0_QM(L0_QM), .L0_QS(L0_QS), .L1_QM(L1_QM), .L1_QS(L1_QS),
@@ -206,14 +205,9 @@ module top_cnn #(
         .i_done_status          (r_done_status),
 
         // ---- Param RAM ----------------------------------------------------
-        .o_ram_owner            (o_ram_owner),
-        .i_ram_idle             (i_ram_idle),
-        .o_param_mem_req_valid  (o_param_mem_req_valid),
-        .o_param_mem_addr       (o_param_mem_addr),
-        .i_param_mem_req_ready  (i_param_mem_req_ready),
-        .i_param_mem_data       (i_param_mem_data),
-        .i_param_mem_rsp_valid  (i_param_mem_rsp_valid),
-        .o_param_mem_rsp_ready  (o_param_mem_rsp_ready),
+        .o_ram_owner            (ram_owner),
+        .o_param_mem_addr       (param_mem_addr),
+        .i_param_mem_data       (i_rdata),
 
         // ---- 디버그 ----------------------------------------------------------
         .o_layer_idx            (o_layer_idx),
@@ -250,7 +244,7 @@ module top_cnn #(
         .o_valid                (a_valid),
 
         // ---- Image RAM ----------------------------------------------------
-        .o_ram_rd_en            (o_img_rd_en),
+        //.o_ram_rd_en            (o_img_rd_en),
         .o_ram_rd_addr          (o_img_rd_addr),
         .i_ram_rdata            (i_img_rdata),
 
@@ -289,10 +283,9 @@ module top_cnn #(
         .o_valid                (w_valid),
 
         // ---- Weight RAM ---------------------------------------------------
-        .o_mem_rd_en            (o_wgt_rd_en),
-        .o_mem_rd_addr          (o_wgt_rd_addr),
-        .i_mem_rdata            (i_wgt_rdata),
-        .i_mem_rvalid           (i_wgt_rvalid),
+        //.o_mem_rd_en            (o_wgt_rd_en),
+        .o_mem_rd_addr          (wgt_rd_addr),
+        .i_mem_rdata            (i_rdata[23:0]),
 
         // ---- pe_core ------------------------------------------------------
         .o_data                 (w_data),
