@@ -31,6 +31,19 @@ PC 키보드 ──UART1──────────────────�
 통신 방식을 전혀 모른 채 `DriverCommand` 구조체만 입력으로 받는다.
 
 전체 다이어그램은 [`docs/architecture.html`](docs/architecture.html) 참고.
+CNN 가속기가 조향을 넘겨받는 방법은 [`docs/cnn-steering-interface.md`](docs/cnn-steering-interface.md)에 정의되어 있다.
+
+## 조향 소스 전환
+
+조향은 현재 PC 키보드가 담당하지만, 최종 시스템에서는 CNN 가속기가 대신한다.
+교체 지점은 `main.c` 상단의 스위치 하나다.
+
+```c
+#define STEERING_SOURCE_CNN  0   // 0 = PC 키보드, 1 = CNN RESULT 레지스터
+```
+
+`0`인 동안에도 전체 파이프라인이 그대로 동작하므로, CNN IP가 블록 디자인에 올라가기 전까지
+키보드로 검증과 FSR 임계값 보정을 계속할 수 있다. 어느 모드든 **수동 정지는 PC가 유지**한다.
 
 ## 인터페이스
 

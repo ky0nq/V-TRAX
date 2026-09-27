@@ -5,6 +5,7 @@
 #include "xstatus.h"
 #include "sleep.h"
 #include "xtime_l.h"
+#include "xil_io.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -40,6 +41,40 @@ XUartPs Uart1;
 // trigger. Real time removes that coupling.
 #define PC_COMMAND_TIMEOUT_MS      500
 #define SENSOR_TIMEOUT_MS          200
+
+
+// ==================================================
+// Steering Source
+//
+// 0 = PC keyboard over UART1 (development)
+// 1 = CNN accelerator RESULT register
+//
+// The CNN base address only exists in xparameters.h once the
+// accelerator is instantiated in the block design, so the
+// register access stays behind this switch. With it at 0 the
+// whole pipeline still runs on keyboard steering, which is how
+// the FSR thresholds get calibrated.
+//
+// The PC keeps the manual stop in both modes.
+// ==================================================
+#define STEERING_SOURCE_CNN        0
+
+
+// How long a CNN result stays usable.
+//
+// The RESULT register holds its last value indefinitely, so
+// without this a stalled accelerator would steer the car on a
+// frozen reading while every other link still looks healthy.
+#define CNN_TIMEOUT_MS             200
+
+
+#if STEERING_SOURCE_CNN
+// Supplied by the CNN team. See docs/cnn-steering-interface.md
+#define CNN_BASEADDR               XPAR_CNN_ACCELERATOR_0_S_AXI_LITE_BASEADDR
+#define CNN_REG_STATUS             0x04
+#define CNN_REG_RESULT             0x08
+#define CNN_STATUS_DONE_MASK       0x00000002
+#endif
 
 // Command output rate to ESP32 #1: 20 ms = 50 Hz, matching the
 // sensor node so commands carry fresh samples.
@@ -207,6 +242,18 @@ static int16_t latestBrakeRaw = 0;
 
 
 static uint8_t latestSensorSequence = 0;
+
+
+// ==================================================
+// CNN Steering State
+// ==================================================
+static int8_t cnnSteering = 0;
+
+
+static int cnnEverSeen = 0;
+
+
+static XTime lastCnnUpdateTime;
 
 
 static int sensorLinkEverSeen = 0;
@@ -1126,6 +1173,167 @@ int processPCSerial(void)
 
 
 // ==================================================
+// Read the CNN accelerator RESULT register
+//
+// Return:
+//   1 = a fresh, in-range steering label was read
+//   0 = nothing new, or the value was rejected
+//
+// The range and 10-degree-step checks live here so a bad
+// inference can never reach the packet. A rejected value is
+// treated as "no update", which lets it expire through
+// CNN_TIMEOUT_MS instead of freezing the last good reading.
+//
+// Must not block: the control loop budget is CONTROL_PERIOD_US.
+// ==================================================
+int readCNNSteering(
+    int8_t *steering
+)
+{
+#if STEERING_SOURCE_CNN
+
+    uint32_t status =
+        Xil_In32(
+            CNN_BASEADDR + CNN_REG_STATUS
+        );
+
+
+    if (
+        (status & CNN_STATUS_DONE_MASK)
+        ==
+        0
+    )
+    {
+        return 0;
+    }
+
+
+    int32_t value =
+        (int32_t)
+        Xil_In32(
+            CNN_BASEADDR + CNN_REG_RESULT
+        );
+
+
+    if (
+        value < -90
+        ||
+        value > 90
+    )
+    {
+        return 0;
+    }
+
+
+    if (
+        (value % 10)
+        !=
+        0
+    )
+    {
+        return 0;
+    }
+
+
+    *steering =
+        (int8_t)value;
+
+
+    return 1;
+
+#else
+
+    (void)steering;
+
+    return 0;
+
+#endif
+}
+
+
+// ==================================================
+// Steering source
+//
+// Return:
+//   1 = *steering holds a usable value
+//   0 = the source is stale; caller must raise E-Stop
+//
+// This is the only place that decides where steering comes
+// from. Swapping the source means flipping STEERING_SOURCE_CNN,
+// not editing the control loop.
+// ==================================================
+int getSteering(
+    int pcLinkOK,
+    int8_t *steering
+)
+{
+#if STEERING_SOURCE_CNN
+
+    (void)pcLinkOK;
+
+
+    int8_t fresh;
+
+
+    if (
+        readCNNSteering(
+            &fresh
+        )
+    )
+    {
+        cnnSteering =
+            fresh;
+
+
+        XTime_GetTime(
+            &lastCnnUpdateTime
+        );
+
+
+        cnnEverSeen =
+            1;
+    }
+
+
+    if (
+        cnnEverSeen
+        &&
+        elapsedMs(
+            lastCnnUpdateTime
+        )
+        <=
+        CNN_TIMEOUT_MS
+    )
+    {
+        *steering =
+            cnnSteering;
+
+
+        return 1;
+    }
+
+
+    return 0;
+
+#else
+
+    if (pcLinkOK)
+    {
+        *steering =
+            pcSteering;
+
+
+        return 1;
+    }
+
+
+    return 0;
+
+#endif
+}
+
+
+// ==================================================
 // MAIN
 // ==================================================
 int main(void)
@@ -1223,7 +1431,10 @@ int main(void)
 
 
         // ==============================================
-        // 1. PC Steering / E-Stop
+        // 1. PC Link
+        //
+        // Always the manual stop; also the steering source
+        // while STEERING_SOURCE_CNN is 0.
         // ==============================================
         if (
             processPCSerial()
@@ -1251,17 +1462,25 @@ int main(void)
             );
 
 
-        // PC communication timeout
+        // PC link timeout.
+        //
+        // The PC carries the manual stop in both steering modes,
+        // so losing it always latches E-Stop. It clears the
+        // steering value only when the PC is also the steering
+        // source -- otherwise a PC dropout would silently
+        // overwrite a perfectly good CNN reading.
         if (
             !pcLinkOK
         )
         {
-            pcSteering =
-                0;
-
-
             pcEmergencyStop =
                 1;
+
+
+#if !STEERING_SOURCE_CNN
+            pcSteering =
+                0;
+#endif
         }
 
 
@@ -1316,7 +1535,24 @@ int main(void)
 
 
         // ==============================================
-        // 4. RAW -> Level
+        // 4. Steering Source
+        //
+        // Stays 0 when the source is stale, so a frozen reading
+        // can never keep the wheels turned.
+        // ==============================================
+        int8_t steering =
+            0;
+
+
+        int steeringOK =
+            getSteering(
+                pcLinkOK,
+                &steering
+            );
+
+
+        // ==============================================
+        // 5. RAW -> Level
         // ==============================================
         uint8_t accelLevel =
             0;
@@ -1360,13 +1596,18 @@ int main(void)
 
 
         // ==============================================
-        // 5. Safety / E-STOP
+        // 6. Safety / E-STOP
+        //
+        // Three independent triggers, any one of which stops
+        // the vehicle. The fourth failsafe lives on ESP32 #2,
+        // which stops on its own if these packets stop
+        // arriving at all.
         // ==============================================
         uint8_t flags =
             0;
 
 
-        // PC E-stop
+        // Manual stop from the PC
         if (
             pcEmergencyStop
         )
@@ -1376,9 +1617,19 @@ int main(void)
         }
 
 
-        // Sensor wireless link lost
+        // Pedal sensor wireless link lost
         if (
             !sensorLinkOK
+        )
+        {
+            flags |=
+                FLAG_EMERGENCY_STOP;
+        }
+
+
+        // Steering source stale
+        if (
+            !steeringOK
         )
         {
             flags |=
@@ -1403,14 +1654,14 @@ int main(void)
 
 
         // ==============================================
-        // 6. Vehicle Command Send
+        // 7. Vehicle Command Send
         //
         // Zybo
         //   -> ESP32 #1
         //   -> ESP32 #2
         // ==============================================
         sendCommandPacket(
-            pcSteering,
+            steering,
             accelLevel,
             brakeLevel,
             flags
@@ -1418,9 +1669,12 @@ int main(void)
 
 
         // ==============================================
-        // 7. Debug
+        // 8. Debug
         //
         // 10 loops -> about 5 Hz
+        //
+        // STEER_SRC tells which of the three E-Stop triggers
+        // fired, which is otherwise invisible from ESTOP alone.
         // ==============================================
         if (
             (
@@ -1438,6 +1692,7 @@ int main(void)
                 "BRAKE_RAW=%d B=%d "
                 "SENSOR=%s "
                 "STEER=%d "
+                "STEER_SRC=%s:%s "
                 "ESTOP=%d "
                 "PC=%s\r\n",
 
@@ -1455,7 +1710,19 @@ int main(void)
                     :
                     "LOST",
 
-                pcSteering,
+                steering,
+
+#if STEERING_SOURCE_CNN
+                "CNN",
+#else
+                "PC",
+#endif
+
+                steeringOK
+                    ?
+                    "OK"
+                    :
+                    "STALE",
 
                 (
                     flags
