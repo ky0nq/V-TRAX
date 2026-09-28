@@ -1,4 +1,4 @@
-# Minicar Control (ICD v0.3)
+# Minicar Control (ICD v0.4)
 
 무선 미니카 제어 파이프라인. FSR 페달과 PC 키보드 조향 입력이 4개 노드를 거쳐
 L298N + TT 모터 4개를 구동한다.
@@ -53,8 +53,8 @@ CNN 가속기가 조향을 넘겨받는 방법은 [`docs/cnn-steering-interface.
 | IF-02 | ADS1115 → ESP32 #3 | I2C 100 kHz · SDA=GPIO21, SCL=GPIO22 · Addr 0x48 |
 | IF-03 | ESP32 #3 → #1 | ESP-NOW ch.1 · `SensorPacket` · 50 Hz |
 | IF-04 | ESP32 #1 → Zybo | UART 115200 8-N-1 · GPIO17 → MIO14 (JF9) |
-| IF-05 | Zybo → ESP32 #1 | UART 115200 8-N-1 · MIO15 (JF10) → GPIO16 |
-| IF-06 | ESP32 #1 → #2 | ESP-NOW ch.1 · `CommandPacket` · 50 Hz |
+| IF-05 | Zybo → ESP32 #1 | UART 115200 8-N-1 · 100 Hz · MIO15 (JF10) → GPIO16 |
+| IF-06 | ESP32 #1 → #2 | ESP-NOW ch.1 · `CommandPacket` · 100 Hz |
 | IF-07 | 내부 | `CommandPacket` → `DriverCommand` |
 | IF-08 | ESP32 #2 → L298N | GPIO + PWM 5 kHz / 8 bit |
 | IF-09 | L298N → Motor | H-Bridge |
@@ -110,7 +110,7 @@ CRC는 바이트가 링크를 통과했음만 증명할 뿐 값이 타당함을 
 ```
 minicar_control/
 ├─ zybo/
-│  ├─ src/main.c          센서 해석 + PC 입력 병합 + 명령 생성 (50 Hz)
+│  ├─ src/main.c          센서 해석 + PC 입력 병합 + 명령 생성 (100 Hz)
 │  └─ hw/
 │     ├─ bd/design_1/     Vivado 블록 디자인 (PS only)
 │     └─ xsa/             Vitis용 하드웨어 핸드오프
@@ -119,7 +119,7 @@ minicar_control/
 │  ├─ ESP32_2_VehicleControl/   차량 제어 (50 Hz) + L298N 구동
 │  └─ ESP32_3_FSR/              ADS1115 읽기 + SensorPacket 송신 (50 Hz)
 ├─ host/car_control_fsr.py      PC 조향·E-Stop GUI (Tkinter)
-└─ docs/architecture.html       ICD v0.3 다이어그램
+└─ docs/architecture.html       ICD v0.4 다이어그램
 ```
 
 ## 노드 / MAC
@@ -172,13 +172,21 @@ python host/car_control_fsr.py
 ## 남은 TBD
 
 - FSR 분압 회로와 전압 범위
-- `main.c`의 Accel/Brake 임계값 — **현재 값은 임시**, 실측 raw 기준으로 보정 필요
 - Steering 보정, 최종 모터 전원, 튜닝 파라미터
 - `vehicleSpeed`는 0~100 가상 상태값이며 실제 km/h가 아니다 (엔코더 추가 전)
 - Vivado PS에 I2C1(MIO12/13)이 여전히 활성화되어 있다. 센서가 ESP32 #3으로 옮겨간 뒤로
   Zybo는 I2C를 쓰지 않으므로 MIO12/13은 현재 유휴 상태다.
 
 ## 변경 이력
+
+### v0.4
+Zybo 제어 주기를 **50 Hz → 100 Hz**로 올렸다. 센서 노드와 PC는 여전히 50 Hz이고 ESP32 #2의
+제어 루프도 50 Hz라 절반의 명령은 같은 샘플을 반복하지만, 입력 변화에서 송신까지의 지연이
+20 ms에서 10 ms로 줄어든다. 센서 노드를 같이 올리지 않은 이유는 ADS1115 2채널의 변환 대기가
+10 ms 예산 중 5~6 ms를 쓰기 때문이다.
+
+**FSR 임계값을 실측으로 보정해 Accel과 Brake를 분리했다** — 두 페달이 같은 임시값을 쓰던 TBD가
+해소되었다. `TURN_GAIN`은 0.35 → **1.0**으로, 최대 조향에서 안쪽 모터가 0%가 되어 제자리 선회한다.
 
 ### v0.3
 센서 취득을 **Zybo의 I2C1에서 ESP32 #3으로 분리**. `SensorPacket` 신설, Zybo↔ESP32 #1

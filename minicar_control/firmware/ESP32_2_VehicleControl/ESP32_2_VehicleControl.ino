@@ -179,9 +179,13 @@ const float STEERING_RATE = 180.0f;
 // ==================================================
 // Steering Mixing
 //
-// At full steering the inner motor runs at about 65%.
+// inner motor = base * (1 - TURN_GAIN * |steering| / 90)
+//
+// At 1.0 the inner motor reaches 0 at full steering, so the car
+// pivots on the stopped side instead of arcing. Lower values
+// keep it turning: 0.35 leaves the inner motor at 65%.
 // ==================================================
-const float TURN_GAIN = 0.35f;
+const float TURN_GAIN = 1.0f;
 
 
 // ==================================================

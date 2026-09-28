@@ -58,19 +58,22 @@ Zybo의 50Hz 제어 루프가 매 주기 레지스터를 읽는다(pull). **CNN�
 
 | Offset | 이름 | 방향 | 내용 |
 |---|---|---|---|
-| `0x00` | `CONTROL` | W | bit0 = START |
-| `0x04` | `STATUS` | R | bit0 = BUSY, **bit1 = DONE** |
-| `0x08` | `RESULT` | R | 조향 값 (부호 있는 정수, −90~+90) |
+| `0x00` | `CONTROL` | W | bit0 = START, bit1 = IRQ clear, bit2 = IRQ enable |
+| `0x04` | `STATUS` | R | bit0 = BUSY, bit1 = START_READY, **bit2 = DONE**, bit3 = START_PENDING |
+| `0x08` | `RESULT` | R | 조향 결과 (8 bit, zero-extend) |
 
 Zybo가 하는 일은 이게 전부다.
 
 ```c
 status = Xil_In32(CNN_BASEADDR + 0x04);
-if (status & 0x02) {                        // DONE
+if (status & 0x04) {                        // DONE = bit2
     value = (int32_t)Xil_In32(CNN_BASEADDR + 0x08);
     // 범위 / 10배수 검증 후 사용
 }
 ```
+
+> 주소와 비트 배치는 CNN팀의 `AXI4_Lite_interconnect_v1_0_S00_AXI.v`와 대조해 확인했다.
+> STATUS는 `{ start_pending, done_status, start_ready, busy }` 순서로 조립된다.
 
 ### CNN팀이 알려줘야 할 것
 

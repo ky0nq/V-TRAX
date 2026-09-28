@@ -126,7 +126,7 @@
 </style>
 
 <div class="page">
-  <p class="eyebrow">INTERFACE ARCHITECTURE — WIRELESS MINI-CAR CONTROL (ICD v0.3)</p>
+  <p class="eyebrow">INTERFACE ARCHITECTURE — WIRELESS MINI-CAR CONTROL (ICD v0.4)</p>
   <h1>무선 미니카 제어 시스템 아키텍처</h1>
   <p class="lede">
     센서 취득이 Zybo에서 <b>ESP32 #3</b>로 분리되면서 4노드 구조가 되었다. 두 종류의 8-byte 패킷이 파이프라인을 돈다 —
@@ -139,7 +139,7 @@
   <figure>
     <div class="diagram-card">
       <div class="diagram-scroll">
-        <svg viewBox="0 0 1400 1600" role="img" aria-label="무선 미니카 제어 시스템 아키텍처 v0.3: FSR 두 개가 ADS1115로 들어가고, ESP32 3번이 I2C로 읽어 8바이트 SensorPacket을 만들어 ESP-NOW로 ESP32 1번 허브에 보낸다. 허브는 이를 UART로 Zybo에 전달하고, Zybo는 원시값을 0에서 5단계로 변환한 뒤 PC 키보드 조향과 합쳐 8바이트 CommandPacket을 만들어 같은 UART의 반대 방향으로 허브에 돌려보낸다. 허브는 이를 다시 ESP-NOW로 ESP32 2번 차량 제어기에 중계하고, 차량 제어기는 GPIO와 PWM으로 L298N을 구동해 좌우 TT 모터 네 개를 돌린다. 센서 링크 200밀리초, PC 링크 500밀리초, 차량 수신 300밀리초의 세 가지 타임아웃과 Emergency Stop이 안전 장치로 표시되어 있다.">
+        <svg viewBox="0 0 1400 1600" role="img" aria-label="무선 미니카 제어 시스템 아키텍처 v0.4: FSR 두 개가 ADS1115로 들어가고, ESP32 3번이 I2C로 읽어 8바이트 SensorPacket을 만들어 ESP-NOW로 ESP32 1번 허브에 보낸다. 허브는 이를 UART로 Zybo에 전달하고, Zybo는 원시값을 0에서 5단계로 변환한 뒤 PC 키보드 조향과 합쳐 8바이트 CommandPacket을 만들어 같은 UART의 반대 방향으로 허브에 돌려보낸다. 허브는 이를 다시 ESP-NOW로 ESP32 2번 차량 제어기에 중계하고, 차량 제어기는 GPIO와 PWM으로 L298N을 구동해 좌우 TT 모터 네 개를 돌린다. 센서 링크 200밀리초, PC 링크 500밀리초, 차량 수신 300밀리초의 세 가지 타임아웃과 Emergency Stop이 안전 장치로 표시되어 있다.">
           <defs>
             <marker id="ar-flow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent-flow)"/>
@@ -163,7 +163,7 @@
           <text x="297" y="66" text-anchor="middle" class="svg-label-sub" font-size="8.5">Accel → A0</text>
           <rect x="352" y="52" width="95" height="20" rx="4" fill="var(--surface-2)" stroke="var(--line)"/>
           <text x="399" y="66" text-anchor="middle" class="svg-label-sub" font-size="8.5">Brake → A1</text>
-          <text x="80" y="108" class="svg-label-faint" font-size="9">전압 범위 · 임계값 TBD</text>
+          <text x="80" y="108" class="svg-label-faint" font-size="9">분압 10k∥1k ≈ 909Ω · 레벨 임계값 실측 보정 완료</text>
 
           <line x1="260" y1="130" x2="260" y2="183" stroke="var(--accent-spec)" stroke-width="2" marker-end="url(#ar-sensor)"/>
           <text x="278" y="150" class="svg-arrow-label" font-size="10" fill="var(--accent-spec)" font-weight="600">IF-01 · Analog Voltage</text>
@@ -212,7 +212,7 @@
           <text x="80" y="748" class="svg-mono" font-size="9.5">steering:int8 · accel:uint8 · brake:uint8</text>
           <text x="80" y="762" class="svg-mono" font-size="9.5">emergencyStop:bool</text>
           <text x="80" y="782" class="svg-label-faint" font-size="9">Brake &gt; 0 이면 Accel 강제 0</text>
-          <text x="80" y="796" class="svg-label-faint" font-size="9">제어 주기 50Hz · 마감시각 기반 (부하와 무관)</text>
+          <text x="80" y="796" class="svg-label-faint" font-size="9">제어 주기 100Hz · 마감시각 기반 (부하와 무관)</text>
           <text x="80" y="812" class="svg-label-faint" font-size="9" fill="var(--accent-warn)">Sensor 200ms / PC 500ms 무응답 → E-Stop Flag</text>
           <text x="80" y="832" class="svg-label-sub" font-size="10">← PC Keyboard (UART1 / MIO48·49)</text>
           <text x="80" y="848" class="svg-label-faint" font-size="9">K,&lt;steering&gt;,&lt;estop&gt; ASCII · 조향 및 E-Stop 입력</text>
@@ -232,7 +232,7 @@
 
           <line x1="260" y1="1035" x2="260" y2="1098" stroke="var(--accent-wireless)" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#ar-wireless)"/>
           <text x="278" y="1055" class="svg-arrow-label" font-size="10" fill="var(--accent-wireless)" font-weight="600">IF-06 · ESP-NOW · Ch.1</text>
-          <text x="278" y="1068" class="svg-arrow-label" font-size="9.5" fill="var(--accent-wireless)">CommandPacket 8-byte · 50Hz</text>
+          <text x="278" y="1068" class="svg-arrow-label" font-size="9.5" fill="var(--accent-wireless)">CommandPacket 8-byte · 100Hz</text>
           <text x="278" y="1080" class="svg-arrow-label" font-size="8.5" fill="var(--accent-wireless)">esp_wifi_set_channel(1) 양쪽 고정 · 발신 MAC 필터링</text>
 
           <!-- ============ VEHICLE ============ -->
@@ -368,8 +368,8 @@
           <text x="578" y="895" class="svg-label-faint" font-size="9.5">Brake Lv1~5: −10/−18/−30/−50/−80 (unit/s)</text>
           <text x="578" y="911" class="svg-label-faint" font-size="9.5">Coast: −4 (unit/s)</text>
           <text x="578" y="932" class="svg-label-faint" font-size="9.5">Steering ±90°, 180°/sec (0°→90° ≈ 0.5s)</text>
-          <text x="578" y="948" class="svg-label-faint" font-size="9.5">Differential Mixing · TURN_GAIN 0.35</text>
-          <text x="578" y="964" class="svg-label-faint" font-size="9.5">(최대 조향 시 안쪽 모터 65%)</text>
+          <text x="578" y="948" class="svg-label-faint" font-size="9.5">Differential Mixing · TURN_GAIN 1.0</text>
+          <text x="578" y="964" class="svg-label-faint" font-size="9.5">(최대 조향 시 안쪽 모터 0% — 제자리 선회)</text>
           <text x="578" y="985" class="svg-label-faint" font-size="9.5">MOTOR_START_SPEED 10 · MIN_PWM 65</text>
           <text x="578" y="1001" class="svg-label-faint" font-size="9.5">vehicleSpeed는 가상 상태값 (0~100)</text>
           <text x="578" y="1017" class="svg-label-faint" font-size="9.5">— 실제 km/h 아님 (Encoder 추가 전)</text>
@@ -383,8 +383,8 @@
           <text x="998" y="948" class="svg-label-faint" font-size="9.5">Resolution 8 bit (0~255)</text>
           <text x="998" y="964" class="svg-label-faint" font-size="9.5">ENA/ENB에 Speed 값 출력</text>
           <text x="998" y="985" class="svg-label-sub" font-size="10" fill="var(--accent-spec)" font-weight="600">TBD</text>
-          <text x="998" y="1001" class="svg-label-faint" font-size="9.5">FSR 분압 회로 · Accel/Brake 임계값</text>
-          <text x="998" y="1017" class="svg-label-faint" font-size="9.5">Steering 보정 · 최종 모터 전원</text>
+          <text x="998" y="1001" class="svg-label-faint" font-size="9.5">Steering 보정 · 최종 모터 전원</text>
+          <text x="998" y="1017" class="svg-label-faint" font-size="9.5">최종 튜닝 파라미터</text>
 
           <!-- ============ LEGEND ============ -->
           <g transform="translate(560,1090)">
@@ -427,23 +427,29 @@
       담당하고, <b>L298N</b>은 “계산된 출력대로 전력을 공급한다”만 수행한다. 각 모듈이 자기 책임 밖 판단을 하지 않도록
       경계를 지키는 것이 이 ICD의 핵심이다.
     </p>
-    <h2>v0.2 → v0.3 변경</h2>
+    <h2>v0.3 → v0.4 변경</h2>
     <p>
-      센서 취득이 <b>Zybo의 I2C1(MIO12/13)에서 ESP32 #3</b>로 이동했다. Zybo는 더 이상 I2C를 사용하지 않으며, ADS1115는
-      ESP32 #3에 GPIO21/22로 연결된다. 이에 따라 <b>SensorPacket(A5 5A)</b>이 새로 정의되었고, Zybo↔ESP32 #1 UART는
-      <b>단방향에서 양방향</b>이 되었다. 인터페이스 번호도 IF-01~06에서 <b>IF-01~09</b>로 재편되었다. Command 송신률은
-      v0.2의 100Hz에서 <b>50Hz</b>로 되돌렸다 — 센서가 50Hz로 도착하므로 그보다 빠른 명령 생성은 같은 샘플을 다시 보내는 것에
-      불과하다. 새 무선 홉이 생긴 만큼 <b>Sensor Link 200ms 타임아웃</b>이 추가되었고, 모든 타임아웃은 루프 횟수가 아닌
-      벽시계 기준으로 통일했다.
+      Zybo 제어 주기가 <b>50Hz에서 100Hz</b>로 올라가면서 IF-05·IF-06의 명령 전송률도 100Hz가 되었다. 다만 센서 노드와
+      PC는 여전히 50Hz이고 ESP32 #2의 제어 루프도 50Hz라, <b>절반의 명령은 직전과 같은 샘플을 싣고 나가 소비되지 않는다.</b>
+      얻는 것은 지연이다 — 입력이 송신 직후에 바뀌어도 20ms가 아니라 10ms만 기다린다. 센서 노드를 같이 올리지 않은 이유는
+      상수 하나의 문제가 아니기 때문이다. ADS1115 2채널을 읽으며 변환 완료를 개루프로 기다리는 구조라
+      (860 SPS의 1.16ms에 대해 <code>delay(2)</code>), I2C 트랜잭션까지 합치면 10ms 예산 중 5~6ms를 쓴다.
+    </p>
+    <p>
+      <b>FSR 임계값이 실측으로 보정되어 Accel과 Brake가 분리되었다</b> — v0.3까지 두 페달이 같은 임시값을 쓰던 TBD가
+      해소되었다. Accel은 7000부터, Brake는 13000부터 레벨 1이 시작한다. 그리고 <code>TURN_GAIN</code>이
+      <b>0.35에서 1.0</b>으로 바뀌어, 최대 조향에서 안쪽 모터가 65%가 아니라 <b>0%</b>가 된다 — 호를 그리며 도는 대신
+      멈춘 쪽을 축으로 제자리 선회한다.
     </p>
     <h2>확정 / 미확정</h2>
     <p>
       Command 범위(Steering ±90°/10°, Accel·Brake 0~5), 두 패킷 구조와 CRC-8, UART(115200/8-N-1, 양방향),
       ESP-NOW(Ch.1 명시적 고정, 발신 MAC 필터링), <b>세 ESP32의 MAC</b>, <b>Zybo UART0 MIO14/15(Pmod JF9/JF10)</b>과
-      <b>UART1 MIO48/49</b>, ESP32 #3 I2C 핀(GPIO21/22), 제어 주기(Zybo·#2·#3 모두 50Hz), 세 타임아웃(200/500/300ms),
-      센서 검증 한계(범위 −1000~26400, 변화율 15000/샘플), L298N 핀 배정(25·26·27 / 32·14·13)은 <b>확정</b>되었고,
-      <b>Sensor부터 Motor까지 전 구간을 실물로 통합해 동작을 확인했다.</b> 남은 <b>TBD</b>는 FSR 분압 회로와 전압 범위,
-      Accel/Brake 임계값(현재 값은 임시), Steering 보정, 최종 모터 전원과 튜닝 파라미터다.
+      <b>UART1 MIO48/49</b>, ESP32 #3 I2C 핀(GPIO21/22), 제어 주기(Zybo 100Hz · ESP32 #2·#3 50Hz),
+      세 타임아웃(센서 200 / PC 500 / 차량 300ms), 센서 검증 한계(범위 −1000~26400, 변화율 15000/샘플),
+      <b>FSR 레벨 임계값(실측 보정 완료)</b>, L298N 핀 배정(25·26·27 / 32·14·13)은 <b>확정</b>되었고,
+      <b>Sensor부터 Motor까지 전 구간을 실물로 통합해 동작을 확인했다.</b> 남은 <b>TBD</b>는 Steering 보정,
+      최종 모터 전원과 튜닝 파라미터다.
     </p>
   </div>
 </div>

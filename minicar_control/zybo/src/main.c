@@ -70,15 +70,30 @@ XUartPs Uart1;
 
 #if STEERING_SOURCE_CNN
 // Supplied by the CNN team. See docs/cnn-steering-interface.md
+//
+// STATUS bit layout, confirmed against their AXI4-Lite slave:
+//   bit0 busy / bit1 start_ready / bit2 done / bit3 start_pending
 #define CNN_BASEADDR               XPAR_CNN_ACCELERATOR_0_S_AXI_LITE_BASEADDR
 #define CNN_REG_STATUS             0x04
 #define CNN_REG_RESULT             0x08
-#define CNN_STATUS_DONE_MASK       0x00000002
+#define CNN_STATUS_DONE_MASK       0x00000004
 #endif
 
-// Command output rate to ESP32 #1: 20 ms = 50 Hz, matching the
-// sensor node so commands carry fresh samples.
-#define CONTROL_PERIOD_US          20000
+// Command output rate to ESP32 #1: 10 ms = 100 Hz.
+//
+// This runs faster than anything feeding it. The sensor node and
+// the PC both send at 50 Hz, and ESP32 #2 drives the motors at
+// 50 Hz, so every other command repeats the previous sample and
+// is consumed without effect. What it buys is latency: an input
+// that changes just after a send waits 10 ms instead of 20 ms.
+//
+// Raising the sensor node to match is not just a constant. It
+// reads two ADS1115 channels per cycle, and each conversion is
+// waited out open-loop (delay(2) against 1.16 ms at 860 SPS),
+// which with the I2C transactions costs roughly 5-6 ms of a
+// 10 ms budget. Going to 100 Hz there means shortening that
+// wait or reading one channel per cycle.
+#define CONTROL_PERIOD_US          10000
 
 
 // ==================================================
@@ -189,21 +204,21 @@ static uint8_t commandSequence = 0;
 // ==================================================
 static const int16_t accelThreshold[5] =
 {
-    1000,
-    4000,
-    8000,
-    13000,
-    19000
+    7000,
+    10000,
+    14000,
+    19000,
+    22000
 };
 
 
 static const int16_t brakeThreshold[5] =
 {
-    1000,
-    4000,
-    8000,
     13000,
-    19000
+    17000,
+    19000,
+    21000,
+    23000
 };
 
 
