@@ -30,9 +30,6 @@ PC 키보드 ──UART1──────────────────�
 그대로 올리고, Level 0~5 변환은 Zybo에서만 일어난다. ESP32 #2의 Vehicle Controller는
 통신 방식을 전혀 모른 채 `DriverCommand` 구조체만 입력으로 받는다.
 
-전체 다이어그램은 [`docs/architecture.html`](docs/architecture.html) 참고.
-CNN 가속기가 조향을 넘겨받는 방법은 [`docs/cnn-steering-interface.md`](docs/cnn-steering-interface.md)에 정의되어 있다.
-
 ## 조향 소스 전환
 
 조향은 현재 PC 키보드가 담당하지만, 최종 시스템에서는 CNN 가속기가 대신한다.
@@ -118,8 +115,7 @@ minicar_control/
 │  ├─ ESP32_1_WirelessBridge/   양방향 허브 (ESP-NOW ↔ UART)
 │  ├─ ESP32_2_VehicleControl/   차량 제어 (50 Hz) + L298N 구동
 │  └─ ESP32_3_FSR/              ADS1115 읽기 + SensorPacket 송신 (50 Hz)
-├─ host/car_control_fsr.py      PC 조향·E-Stop GUI (Tkinter)
-└─ docs/architecture.html       ICD v0.4 다이어그램
+└─ host/car_control_fsr.py      PC 조향·E-Stop GUI (Tkinter)
 ```
 
 ## 노드 / MAC
