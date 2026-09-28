@@ -117,6 +117,13 @@ steering = 0 + FLAG_EMERGENCY_STOP
 차량 정지
 ```
 
+**확정:** `o_done_status`는 **START 시 클리어**된다 (CNN팀 확인). 따라서 DONE의 상승이
+"이번 추론이 끝났다"를 정확히 뜻하며, 위 타임아웃이 의도대로 동작한다.
+
+다만 이 때문에 **Zybo가 매 주기 START를 발행해야 한다.** START를 안 쓰면 DONE이 다시
+올라오지 않아 `CNN_TIMEOUT_MS` 후 정지한다. `readCNNSteering()`을
+`DONE 확인 → RESULT 읽기 → 다음 START` 순서로 구현한다 (Zybo 쪽 작업).
+
 **CNN팀이 지킬 것:** 새 추론 결과가 나올 때마다 `STATUS.DONE`을 갱신할 것.
 결과가 이전과 같은 값이어도 마찬가지다 — DONE이 "값이 바뀌었다"가 아니라 **"살아있다"**는 신호다.
 
