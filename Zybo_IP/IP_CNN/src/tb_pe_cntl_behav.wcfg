@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_top_cnn_cntl_full_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_top_cnn_cntl_full" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="13370000001fs"></ZoomEndTime>
+      <Cursor1Time time="2095000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="205"></NameColumnWidth>
+      <ValueColumnWidth column_width="108"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="96" />
+   <wave_markers>
+      <marker time="2105000" label="" />
+   </wave_markers>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/rst_n" type="logic">
+      <obj_property name="ElementShortName">rst_n</obj_property>
+      <obj_property name="ObjectShortName">rst_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/cnn_state_name" type="array">
+      <obj_property name="ElementShortName">cnn_state_name[95:0]</obj_property>
+      <obj_property name="ObjectShortName">cnn_state_name[95:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/wsvc_name" type="array">
+      <obj_property name="ElementShortName">wsvc_name[63:0]</obj_property>
+      <obj_property name="ObjectShortName">wsvc_name[63:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/tile_name" type="array">
+      <obj_property name="ElementShortName">tile_name[127:0]</obj_property>
+      <obj_property name="ObjectShortName">tile_name[127:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/pe_state_name" type="array">
+      <obj_property name="ElementShortName">pe_state_name[95:0]</obj_property>
+      <obj_property name="ObjectShortName">pe_state_name[95:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/ctrl_state_name" type="array">
+      <obj_property name="ElementShortName">ctrl_state_name[215:0]</obj_property>
+      <obj_property name="ObjectShortName">ctrl_state_name[215:0]</obj_property>
+      <obj_property name="Radix">ASCIIRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pe_cmd_ready_dbg" type="logic">
+      <obj_property name="ElementShortName">o_pe_cmd_ready_dbg</obj_property>
+      <obj_property name="ObjectShortName">o_pe_cmd_ready_dbg</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/pe_cmd_valid" type="logic">
+      <obj_property name="ElementShortName">pe_cmd_valid</obj_property>
+      <obj_property name="ObjectShortName">pe_cmd_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/pe_cmd_ready" type="logic">
+      <obj_property name="ElementShortName">pe_cmd_ready</obj_property>
+      <obj_property name="ObjectShortName">pe_cmd_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/pe_step_total" type="array">
+      <obj_property name="ElementShortName">pe_step_total[12:0]</obj_property>
+      <obj_property name="ObjectShortName">pe_step_total[12:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/pe_row_mask" type="array">
+      <obj_property name="ElementShortName">pe_row_mask[2:0]</obj_property>
+      <obj_property name="ObjectShortName">pe_row_mask[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/pe_col_mask" type="array">
+      <obj_property name="ElementShortName">pe_col_mask[2:0]</obj_property>
+      <obj_property name="ObjectShortName">pe_col_mask[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_start_valid" type="logic">
+      <obj_property name="ElementShortName">i_start_valid</obj_property>
+      <obj_property name="ObjectShortName">i_start_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_start_ready" type="logic">
+      <obj_property name="ElementShortName">o_start_ready</obj_property>
+      <obj_property name="ObjectShortName">o_start_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_busy" type="logic">
+      <obj_property name="ElementShortName">o_busy</obj_property>
+      <obj_property name="ObjectShortName">o_busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_img_ld_start" type="logic">
+      <obj_property name="ElementShortName">o_img_ld_start</obj_property>
+      <obj_property name="ObjectShortName">o_img_ld_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_ld_done" type="logic">
+      <obj_property name="ElementShortName">i_ld_done</obj_property>
+      <obj_property name="ObjectShortName">i_ld_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_writer_mode" type="logic">
+      <obj_property name="ElementShortName">o_writer_mode</obj_property>
+      <obj_property name="ObjectShortName">o_writer_mode</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_layer_cfg_valid" type="logic">
+      <obj_property name="ElementShortName">o_layer_cfg_valid</obj_property>
+      <obj_property name="ObjectShortName">o_layer_cfg_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_src_base" type="array">
+      <obj_property name="ElementShortName">o_src_base[13:0]</obj_property>
+      <obj_property name="ObjectShortName">o_src_base[13:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_in_w" type="array">
+      <obj_property name="ElementShortName">o_in_w[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_in_w[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_in_h" type="array">
+      <obj_property name="ElementShortName">o_in_h[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_in_h[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_in_c" type="array">
+      <obj_property name="ElementShortName">o_in_c[5:0]</obj_property>
+      <obj_property name="ObjectShortName">o_in_c[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_out_w" type="array">
+      <obj_property name="ElementShortName">o_out_w[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_out_w[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_out_h" type="array">
+      <obj_property name="ElementShortName">o_out_h[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_out_h[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_stride" type="array">
+      <obj_property name="ElementShortName">o_stride[1:0]</obj_property>
+      <obj_property name="ObjectShortName">o_stride[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pad_en" type="logic">
+      <obj_property name="ElementShortName">o_pad_en</obj_property>
+      <obj_property name="ObjectShortName">o_pad_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_input_zp" type="array">
+      <obj_property name="ElementShortName">o_input_zp[7:0]</obj_property>
+      <obj_property name="ObjectShortName">o_input_zp[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_k_total" type="array">
+      <obj_property name="ElementShortName">o_k_total[12:0]</obj_property>
+      <obj_property name="ObjectShortName">o_k_total[12:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_path_sel" type="logic">
+      <obj_property name="ElementShortName">o_path_sel</obj_property>
+      <obj_property name="ObjectShortName">o_path_sel</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pg_tile_start" type="logic">
+      <obj_property name="ElementShortName">o_pg_tile_start</obj_property>
+      <obj_property name="ObjectShortName">o_pg_tile_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_fc_tile_start" type="logic">
+      <obj_property name="ElementShortName">o_fc_tile_start</obj_property>
+      <obj_property name="ObjectShortName">o_fc_tile_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pos_base" type="array">
+      <obj_property name="ElementShortName">o_pos_base[11:0]</obj_property>
+      <obj_property name="ObjectShortName">o_pos_base[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_row_mask" type="array">
+      <obj_property name="ElementShortName">o_row_mask[2:0]</obj_property>
+      <obj_property name="ObjectShortName">o_row_mask[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_col_mask" type="array">
+      <obj_property name="ElementShortName">o_col_mask[2:0]</obj_property>
+      <obj_property name="ObjectShortName">o_col_mask[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_tile_cfg_valid" type="logic">
+      <obj_property name="ElementShortName">o_tile_cfg_valid</obj_property>
+      <obj_property name="ObjectShortName">o_tile_cfg_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_out_ch_base" type="array">
+      <obj_property name="ElementShortName">o_out_ch_base[4:0]</obj_property>
+      <obj_property name="ObjectShortName">o_out_ch_base[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_tile_last" type="logic">
+      <obj_property name="ElementShortName">o_tile_last</obj_property>
+      <obj_property name="ObjectShortName">o_tile_last</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_relu_en" type="logic">
+      <obj_property name="ElementShortName">o_relu_en</obj_property>
+      <obj_property name="ObjectShortName">o_relu_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_base" type="array">
+      <obj_property name="ElementShortName">o_param_base[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_param_base[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_params_ready" type="logic">
+      <obj_property name="ElementShortName">i_params_ready</obj_property>
+      <obj_property name="ObjectShortName">i_params_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_output_cfg_valid" type="logic">
+      <obj_property name="ElementShortName">o_output_cfg_valid</obj_property>
+      <obj_property name="ObjectShortName">o_output_cfg_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_dst_base" type="array">
+      <obj_property name="ElementShortName">o_dst_base[13:0]</obj_property>
+      <obj_property name="ObjectShortName">o_dst_base[13:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_out_c" type="array">
+      <obj_property name="ElementShortName">o_out_c[5:0]</obj_property>
+      <obj_property name="ObjectShortName">o_out_c[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pool_in_w" type="array">
+      <obj_property name="ElementShortName">o_pool_in_w[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_pool_in_w[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pool_in_h" type="array">
+      <obj_property name="ElementShortName">o_pool_in_h[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_pool_in_h[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pool_c" type="array">
+      <obj_property name="ElementShortName">o_pool_c[5:0]</obj_property>
+      <obj_property name="ObjectShortName">o_pool_c[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pool_en" type="logic">
+      <obj_property name="ElementShortName">o_pool_en</obj_property>
+      <obj_property name="ObjectShortName">o_pool_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_is_final_layer" type="logic">
+      <obj_property name="ElementShortName">o_is_final_layer</obj_property>
+      <obj_property name="ObjectShortName">o_is_final_layer</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_wload_start" type="logic">
+      <obj_property name="ElementShortName">o_wload_start</obj_property>
+      <obj_property name="ObjectShortName">o_wload_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_wload_ready" type="logic">
+      <obj_property name="ElementShortName">i_wload_ready</obj_property>
+      <obj_property name="ObjectShortName">i_wload_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_mem_base" type="array">
+      <obj_property name="ElementShortName">o_mem_base[15:0]</obj_property>
+      <obj_property name="ObjectShortName">o_mem_base[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_load_chunk_len" type="array">
+      <obj_property name="ElementShortName">o_load_chunk_len[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_load_chunk_len[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_wload_done" type="logic">
+      <obj_property name="ElementShortName">i_wload_done</obj_property>
+      <obj_property name="ObjectShortName">i_wload_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_wbuf_free" type="logic">
+      <obj_property name="ElementShortName">o_wbuf_free</obj_property>
+      <obj_property name="ObjectShortName">o_wbuf_free</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_reader_start" type="logic">
+      <obj_property name="ElementShortName">o_reader_start</obj_property>
+      <obj_property name="ObjectShortName">o_reader_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_reader_chunk_len" type="array">
+      <obj_property name="ElementShortName">o_reader_chunk_len[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_reader_chunk_len[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_reader_issue_en" type="logic">
+      <obj_property name="ElementShortName">o_reader_issue_en</obj_property>
+      <obj_property name="ObjectShortName">o_reader_issue_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_reader_done" type="logic">
+      <obj_property name="ElementShortName">i_reader_done</obj_property>
+      <obj_property name="ObjectShortName">i_reader_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_reader_idle" type="logic">
+      <obj_property name="ElementShortName">i_reader_idle</obj_property>
+      <obj_property name="ObjectShortName">i_reader_idle</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_pe_col_mask" type="array">
+      <obj_property name="ElementShortName">o_pe_col_mask[2:0]</obj_property>
+      <obj_property name="ObjectShortName">o_pe_col_mask[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_feeder_en" type="logic">
+      <obj_property name="ElementShortName">o_feeder_en</obj_property>
+      <obj_property name="ObjectShortName">o_feeder_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_tile_clear" type="logic">
+      <obj_property name="ElementShortName">o_tile_clear</obj_property>
+      <obj_property name="ObjectShortName">o_tile_clear</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_weight_feeder_empty" type="logic">
+      <obj_property name="ElementShortName">i_weight_feeder_empty</obj_property>
+      <obj_property name="ObjectShortName">i_weight_feeder_empty</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_weight_valid" type="logic">
+      <obj_property name="ElementShortName">i_weight_valid</obj_property>
+      <obj_property name="ObjectShortName">i_weight_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_act_valid" type="logic">
+      <obj_property name="ElementShortName">i_act_valid</obj_property>
+      <obj_property name="ObjectShortName">i_act_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_step_en" type="logic">
+      <obj_property name="ElementShortName">o_step_en</obj_property>
+      <obj_property name="ObjectShortName">o_step_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_feed_valid" type="logic">
+      <obj_property name="ElementShortName">o_feed_valid</obj_property>
+      <obj_property name="ObjectShortName">o_feed_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_acc_clear" type="logic">
+      <obj_property name="ElementShortName">o_acc_clear</obj_property>
+      <obj_property name="ObjectShortName">o_acc_clear</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_mac_valid" type="array">
+      <obj_property name="ElementShortName">o_mac_valid[8:0]</obj_property>
+      <obj_property name="ObjectShortName">o_mac_valid[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_mac_last" type="array">
+      <obj_property name="ElementShortName">o_mac_last[8:0]</obj_property>
+      <obj_property name="ObjectShortName">o_mac_last[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_result_buf_clear" type="logic">
+      <obj_property name="ElementShortName">o_result_buf_clear</obj_property>
+      <obj_property name="ObjectShortName">o_result_buf_clear</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_result_space_ready" type="logic">
+      <obj_property name="ElementShortName">i_result_space_ready</obj_property>
+      <obj_property name="ObjectShortName">i_result_space_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_ram_owner" type="logic">
+      <obj_property name="ElementShortName">o_ram_owner</obj_property>
+      <obj_property name="ObjectShortName">o_ram_owner</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_ram_idle" type="logic">
+      <obj_property name="ElementShortName">i_ram_idle</obj_property>
+      <obj_property name="ObjectShortName">i_ram_idle</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_mem_req_valid" type="logic">
+      <obj_property name="ElementShortName">o_param_mem_req_valid</obj_property>
+      <obj_property name="ObjectShortName">o_param_mem_req_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_mem_addr" type="array">
+      <obj_property name="ElementShortName">o_param_mem_addr[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_param_mem_addr[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_param_mem_req_ready" type="logic">
+      <obj_property name="ElementShortName">i_param_mem_req_ready</obj_property>
+      <obj_property name="ObjectShortName">i_param_mem_req_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_param_mem_data" type="array">
+      <obj_property name="ElementShortName">i_param_mem_data[31:0]</obj_property>
+      <obj_property name="ObjectShortName">i_param_mem_data[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_param_mem_rsp_valid" type="logic">
+      <obj_property name="ElementShortName">i_param_mem_rsp_valid</obj_property>
+      <obj_property name="ObjectShortName">i_param_mem_rsp_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_mem_rsp_ready" type="logic">
+      <obj_property name="ElementShortName">o_param_mem_rsp_ready</obj_property>
+      <obj_property name="ObjectShortName">o_param_mem_rsp_ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_wr_en" type="logic">
+      <obj_property name="ElementShortName">o_param_wr_en</obj_property>
+      <obj_property name="ObjectShortName">o_param_wr_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_wr_addr" type="array">
+      <obj_property name="ElementShortName">o_param_wr_addr[6:0]</obj_property>
+      <obj_property name="ObjectShortName">o_param_wr_addr[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_wr_data" type="array">
+      <obj_property name="ElementShortName">o_param_wr_data[31:0]</obj_property>
+      <obj_property name="ObjectShortName">o_param_wr_data[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_param_load_start" type="logic">
+      <obj_property name="ElementShortName">o_param_load_start</obj_property>
+      <obj_property name="ObjectShortName">o_param_load_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_param_load_done" type="logic">
+      <obj_property name="ElementShortName">i_param_load_done</obj_property>
+      <obj_property name="ObjectShortName">i_param_load_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_quant_multiplier" type="array">
+      <obj_property name="ElementShortName">o_quant_multiplier[31:0]</obj_property>
+      <obj_property name="ObjectShortName">o_quant_multiplier[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_quant_shift" type="array">
+      <obj_property name="ElementShortName">o_quant_shift[5:0]</obj_property>
+      <obj_property name="ObjectShortName">o_quant_shift[5:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_tile_in_done" type="logic">
+      <obj_property name="ElementShortName">i_tile_in_done</obj_property>
+      <obj_property name="ObjectShortName">i_tile_in_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_layer_done" type="logic">
+      <obj_property name="ElementShortName">i_layer_done</obj_property>
+      <obj_property name="ObjectShortName">i_layer_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/i_done_status" type="logic">
+      <obj_property name="ElementShortName">i_done_status</obj_property>
+      <obj_property name="ObjectShortName">i_done_status</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_layer_idx" type="array">
+      <obj_property name="ElementShortName">o_layer_idx[2:0]</obj_property>
+      <obj_property name="ObjectShortName">o_layer_idx[2:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/o_cnn_state" type="array">
+      <obj_property name="ElementShortName">o_cnn_state[3:0]</obj_property>
+      <obj_property name="ObjectShortName">o_cnn_state[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/chunk_req" type="logic">
+      <obj_property name="ElementShortName">chunk_req</obj_property>
+      <obj_property name="ObjectShortName">chunk_req</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_cnn_cntl_full/U_TB/DUT/chunk_loaded" type="logic">
+      <obj_property name="ElementShortName">chunk_loaded</obj_property>
+      <obj_property name="ObjectShortName">chunk_loaded</obj_property>
+   </wvobject>
+</wave_config>
