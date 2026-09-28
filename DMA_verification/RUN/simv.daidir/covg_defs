@@ -1,0 +1,651 @@
+global coverage_group 0 0 dma_pkg::dma_coverage::cg_reg __coverage_dma_coverage.cg_reg unused_dma_coverage_cg_reg_loop_label dma_pkg 0 0 0 0 0  ( 0 
+)
+ 1 1
+ 0 62 /home/pedu19/workspace/final_dma/RUN/../TB/env/dma_coverage.sv
+ 26 0 0 0 1 0 0 0 0  1
+0
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+2
+0
+1
+0
+ 7 cp_addr 27 0 0 0 0 0 0 44 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn 44 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 7 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 15 1 1 0 0 1 1 7 MM2S_CR 28 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_0 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 7 MM2S_SR 28 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_1 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 2 SA 29 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_2 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 8 READ_ERR 29 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_3 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 3 BTT 30 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_4 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 9 BURST_CFG 30 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_5 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 7 NUM_BUF 31 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_6 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 6 SW_IDX 31 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_7 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 7 S2MM_CR 32 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_8 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 7 S2MM_SR 32 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_9 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 3 DA0 33 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_a 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 3 DA1 33 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_b 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 3 DA2 34 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_c 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 START 34 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_d 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 9 WRITE_ERR 35 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_e 0 0 0 0 0 0 0
+ 0
+
+ 6 cp_dir 37 0 0 0 0 0 0 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_f 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_f 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 1 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 2 RD 37 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_10 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 2 WR 37 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_11 0 0 0 0 0 0 0
+ 0
+
+ 10 x_addr_dir 0 38 0 0 -1 0 0 0 0 2 0 1 0 -1 0 0 0
+ 0
+ 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 2 0 0 -1 0 0 1 1 5 ro_wr 40 0 2 0 1 3 1 0 0 0 2 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_3 0 0 0 0 0 0 0
+ 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_e 0 0 0 0 0 0 0
+ 0 0 0 0 1 0 1 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_11 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0
+ 1 2 0 0 -1 0 0 1 1 5 wo_rd 41 0 2 0 1 3 1 0 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_d 0 0 0 0 0 0 0
+ 0 0 0 0 1 0 1 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_reg_fn_10 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0
+
+end_coverage_group
+global coverage_group 0 0 dma_pkg::dma_coverage::cg_mode __coverage_dma_coverage.cg_mode unused_dma_coverage_cg_mode_loop_label dma_pkg 0 0 0 0 0  ( 0 
+)
+ 0 46 0 0 0 1 0 0 0 0  1
+0
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+3
+0
+1
+0
+ 7 cp_live 47 0 0 0 0 0 0 45 dma_coverage::dma_pkg_dma_coverage_cg_mode_fn 45 dma_coverage::dma_pkg_dma_coverage_cg_mode_fn 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 1 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 9 cp_cyclic 48 0 0 0 0 0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_mode_fn_0 47 dma_coverage::dma_pkg_dma_coverage_cg_mode_fn_0 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 1 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 9 cp_idx_sw 49 0 0 0 0 0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_mode_fn_1 47 dma_coverage::dma_pkg_dma_coverage_cg_mode_fn_1 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 1 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 6 x_mode 0 50 0 0 -1 0 0 0 0 2 0 1 0 -1 0 0 0
+ 0
+ 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+end_coverage_group
+global coverage_group 0 0 dma_pkg::dma_coverage::cg_cfg __coverage_dma_coverage.cg_cfg unused_dma_coverage_cg_cfg_loop_label dma_pkg 0 0 0 0 0  ( 0 
+)
+ 0 54 0 0 0 1 0 0 0 0  1
+0
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+2
+0
+0
+0
+ 6 cp_len 55 0 0 0 0 0 0 44 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn 44 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 8 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 4 1 1 0 0 1 1 3 ONE 55 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_0 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 SHORT 55 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_1 0 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_2 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 MAX16 55 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_3 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 6 OVER16 56 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_4 0 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_5 0 0 0 0 0
+ 0
+
+ 7 cp_type 57 0 0 0 0 0 0 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_6 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_6 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 2 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 4 1 1 0 0 1 1 5 FIXED 57 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_7 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 4 INCR 57 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_8 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 8 WRAP_ERR 58 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_9 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 8 RSVD_ERR 58 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 46 dma_coverage::dma_pkg_dma_coverage_cg_cfg_fn_a 0 0 0 0 0 0 0
+ 0
+
+end_coverage_group
+global coverage_group 0 0 dma_pkg::dma_coverage::cg_s2mm __coverage_dma_coverage.cg_s2mm unused_dma_coverage_cg_s2mm_loop_label dma_pkg 0 0 0 0 0  ( 0 
+)
+ 0 62 0 0 0 1 0 0 0 0  1
+0
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+3
+0
+1
+0
+ 6 cp_buf 63 0 0 0 0 0 0 45 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn 45 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 1 32 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 1 0 1 1 3 BUF 63 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 3 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_0 0 0 0 0 0 0 0
+ 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_1 0 0 0 0 0 0 0
+ 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_2 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 OTHER 63 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 8 0 0 0 0 0 0 0 0 0
+
+ 6 cp_len 65 0 0 0 0 0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_3 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_3 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 4 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 6 FULL16 65 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_4 0 0 0 0 0 0 0
+ 0
+ 1 2 0 0 1 1 15 fixed_by_design 65 0 0 2 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_5 0 0 0 0 0
+ 0
+
+ 7 cp_resp 66 0 0 0 0 0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_6 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_6 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 2 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 3 1 1 0 0 1 1 4 OKAY 66 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_7 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 6 SLVERR 66 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_8 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 6 DECERR 66 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_s2mm_fn_9 0 0 0 0 0 0 0
+ 0
+
+ 10 x_buf_resp 0 67 0 0 -1 0 0 0 0 2 0 2 0 -1 0 0 0
+ 0
+ 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+end_coverage_group
+global coverage_group 0 0 dma_pkg::dma_coverage::cg_mm2s __coverage_dma_coverage.cg_mm2s unused_dma_coverage_cg_mm2s_loop_label dma_pkg 0 0 0 0 0  ( 0 
+)
+ 0 71 0 0 0 1 0 0 0 0  1
+0
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+4
+0
+1
+0
+ 6 cp_buf 72 0 0 0 0 0 0 45 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn 45 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 1 32 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 1 0 1 1 3 BUF 72 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 3 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_0 0 0 0 0 0 0 0
+ 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_1 0 0 0 0 0 0 0
+ 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_2 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 11 SA_OR_OTHER 72 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 8 0 0 0 0 0 0 0 0 0
+
+ 6 cp_len 74 0 0 0 0 0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_3 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_3 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 8 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 4 1 1 0 0 1 1 6 SINGLE 74 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_0 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 SHORT 74 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_1 0 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_4 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 LEN16 74 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_5 0 0 0 0 0 0 0
+ 0
+ 1 2 0 0 1 1 16 capped_by_design 75 0 0 2 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_6 0 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_7 0 0 0 0 0
+ 0
+
+ 8 cp_burst 76 0 0 0 0 0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_8 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_8 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 2 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 5 FIXED 76 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_9 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 4 INCR 76 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_a 0 0 0 0 0 0 0
+ 0
+
+ 7 cp_resp 77 0 0 0 0 0 0 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_b 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_b 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 2 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 3 1 1 0 0 1 1 4 OKAY 77 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_9 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 6 SLVERR 77 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_c 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 6 DECERR 77 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 47 dma_coverage::dma_pkg_dma_coverage_cg_mm2s_fn_d 0 0 0 0 0 0 0
+ 0
+
+ 11 x_len_burst 0 78 0 0 -1 0 0 0 0 2 1 2 0 -1 0 0 0
+ 0
+ 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+end_coverage_group
+global coverage_group 0 0 dma_pkg::dma_coverage::cg_frame __coverage_dma_coverage.cg_frame unused_dma_coverage_cg_frame_loop_label dma_pkg 0 0 0 0 0  ( 0 
+)
+ 0 82 0 0 0 1 0 0 0 0  1
+0
+0
+0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+0
+0
+0
+64
+0
+ 0
+
+2
+0
+0
+0
+ 9 cp_corner 83 0 0 0 0 0 0 46 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn 46 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn 0 0 0 0 0 0 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 24 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 4 1 1 0 0 1 1 5 BLACK 84 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_1 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 WHITE 84 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_2 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 3 H55 85 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_3 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 3 HAA 85 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_4 0 0 0 0 0 0 0
+ 0
+
+ 8 cp_solid 87 0 0 0 0 0 0 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_5 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_5 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 0 -1 2 1 0 0 1 0 0 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 0
+ 2 1 1 0 0 1 1 5 SOLID 87 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_6 0 0 0 0 0 0 0
+ 0
+ 1 1 0 0 1 1 5 MIXED 87 0 0 1 0 0 0 0 0 0 0 0 0 0 -1 0 0 -1 0 0 1 1 1 48 dma_coverage::dma_pkg_dma_coverage_cg_frame_fn_7 0 0 0 0 0 0 0
+ 0
+
+end_coverage_group

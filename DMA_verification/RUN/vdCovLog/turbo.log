@@ -1,0 +1,3 @@
+Command Line: /tools/synopsys/verdi/X-2025.06-1/platform/LINUXAMD64/bin/vdCov -covdir coverage.vdb
+uname(Linux kccipangyo1 4.18.0-553.83.1.el8_10.x86_64 #1 SMP Fri Oct 31 03:39:01 EDT 2025 x86_64)
+au time 30.468196 3.900372 0.122156 delta 0 0 total 62096423 0

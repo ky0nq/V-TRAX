@@ -1,0 +1,14 @@
+<Command name="schRTLInfo"  delimiter="."  >
+<RTLBlock >
+<RTLInfo   name="STATE_0"  type="2"  fileName="../RTL/s2mm/s2mm_axi_writer.v"  >
+    <Seg beginLine="126"  endLine="177"  />
+  </RTLInfo>
+ <Instance name="tb_top.dut.U_S2MM.u_dma_write_axi"  />
+</RTLBlock>
+<RTLBlock >
+<RTLInfo   name="user_verbosity_1"  type="2"  fileName="/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv"  >
+    <Seg beginLine="47"  endLine="203"  />
+  </RTLInfo>
+ <Instance name="uvm_custom_install_verdi_recording"  />
+</RTLBlock>
+ </Command>

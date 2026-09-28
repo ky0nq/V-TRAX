@@ -1,0 +1,3 @@
+\$unit::../RTL/dma_regmap.v::../RTL/dma_top.v...@2294062132 02
+tb_top4070
+uvm_custom_install_verdi_recording4070

@@ -1,0 +1,483 @@
+Command: vcs -full64 -sverilog -ntb_opts uvm-1.2 -timescale=1ns/1ps -debug_access+all \
+-kdb -lca -cm line+cond+fsm+tgl+branch+assert -top tb_top -f /home/pedu19/workspace/final_dma/SIM/rtl.f \
+-f /home/pedu19/workspace/final_dma/SIM/tb.f -l compile.log -o simv
+                         Chronologic VCS (TM)
+       Version W-2024.09-SP2_Full64 -- Mon Sep 28 18:55:59 2026
+
+                    Copyright (c) 1991 - 2025 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+   or distribution of this software is strictly prohibited.  Licensed Products
+     communicate with Synopsys servers for the purpose of providing software
+    updates, detecting software piracy and verifying that customers are using
+    Licensed Products in conformity with the applicable License Key for such
+  Licensed Products. Synopsys will use information gathered in connection with
+    this process to deliver software updates and pursue software pirates and
+                                   infringers.
+
+ Inclusivity & Diversity - Visit SolvNetPlus to read the "Synopsys Statement on
+            Inclusivity and Diversity" (Refer to article 000036315 at
+                        https://solvnetplus.synopsys.com)
+
+
+Warning-[LCA_FEATURES_ENABLED] Usage warning
+  LCA features enabled by '-lca' argument on the command line.  For more 
+  information regarding list of LCA features please refer to Chapter "LCA 
+  features" in the VCS Release Notes
+
+Parsing design file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_version_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_global_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/snps_macros.svp'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_message_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_phase_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_object_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_printer_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_tlm_defines.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm_imps.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_tlm_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_sequence_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_callback_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_reg_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/macros/uvm_deprecated_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dpi/uvm_dpi.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dpi/uvm_hdl.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dpi/uvm_dpi.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dpi/uvm_svcmd_dpi.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dpi/uvm_dpi.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dpi/uvm_regex.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dpi/uvm_dpi.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_coreservice.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_version.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_object_globals.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_misc.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_object.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_pool.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_queue.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_factory.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_registry.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_spell_chkr.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_resource.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_resource_specializations.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_resource_db.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_config_db.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_printer.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_comparer.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_packer.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_links.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_tr_database.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_tr_stream.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_recorder.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_event_callback.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_event.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_barrier.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_callback.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_callback.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_report_message.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_report_catcher.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_report_server.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_report_handler.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_report_object.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_transaction.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_phase.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_domain.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_bottomup_phase.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_topdown_phase.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_task_phase.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_common_phases.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_runtime_phases.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_component.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_root.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_component.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_objection.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_heartbeat.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_globals.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_cmdline_processor.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_traversal.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_dap.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_set_get_dap_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_dap.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_simple_lock_dap.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_dap.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_get_to_lock_dap.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_dap.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_set_before_get_dap.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/dap/uvm_dap.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm_ifs.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_sqr_ifs.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_port_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm_imps.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_imps.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_ports.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_exports.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_analysis_port.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm_fifo_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm_fifos.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm_req_rsp.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_sqr_connections.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm1/uvm_tlm.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_pair.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_policies.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_in_order_comparator.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_algorithmic_comparator.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_random_stimulus.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_subscriber.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_monitor.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_driver.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_push_driver.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_scoreboard.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_agent.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_env.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_test.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/comps/uvm_comps.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequence_item.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequencer_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequencer_analysis_fifo.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequencer_param_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequencer.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_push_sequencer.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequence_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequence.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequence_library.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_sequence_builtin.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/seq/uvm_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_defines.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_time.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_generic_payload.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_ifs.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_imps.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_ports.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_exports.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_sockets_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2_sockets.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/tlm2/uvm_tlm2.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_item.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_adapter.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_predictor.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_sequence.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_cbs.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_backdoor.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_field.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_vreg_field.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_indirect.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_fifo.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_file.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_mem_mam.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_vreg.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_mem.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_map.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_block.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_reg_hw_reset_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_reg_bit_bash_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_mem_walk_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_mem_access_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_reg_access_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_reg_mem_shared_access_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_reg_mem_built_in_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/sequences/uvm_reg_mem_hdl_paths_seq.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/snps_uvm_reg_bank.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/reg/uvm_reg_model.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/vcs_uvm_alt.sv'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_pkg.sv'.
+Parsing design file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_custom_install_vcs_recorder.sv'
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/msglog.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_custom_install_vcs_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_msglog_report_server.sv'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_custom_install_vcs_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_vcs_recorder.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_vcs_tr_database.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_vcs_tr_stream.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_vcs_tr_database.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_vcs_recorder.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_custom_install_vcs_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_vcs_record_interface.sv'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/vcs/uvm_custom_install_vcs_recorder.sv'.
+Parsing design file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_recorder.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_pli_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_recorder.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_tr_database.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_tr_stream.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_tr_database.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_recorder.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_reg_map_recording.sv'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_message_catcher.svh'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_pli_base.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_message_catcher.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_factory.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/./dpi/uvm_verdi_dpi.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_reg_recording.sv'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/verdi/X-2025.06-1/share/PLI/VCS/include/verdi_trans_recorder_dpi.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_verdi_pli.svh'.
+Back to file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'.
+Parsing design file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/verdi/uvm_custom_install_verdi_recorder.sv'
+Parsing design file '../RTL/mm2s/mm2s_controller.v'
+Parsing design file '../RTL/mm2s/mm2s_datapath.sv'
+Parsing design file '../RTL/mm2s/mm2s_engine.v'
+Parsing design file '../RTL/mm2s/mm2s_fifo.v'
+Parsing design file '../RTL/mm2s/dma_mm2s.v'
+Parsing design file '../RTL/mm2s/mm2s_depacketizer.v'
+Parsing design file '../RTL/mm2s/dma_mm2s_video.v'
+Parsing design file '../RTL/s2mm/s2mm_stream_in.v'
+Parsing design file '../RTL/s2mm/s2mm_fifo.v'
+Parsing design file '../RTL/s2mm/s2mm_axi_writer.v'
+Parsing design file '../RTL/s2mm/s2mm_write_top.v'
+Parsing design file '../RTL/s2mm/s2mm_packetizer.v'
+Parsing design file '../RTL/dma_regmap.v'
+Parsing design file '../RTL/dma_top.v'
+Parsing design file '../TB/agents/axil_agent/axil_interface.sv'
+Parsing design file '../TB/agents/axis_agent/axis_interface.sv'
+Parsing design file '../TB/agents/mm2s_agent/mm2s_interface.sv'
+Parsing design file '../TB/agents/s2mm_agent/s2mm_interface.sv'
+Parsing design file '../TB/dma_pkg.sv'
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axil_agent/axil_item.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axis_agent/axis_item.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/mm2s_agent/mm2s_item.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/s2mm_agent/s2mm_item.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/env/dma_mem_model.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axil_agent/axil_driver.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axil_agent/axil_monitor.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axil_agent/axil_agent.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axil_agent/axil_sequence.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axis_agent/axis_driver.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axis_agent/axis_monitor.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axis_agent/axis_agent.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/axis_agent/axis_sequence.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/mm2s_agent/mm2s_driver.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/mm2s_agent/mm2s_monitor.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/mm2s_agent/mm2s_agent.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/mm2s_agent/mm2s_sequence.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/s2mm_agent/s2mm_driver.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/s2mm_agent/s2mm_monitor.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/s2mm_agent/s2mm_agent.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/agents/s2mm_agent/s2mm_sequence.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/env/dma_scoreboard.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/env/dma_coverage.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/env/dma_env.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_base_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_frame_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_reg_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_random_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_corner_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_burst_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_live0_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_cyclic_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_idx_sw_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_err_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing included file '../TB/test/dma_cfg_err_test.sv'.
+Back to file '../TB/dma_pkg.sv'.
+Parsing design file '../TB/tb_top.sv'
+Parsing included file '/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/uvm_macros.svh'.
+Back to file '../TB/tb_top.sv'.
+Top Level Modules:
+       uvm_custom_install_verdi_recording
+       tb_top
+TimeScale is 1 ns / 1 ps
+VCS Coverage Metrics Release W-2024.09-SP2_Full64 Copyright (c) 1991-2024 by Synopsys Inc.
+Notice: Ports coerced to inout, use -notice for details
+Starting vcs inline pass...
+17 modules and 0 UDP read.
+recompiling module uvm_custom_install_verdi_recording
+	However, due to incremental compilation, only 1 module needs to be compiled. 
+make[1]: Entering directory '/home/pedu19/workspace/final_dma/RUN/csrc'
+rm -f _cuarc*.so _csrc*.so pre_vcsobj_*.so share_vcsobj_*.so
+if [ -x ../simv ]; then chmod a-x ../simv; fi
+g++  -o ../simv      -rdynamic  -Wl,-rpath='$ORIGIN'/simv.daidir -Wl,-rpath=./simv.daidir \
+-Wl,-rpath=/tools/synopsys/vcs/W-2024.09-SP2/linux64/lib -L/tools/synopsys/vcs/W-2024.09-SP2/linux64/lib \
+-Wl,-rpath-link=./  /usr/lib64/libnuma.so.1 uvm_dpi.o uvm_verdi_dpi.o   objs/amcQw_d.o \
+_2477422_archive_1.so _prev_archive_1.so   SIM_l.o      rmapats_mop.o rmapats.o rmar.o \
+rmar_nd.o  rmar_llvm_0_1.o rmar_llvm_0_0.o            -lvirsim -lerrorinf -lsnpsmalloc \
+-lvfs    -lvcsnew -lsimprofile -lreader_common /tools/synopsys/vcs/W-2024.09-SP2/linux64/lib/libBA.a \
+-luclinative /tools/synopsys/vcs/W-2024.09-SP2/linux64/lib/vcs_tls.o   -Wl,-whole-archive \
+-lvcsucli    -Wl,-no-whole-archive       ./../simv.daidir/vc_hdrs.o  _vcs_pli_stub_.o \
+/tools/synopsys/vcs/W-2024.09-SP2/linux64/lib/vcs_save_restore_new.o /tools/synopsys/verdi/X-2025.06-1/share/PLI/VCS/LINUX64/pli.a \
+-ldl  -lc -lm -lpthread -ldl 
+../simv up to date
+make[1]: Leaving directory '/home/pedu19/workspace/final_dma/RUN/csrc'
+CPU time: 5.980 seconds to compile + .193 seconds to elab + .335 seconds to link
+Verdi KDB elaboration done and the database successfully generated

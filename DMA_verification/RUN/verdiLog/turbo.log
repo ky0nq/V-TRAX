@@ -1,0 +1,3 @@
+Command Line: /tools/synopsys/verdi/X-2025.06-1/platform/LINUXAMD64/bin/Novas -dbdir simv.daidir -ssf dma_cfg_err_test.fsdb
+uname(Linux kccipangyo1 4.18.0-553.83.1.el8_10.x86_64 #1 SMP Fri Oct 31 03:39:01 EDT 2025 x86_64)
+KdbImportParallelMixAllLib time 0.039764 0.045610 0.008971 delta 26759168 26759168 total 1289199616 1289199616

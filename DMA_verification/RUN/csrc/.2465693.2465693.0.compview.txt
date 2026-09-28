@@ -1,0 +1,9 @@
+{"vcs1":{"timestamp_begin":1790587891.721197402, "rt":5.47, "ut":5.70, "st":0.28}}
+{"vcselab":{"timestamp_begin":1790587897.236691706, "rt":0.18, "ut":0.14, "st":0.03}}
+{"link":{"timestamp_begin":1790587897.454453684, "rt":0.28, "ut":0.19, "st":0.10}}
+{"SNPS_VCS_INTERNAL_ROOT_START_TIME": 1790587891.333558478}
+{"VCS_COMP_START_TIME": 1790587891.333558478}
+{"VCS_COMP_END_TIME": 1790587897.815895231}
+{"VCS_USER_OPTIONS": "-full64 -sverilog -ntb_opts uvm-1.2 -timescale=1ns/1ps -debug_access+all -kdb -lca -cm line+cond+fsm+tgl+branch+assert -top tb_top -f /home/pedu19/workspace/final_dma/SIM/rtl.f -f /home/pedu19/workspace/final_dma/SIM/tb.f -l compile.log -o simv"}
+{"vcs1": {"peak_mem": 507252}}
+{"vcselab": {"peak_mem": 167012}}

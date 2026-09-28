@@ -1,0 +1,201 @@
+Command: /home/pedu19/workspace/final_dma/RUN/./simv +UVM_TESTNAME=dma_cfg_err_test +UVM_VERBOSITY=UVM_LOW +ntb_random_seed=65 -cm line+cond+fsm+tgl+branch+assert -cm_dir coverage.vdb -cm_name dma_cfg_err_test_65 -l dma_cfg_err_test_65.log
+Chronologic VCS simulator copyright 1991-2024
+Contains Synopsys proprietary information.
+Compiler version W-2024.09-SP2_Full64; Runtime version W-2024.09-SP2_Full64;  Sep 28 18:30 2026
+UVM_INFO /tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_root.svh(402) @ 0: reporter [UVM/RELNOTES] 
+----------------------------------------------------------------
+UVM-1.2.Synopsys
+(C) 2007-2014 Mentor Graphics Corporation
+(C) 2007-2014 Cadence Design Systems, Inc.
+(C) 2006-2014 Synopsys, Inc.
+(C) 2011-2013 Cypress Semiconductor Corp.
+(C) 2013-2014 NVIDIA Corporation
+----------------------------------------------------------------
+
+  ***********       IMPORTANT RELEASE NOTES         ************
+
+  You are using a version of the UVM library that has been compiled
+  with `UVM_NO_DEPRECATED undefined.
+  See http://www.eda.org/svdb/view.php?id=3313 for more details.
+
+  You are using a version of the UVM library that has been compiled
+  with `UVM_OBJECT_DO_NOT_NEED_CONSTRUCTOR undefined.
+  See http://www.eda.org/svdb/view.php?id=3770 for more details.
+
+      (Specify +UVM_NO_RELNOTES to turn off this notice)
+
+UVM_INFO @ 0: reporter [RNTST] Running test dma_cfg_err_test...
+UVM_INFO /tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_root.svh(589) @ 0: reporter [UVMTOP] UVM testbench topology:
+--------------------------------------------------------------
+Name                       Type                    Size  Value
+--------------------------------------------------------------
+uvm_test_top               dma_cfg_err_test        -     @357 
+  env                      dma_env                 -     @376 
+    axil_agt               axil_agent              -     @393 
+      drv                  axil_driver             -     @685 
+        rsp_port           uvm_analysis_port       -     @704 
+        seq_item_port      uvm_seq_item_pull_port  -     @694 
+      mon                  axil_monitor            -     @714 
+        ap                 uvm_analysis_port       -     @723 
+      sqr                  uvm_sequencer           -     @548 
+        rsp_export         uvm_analysis_export     -     @557 
+        seq_item_export    uvm_seq_item_pull_imp   -     @675 
+        arbitration_queue  array                   0     -    
+        lock_queue         array                   0     -    
+        num_last_reqs      integral                32    'd1  
+        num_last_rsps      integral                32    'd1  
+    camera_agt             axis_agent              -     @402 
+      drv                  axis_driver             -     @878 
+        rsp_port           uvm_analysis_port       -     @897 
+        seq_item_port      uvm_seq_item_pull_port  -     @887 
+      mon                  axis_monitor            -     @907 
+        ap                 uvm_analysis_port       -     @916 
+      sqr                  uvm_sequencer           -     @741 
+        rsp_export         uvm_analysis_export     -     @750 
+        seq_item_export    uvm_seq_item_pull_imp   -     @868 
+        arbitration_queue  array                   0     -    
+        lock_queue         array                   0     -    
+        num_last_reqs      integral                32    'd1  
+        num_last_rsps      integral                32    'd1  
+    cov                    dma_coverage            -     @498 
+      axil_imp             uvm_analysis_imp_axil   -     @517 
+      cam_imp              uvm_analysis_imp_cam    -     @507 
+      mm2s_imp             uvm_analysis_imp_mm2s   -     @537 
+      s2mm_imp             uvm_analysis_imp_s2mm   -     @527 
+    disp_agt               axis_agent              -     @411 
+      drv                  axis_driver             -     @1076
+        rsp_port           uvm_analysis_port       -     @1095
+        seq_item_port      uvm_seq_item_pull_port  -     @1085
+      mon                  axis_monitor            -     @1105
+        ap                 uvm_analysis_port       -     @1114
+      sqr                  uvm_sequencer           -     @939 
+        rsp_export         uvm_analysis_export     -     @948 
+        seq_item_export    uvm_seq_item_pull_imp   -     @1066
+        arbitration_queue  array                   0     -    
+        lock_queue         array                   0     -    
+        num_last_reqs      integral                32    'd1  
+        num_last_rsps      integral                32    'd1  
+    mm2s_agt               mm2s_agent              -     @420 
+      drv                  mm2s_driver             -     @1272
+        rsp_port           uvm_analysis_port       -     @1291
+        seq_item_port      uvm_seq_item_pull_port  -     @1281
+      mon                  mm2s_monitor            -     @1301
+        ap                 uvm_analysis_port       -     @1310
+      sqr                  uvm_sequencer           -     @1135
+        rsp_export         uvm_analysis_export     -     @1144
+        seq_item_export    uvm_seq_item_pull_imp   -     @1262
+        arbitration_queue  array                   0     -    
+        lock_queue         array                   0     -    
+        num_last_reqs      integral                32    'd1  
+        num_last_rsps      integral                32    'd1  
+    s2mm_agt               s2mm_agent              -     @429 
+      drv                  s2mm_driver             -     @1465
+        rsp_port           uvm_analysis_port       -     @1484
+        seq_item_port      uvm_seq_item_pull_port  -     @1474
+      mon                  s2mm_monitor            -     @1494
+        ap                 uvm_analysis_port       -     @1503
+      sqr                  uvm_sequencer           -     @1328
+        rsp_export         uvm_analysis_export     -     @1337
+        seq_item_export    uvm_seq_item_pull_imp   -     @1455
+        arbitration_queue  array                   0     -    
+        lock_queue         array                   0     -    
+        num_last_reqs      integral                32    'd1  
+        num_last_rsps      integral                32    'd1  
+    sb                     dma_scoreboard          -     @439 
+      axil_imp             uvm_analysis_imp_axil   -     @468 
+      cam_imp              uvm_analysis_imp_cam    -     @448 
+      disp_imp             uvm_analysis_imp_disp   -     @458 
+      mm2s_imp             uvm_analysis_imp_mm2s   -     @488 
+      s2mm_imp             uvm_analysis_imp_s2mm   -     @478 
+--------------------------------------------------------------
+
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(33) @ 0: uvm_test_top [dma_cfg_err_test] ---- (a) SA 정렬 안 됨 ----
+UVM_INFO ../TB/agents/axil_agent/axil_sequence.sv(133) @ 0: uvm_test_top.env.axil_agt.sqr@@mm2s_start [axil_mm2s_start_seq] MM2S 시작 (live=0 cyclic=0 btt=768 arlen=15)
+UVM_INFO ../TB/agents/axis_agent/axis_sequence.sv(130) @ 0: uvm_test_top.env.disp_agt.sqr@@disp_seq [axis_ready_seq] disp 수신 시작 (tready gap_max=0)
+UVM_INFO ../TB/agents/mm2s_agent/mm2s_sequence.sv(44) @ 0: uvm_test_top.env.mm2s_agt.sqr@@mm2s_seq [mm2s_basic_seq] MM2S 메모리 응답 시작 (지연 없음)
+UVM_INFO ../TB/agents/s2mm_agent/s2mm_sequence.sv(46) @ 0: uvm_test_top.env.s2mm_agt.sqr@@s2mm_seq [s2mm_basic_seq] S2MM 메모리 응답 시작 (지연 없음)
+UVM_INFO ../TB/test/dma_base_test.sv(119) @ 365000: uvm_test_top [dma_cfg_err_test] CHECK PASS [SA 비정렬 -> SR.error]: 0x00000010
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(25) @ 395000: uvm_test_top [dma_cfg_err_test] SA 비정렬 : READ_ERR = 0x00000000
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(37) @ 425000: uvm_test_top [dma_cfg_err_test] ---- (b) BTT 4 의 배수 아님 ----
+UVM_INFO ../TB/agents/axil_agent/axil_sequence.sv(133) @ 425000: uvm_test_top.env.axil_agt.sqr@@mm2s_start [axil_mm2s_start_seq] MM2S 시작 (live=0 cyclic=0 btt=766 arlen=15)
+UVM_INFO ../TB/test/dma_base_test.sv(119) @ 665000: uvm_test_top [dma_cfg_err_test] CHECK PASS [BTT 비정렬 -> SR.error]: 0x00000010
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(25) @ 695000: uvm_test_top [dma_cfg_err_test] BTT 비정렬 : READ_ERR = 0x00000000
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(41) @ 725000: uvm_test_top [dma_cfg_err_test] ---- (c) WRAP 버스트 ----
+UVM_INFO ../TB/agents/axil_agent/axil_sequence.sv(133) @ 725000: uvm_test_top.env.axil_agt.sqr@@mm2s_start [axil_mm2s_start_seq] MM2S 시작 (live=0 cyclic=0 btt=768 arlen=15)
+UVM_INFO ../TB/test/dma_base_test.sv(119) @ 965000: uvm_test_top [dma_cfg_err_test] CHECK PASS [WRAP 버스트 -> SR.error]: 0x00000010
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(25) @ 995000: uvm_test_top [dma_cfg_err_test] WRAP 버스트 : READ_ERR = 0x00000000
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(45) @ 1025000: uvm_test_top [dma_cfg_err_test] ---- (d) 영역 밖 주소 ----
+UVM_INFO ../TB/agents/axil_agent/axil_sequence.sv(133) @ 1025000: uvm_test_top.env.axil_agt.sqr@@mm2s_start [axil_mm2s_start_seq] MM2S 시작 (live=0 cyclic=0 btt=768 arlen=15)
+UVM_INFO ../TB/test/dma_base_test.sv(119) @ 1265000: uvm_test_top [dma_cfg_err_test] CHECK PASS [영역 밖 SA -> SR.error]: 0x00000010
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(25) @ 1295000: uvm_test_top [dma_cfg_err_test] 영역 밖 SA : READ_ERR = 0x00000000
+UVM_INFO ../TB/test/dma_cfg_err_test.sv(49) @ 1325000: uvm_test_top [dma_cfg_err_test] ---- 에러 뒤 정상 동작 ----
+UVM_INFO ../TB/agents/axil_agent/axil_sequence.sv(133) @ 1325000: uvm_test_top.env.axil_agt.sqr@@mm2s_start [axil_mm2s_start_seq] MM2S 시작 (live=0 cyclic=0 btt=768 arlen=15)
+UVM_INFO ../TB/agents/axil_agent/axil_sequence.sv(160) @ 1565000: uvm_test_top.env.axil_agt.sqr@@wait_frame [axil_wait_frame_seq] MM2S 프레임 완료 확인
+UVM_ERROR ../TB/test/dma_base_test.sv(116) @ 1595000: uvm_test_top [dma_cfg_err_test] CHECK FAIL [정상 설정 후 SR.error 가 0]: addr 0x04 = 0x00004011 (기대값 0x00000000, mask 0x00000010)
+UVM_INFO /tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_objection.svh(1276) @ 3595000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+UVM_INFO ../TB/env/dma_coverage.sv(148) @ 3595000: uvm_test_top.env.cov [COV] ================================
+UVM_INFO ../TB/env/dma_coverage.sv(149) @ 3595000: uvm_test_top.env.cov [COV] ========Coverage Summary========
+UVM_INFO ../TB/env/dma_coverage.sv(150) @ 3595000: uvm_test_top.env.cov [COV]   (이 test 하나 기준, 전체는 make cov)
+UVM_INFO ../TB/env/dma_coverage.sv(151) @ 3595000: uvm_test_top.env.cov [COV] ================================
+UVM_INFO ../TB/env/dma_coverage.sv(152) @ 3595000: uvm_test_top.env.cov [COV] register   :   0.0 %
+UVM_INFO ../TB/env/dma_coverage.sv(153) @ 3595000: uvm_test_top.env.cov [COV] mm2s mode  :   0.0 %
+UVM_INFO ../TB/env/dma_coverage.sv(154) @ 3595000: uvm_test_top.env.cov [COV] burst cfg  :   0.0 %
+UVM_INFO ../TB/env/dma_coverage.sv(155) @ 3595000: uvm_test_top.env.cov [COV] s2mm burst :   0.0 %
+UVM_INFO ../TB/env/dma_coverage.sv(156) @ 3595000: uvm_test_top.env.cov [COV] mm2s burst :   0.0 %
+UVM_INFO ../TB/env/dma_coverage.sv(157) @ 3595000: uvm_test_top.env.cov [COV] frame      :   0.0 %
+UVM_INFO ../TB/env/dma_coverage.sv(158) @ 3595000: uvm_test_top.env.cov [COV] ================================
+UVM_INFO ../TB/env/dma_scoreboard.sv(280) @ 3595000: uvm_test_top.env.sb [SCB] ================================
+UVM_INFO ../TB/env/dma_scoreboard.sv(281) @ 3595000: uvm_test_top.env.sb [SCB] =======Scoreboard Summary=======
+UVM_INFO ../TB/env/dma_scoreboard.sv(282) @ 3595000: uvm_test_top.env.sb [SCB] ================================
+UVM_INFO ../TB/env/dma_scoreboard.sv(283) @ 3595000: uvm_test_top.env.sb [SCB]   [1] camera -> S2MM -> memory 
+UVM_INFO ../TB/env/dma_scoreboard.sv(284) @ 3595000: uvm_test_top.env.sb [SCB] pass count: 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(285) @ 3595000: uvm_test_top.env.sb [SCB] fail count: 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(286) @ 3595000: uvm_test_top.env.sb [SCB] ================================
+UVM_INFO ../TB/env/dma_scoreboard.sv(287) @ 3595000: uvm_test_top.env.sb [SCB]   [2] memory -> MM2S -> disp      
+UVM_INFO ../TB/env/dma_scoreboard.sv(288) @ 3595000: uvm_test_top.env.sb [SCB] pass count: 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(289) @ 3595000: uvm_test_top.env.sb [SCB] fail count: 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(290) @ 3595000: uvm_test_top.env.sb [SCB] ================================
+UVM_INFO ../TB/env/dma_scoreboard.sv(291) @ 3595000: uvm_test_top.env.sb [SCB]   [3] camera = disp (E2E) (OFF)
+UVM_INFO ../TB/env/dma_scoreboard.sv(292) @ 3595000: uvm_test_top.env.sb [SCB] pass count: 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(293) @ 3595000: uvm_test_top.env.sb [SCB] fail count: 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(294) @ 3595000: uvm_test_top.env.sb [SCB] ================================
+UVM_INFO ../TB/env/dma_scoreboard.sv(295) @ 3595000: uvm_test_top.env.sb [SCB]   [4] protocol fail : 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(296) @ 3595000: uvm_test_top.env.sb [SCB]   [5] register fail : 0
+UVM_INFO ../TB/env/dma_scoreboard.sv(297) @ 3595000: uvm_test_top.env.sb [SCB] ================================
+UVM_INFO ../TB/env/dma_scoreboard.sv(302) @ 3595000: uvm_test_top.env.sb [SCB] 참고: disp 로 아직 안 나온 MM2S 데이터 704 byte
+UVM_INFO ../TB/env/dma_scoreboard.sv(309) @ 3595000: uvm_test_top.env.sb [dma_scoreboard] TEST PASSED: S2MM 0 / MM2S 0 / E2E 0 프레임
+UVM_INFO ../TB/env/dma_mem_model.sv(153) @ 3595000: reporter [MEM] writes=192 reads=183 uninit_reads=0 bytes_used=768
+UVM_INFO /tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_report_server.svh(904) @ 3595000: reporter [UVM/REPORT/SERVER] 
+--- UVM Report Summary ---
+
+** Report counts by severity
+UVM_INFO :   58
+UVM_WARNING :    0
+UVM_ERROR :    1
+UVM_FATAL :    0
+** Report counts by id
+[COV]    11
+[MEM]     1
+[RNTST]     1
+[SCB]    19
+[TEST_DONE]     1
+[UVM/RELNOTES]     1
+[UVMTOP]     1
+[axil_mm2s_start_seq]     5
+[axil_wait_frame_seq]     1
+[axis_ready_seq]     1
+[dma_cfg_err_test]    14
+[dma_scoreboard]     1
+[mm2s_basic_seq]     1
+[s2mm_basic_seq]     1
+
+$finish called from file "/tools/synopsys/vcs/W-2024.09-SP2/etc/uvm-1.2/base/uvm_root.svh", line 527.
+$finish at simulation time              3595000
+
+---------------------------------------------------------------------------
+VCS Coverage Metrics: during simulation line, cond, FSM, branch, tgl was monitored
+---------------------------------------------------------------------------
+           V C S   S i m u l a t i o n   R e p o r t 
+Time: 3595000 ps
+CPU Time:      0.230 seconds;       Data structure size:   0.9Mb
+Mon Sep 28 18:30:19 2026

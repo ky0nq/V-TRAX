@@ -1,0 +1,9 @@
+#!/bin/sh -h 
+PYTHONHOME=/tools/synopsys/vcs/W-2024.09-SP2/etc/search/pyh
+export PYTHONHOME
+PYTHONPATH=/tools/synopsys/vcs/W-2024.09-SP2/linux64/lib/pylib27
+export PYTHONPATH
+LD_LIBRARY_PATH=/tools/synopsys/vcs/W-2024.09-SP2/linux64/lib:/tools/synopsys/vcs/W-2024.09-SP2/linux64/lib/pylib27
+export LD_LIBRARY_PATH
+/tools/synopsys/vcs/W-2024.09-SP2/linux64/bin/vcsfind_create_index.exe  -z  "/home/pedu19/workspace/final_dma/RUN/simv.daidir/debug_dump/fsearch/./idents_pEOPLw.xml.gz" "/home/pedu19/workspace/final_dma/RUN/simv.daidir/debug_dump/fsearch/./idents_tapi.xml.gz" -o "/home/pedu19/workspace/final_dma/RUN/simv.daidir/debug_dump/fsearch/fsearch.db_tmp"
+\mv "/home/pedu19/workspace/final_dma/RUN/simv.daidir/debug_dump/fsearch/fsearch.db_tmp" "/home/pedu19/workspace/final_dma/RUN/simv.daidir/debug_dump/fsearch/fsearch.db"

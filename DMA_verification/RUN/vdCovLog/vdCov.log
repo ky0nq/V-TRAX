@@ -1,0 +1,43 @@
+Warning: Design Not Loaded Yet: 
+Error-[UCAPI-DNYL] Design not yet loaded
+  Loading test 'coverage.vdb/dma_reg_test_1' failed, as design is not yet 
+  loaded.
+  Either you missed out specifying design directory or your design directory 
+  is corrupted.
+Warning: Limited Design Loaded: 
+Warning-[UCAPI-LDAST] Limited design loaded
+  Only the design information inferred from assertion database is available 
+  since the information containing the full compile-time design is not 
+  available in the base coverage directory 'coverage.vdb'. The report contains
+  only a partial hierarchy - the parts containing assertions - but all 
+  coverage scores are correct.
+  This situation can sometimes happen if you have only assertion coverage 
+  enabled.
+  If you need the full hierarchical report, you have to use at least one '-cm'
+  option at compile-time OR
+  you may provide both compile time and runtime coverage database with your 
+  URG or verdi command to load the complete design.
+Warning: Design Not Loaded Yet: 
+Error-[UCAPI-DNYL] Design not yet loaded
+  Loading test 'coverage.vdb/dma_frame_test_1' failed, as design is not yet 
+  loaded.
+  Either you missed out specifying design directory or your design directory 
+  is corrupted.
+Warning: Design Not Loaded Yet: 
+Error-[UCAPI-DNYL] Design not yet loaded
+  Loading test 'coverage.vdb/dma_corner_test_1' failed, as design is not yet 
+  loaded.
+  Either you missed out specifying design directory or your design directory 
+  is corrupted.
+Warning: Design Not Loaded Yet: 
+Error-[UCAPI-DNYL] Design not yet loaded
+  Loading test 'coverage.vdb/dma_random_test_1' failed, as design is not yet 
+  loaded.
+  Either you missed out specifying design directory or your design directory 
+  is corrupted.
+The design 'coverage.vdb' was loaded successfully.
+The following tests are merged/loaded from "coverage.vdb",
+    coverage/dma_corner_test_1
+    coverage/dma_frame_test_1
+    coverage/dma_random_test_1
+    coverage/dma_reg_test_1
