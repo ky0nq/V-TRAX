@@ -1,0 +1,102 @@
+`timescale 1ns / 1ps
+//
+// s2mm_packetizer  (기존 axis_frame_packetizer, 로직 그대로 / 이름만 변경)
+//
+//   입력  : 24bit RGB 픽셀 스트림, tlast = 줄 끝(EOL)   <- AXI_GammaCorrection
+//   출력  : 32bit packed bytes 스트림                   -> s2mm_write_top
+//           tuser[0] = 프레임 첫 워드(SOF)
+//           tlast    = 프레임 마지막 워드 (EOL 을 FRAME_HEIGHT 번 세서 생성)
+//
+module s2mm_packetizer #(
+    parameter integer TUSER_WIDTH     = 16,
+    parameter integer TID_WIDTH       = 8,
+    parameter integer TDEST_WIDTH     = 4,
+    parameter integer PIXELS_PER_LINE = 1280,
+    parameter integer FRAME_HEIGHT    = 720,
+    parameter [TID_WIDTH-1:0] ID_VALUE = {TID_WIDTH{1'b0}},
+    parameter [TDEST_WIDTH-1:0] DEST_VALUE = {TDEST_WIDTH{1'b0}}
+)(
+    input  wire                       aclk,
+    input  wire                       aresetn,
+    input  wire [23:0]                s_axis_tdata,
+    input  wire                       s_axis_tlast,
+    input  wire                       s_axis_tvalid,
+    output wire                       s_axis_tready,
+    output wire [31:0]                m_axis_tdata,
+    output wire [3:0]                 m_axis_tkeep,
+    output wire [TUSER_WIDTH-1:0]     m_axis_tuser,
+    output wire [TID_WIDTH-1:0]       m_axis_tid,
+    output wire [TDEST_WIDTH-1:0]     m_axis_tdest,
+    output wire                       m_axis_tlast,
+    output wire                       m_axis_tvalid,
+    input  wire                       m_axis_tready
+);
+    localparam integer FRAME_BYTES = PIXELS_PER_LINE * FRAME_HEIGHT * 3;
+    localparam integer LINE_COUNT_WIDTH =
+        (FRAME_HEIGHT <= 1) ? 1 : $clog2(FRAME_HEIGHT);
+
+    reg [63:0] byte_buffer;
+    reg [3:0] byte_count;
+    reg [LINE_COUNT_WIDTH-1:0] line_count;
+    reg frame_end_seen;
+    reg frame_start;
+
+    wire output_transfer = m_axis_tvalid && m_axis_tready;
+    wire [3:0] bytes_after_output =
+        byte_count - (output_transfer ? 4'd4 : 4'd0);
+    wire input_transfer = s_axis_tvalid && s_axis_tready;
+    wire [63:0] shifted_buffer =
+        output_transfer ? (byte_buffer >> 32) : byte_buffer;
+    wire [63:0] input_bytes = {40'b0, s_axis_tdata};
+    wire [63:0] merged_buffer = shifted_buffer |
+        (input_bytes << (bytes_after_output * 8));
+
+    assign m_axis_tvalid = (byte_count >= 4);
+    assign m_axis_tdata  = byte_buffer[31:0];
+    assign m_axis_tkeep  = 4'b1111;
+    assign m_axis_tuser  = {{(TUSER_WIDTH-1){1'b0}}, frame_start};
+    assign m_axis_tid    = ID_VALUE;
+    assign m_axis_tdest  = DEST_VALUE;
+    assign m_axis_tlast  = frame_end_seen && (byte_count == 4);
+    assign s_axis_tready = !frame_end_seen && (bytes_after_output <= 5);
+
+    always @(posedge aclk) begin
+        if (!aresetn) begin
+            byte_buffer      <= 64'b0;
+            byte_count       <= 4'd0;
+            line_count       <= {LINE_COUNT_WIDTH{1'b0}};
+            frame_end_seen   <= 1'b0;
+            frame_start      <= 1'b1;
+        end else begin
+            if (input_transfer)
+                byte_buffer <= merged_buffer;
+            else if (output_transfer)
+                byte_buffer <= shifted_buffer;
+
+            byte_count <= bytes_after_output +
+                          (input_transfer ? 4'd3 : 4'd0);
+
+            if (output_transfer) begin
+                frame_start <= m_axis_tlast;
+                if (m_axis_tlast)
+                    frame_end_seen <= 1'b0;
+            end
+
+            if (input_transfer && s_axis_tlast) begin
+                if (line_count == FRAME_HEIGHT - 1) begin
+                    line_count <= {LINE_COUNT_WIDTH{1'b0}};
+                    frame_end_seen <= 1'b1;
+                end else begin
+                    line_count <= line_count + 1'b1;
+                end
+            end
+        end
+    end
+
+`ifndef SYNTHESIS
+    initial begin
+        if ((FRAME_BYTES % 4) != 0)
+            $error("axis_frame_packetizer requires a four-byte-aligned frame");
+    end
+`endif
+endmodule
