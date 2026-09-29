@@ -1,4 +1,15 @@
 `timescale 1 ns / 1 ps
+//
+// ===== 수정 사항 =====
+// 원본 대비 딱 2곳만 수정했습니다 (그 외 전부 원본과 동일):
+//   1) PWDATA/PSTRB 캡처 로직: S_AXI_AWADDR[1]로 상/하위 16비트 중
+//      어느 쪽이 실제 데이터가 실린 바이트 레인인지 선택하도록 수정
+//      (기존엔 항상 WDATA[15:0]/WSTRB[1:0]만 봐서, offset 2/6처럼
+//       워드 정렬이 안 된 레지스터에 쓰기가 실제로 안 먹었음)
+//   2) axi_rdata 캡처 로직: PADDR[1]로 APB에서 받은 16비트 응답을
+//      상위/하위 중 CPU가 실제로 읽는 바이트 레인에 맞춰 넣도록 수정
+// 두 수정 지점에는 "==== FIX ====" 주석으로 표시해뒀습니다.
+//
 
 	module APB_v1_0_S00_AXI #
 	(
@@ -419,15 +430,24 @@
 	    end    
 	end    
 	
+    // ==== FIX (1/2): 쓰기 시 주소[1]로 상/하위 16비트 바이트 레인 선택 ====
+    // 기존엔 항상 S_AXI_WDATA[15:0]/WSTRB[1:0]만 봤는데, offset 2/6처럼
+    // 워드 정렬이 안 된 레지스터는 AXI 규약상 실제 데이터가 [31:16]/WSTRB[3:2]에
+    // 실리므로, S_AXI_AWADDR[1]을 보고 올바른 레인을 골라야 함.
     always @( posedge S_AXI_ACLK ) begin
         if ( S_AXI_ARESETN == 1'b0 )begin
             PWDATA <= 0;
             PSTRB <= 0;
         end
         else begin
-            if (slv_reg_wren)   begin 
-                PWDATA <= S_AXI_WDATA[APB_WIDTH-1:0];  
-                PSTRB <= S_AXI_WSTRB[APB_WIDTH/8-1:0];
+            if (slv_reg_wren)   begin
+                if (S_AXI_AWADDR[1]) begin
+                    PWDATA <= S_AXI_WDATA[31:16];
+                    PSTRB  <= S_AXI_WSTRB[3:2];
+                end else begin
+                    PWDATA <= S_AXI_WDATA[15:0];
+                    PSTRB  <= S_AXI_WSTRB[1:0];
+                end
             end
         end
     end
@@ -461,7 +481,15 @@
                     if(PREADY == 1'b1)begin
                         {PSEL,PENABLE,PWRITE} <= {2'b00,PWRITE};
                         PSTATE <= 2'b00;
-                        if(!PWRITE) axi_rdata <= {{(C_S_AXI_DATA_WIDTH-APB_WIDTH){1'b0}},PRDATA};
+                        // ==== FIX (2/2): 읽기 시 PADDR[1]로 응답 데이터를
+                        // 상/하위 16비트 중 CPU가 실제로 읽을 레인에 맞춰 배치 ====
+                        // PADDR은 이 시점에 이미 읽기 주소로 래치돼 있으므로 그대로 사용 가능.
+                        if(!PWRITE) begin
+                            if (PADDR[1])
+                                axi_rdata <= {{(C_S_AXI_DATA_WIDTH-APB_WIDTH){1'b0}}, PRDATA} << 16;
+                            else
+                                axi_rdata <= {{(C_S_AXI_DATA_WIDTH-APB_WIDTH){1'b0}}, PRDATA};
+                        end
                     end
                 end
                 default : begin

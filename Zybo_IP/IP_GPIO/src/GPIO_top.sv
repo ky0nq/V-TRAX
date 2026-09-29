@@ -45,12 +45,11 @@ module GPIO_top (
 
         .o_irq(o_irq)
     );
-
-    gpio U_GPIO (
-        .cr (w_cr),
-        .idr(w_idr),
-        .aodr(w_aodr),
-        .io_port(io_port)
-    );
-
+	genvar i;
+	generate
+        for (i = 0; i < 16; i = i + 1) begin : GPIO_PIN
+            assign io_port[i] = w_cr[i] ? w_aodr[i] : 1'bz;
+            assign w_idr[i]     = io_port[i];
+        end
+    endgenerate
 endmodule
