@@ -2175,11 +2175,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>dma_top_v1_0</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>9</xilinx:coreRevision>
+      <xilinx:coreRevision>10</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:dma_top:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2026-09-30T22:38:56Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2026-10-01T01:20:41Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@74fe158e_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-2/IP/IP/IP_DMA</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1cfd6986_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-2/IP/IP/IP_DMA</xilinx:tag>
@@ -2330,6 +2330,11 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@753f8c6e_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@617e49cc_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@9c82dec_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@317a41d4_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@460db946_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@79b87f5_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1cf2dfa1_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7df7c738_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_VDMA</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>

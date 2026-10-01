@@ -43,7 +43,8 @@ module AXI_LIte_v1_0_S00_AXI #(
     output wire IRQ,
     input wire S_AXI_RREADY
 );
-
+	reg capture_done_d;
+	reg irq_pending_r;
     reg [C_S_AXI_ADDR_WIDTH-1:0] axi_awaddr;
     reg axi_awready;
     reg axi_wready;
@@ -78,7 +79,7 @@ module AXI_LIte_v1_0_S00_AXI #(
     assign CROP_Y = slv_reg3[9:0];
     assign DEBUG_READ_ADDR = slv_reg5[11:0];
     assign DEBUG_READ_ENABLE = slv_reg7[0];
-    assign IRQ = slv_reg7[1] & CAPTURE_DONE;
+	assign IRQ = slv_reg7[1] & irq_pending_r;
 
     assign S_AXI_AWREADY = axi_awready;
     assign S_AXI_WREADY = axi_wready;
@@ -227,5 +228,26 @@ module AXI_LIte_v1_0_S00_AXI #(
         if (!S_AXI_ARESETN) axi_rdata <= 0;
         else if (slv_reg_rden) axi_rdata <= reg_data_out;
     end
+	
+	always @(posedge S_AXI_ACLK) begin
+	    if (!S_AXI_ARESETN) begin
+	        capture_done_d <= 1'b0;
+	        irq_pending_r  <= 1'b0;
+	    end
+	    else begin
+	        capture_done_d <= CAPTURE_DONE;
+	
+	        // CAPTURE_DONE 상승 에지에서 IRQ 발생
+	        if (CAPTURE_DONE && !capture_done_d)
+	            irq_pending_r <= 1'b1;
+	
+	        // 0x00 레지스터 bit1에 1을 쓰면 IRQ clear
+	        else if (slv_reg_wren &&
+	                 (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 3'h0) &&
+	                 S_AXI_WSTRB[0] &&
+	                 S_AXI_WDATA[1])
+	            irq_pending_r <= 1'b0;
+	    end
+	end
 
 endmodule

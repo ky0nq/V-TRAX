@@ -132,7 +132,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>11fb05f1</spirit:value>
+            <spirit:value>63419a2a</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -148,7 +148,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>11fb05f1</spirit:value>
+            <spirit:value>63419a2a</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -492,11 +492,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>APB_UART</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>4</xilinx:coreRevision>
+      <xilinx:coreRevision>5</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:UART_top:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2026-09-16T02:30:29Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2026-10-01T02:10:23Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@3edde94b_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_UART</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@e28bdda_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_UART</xilinx:tag>
@@ -544,12 +544,44 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@2d1ede9d_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_UART</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@f8ca055_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_UART</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@e68b8e6_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@57e2f131_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2bbcb89e_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36a8bf7a_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32d7b234_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@437e3fc8_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5e5c1c84_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1eecb6d5_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61cd4eaf_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@53cb0868_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1b831219_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7868c67b_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@728aa529_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5bab6f09_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7642f873_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@357799ac_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@410c0c7d_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@59fef319_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6497e91f_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5c3fbe83_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@56d9e031_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@45131fb9_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@658b610e_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@10dbf6e6_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@640bb8d8_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@372754f3_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1b57d574_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39b53469_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1f349adc_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1176196f_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@67bbe8ab_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4ed9e36e_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@78811d0f_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_UART</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="7c0947c3"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="1ac7bde5"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="c613a116"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="5458bb36"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="2481d7e4"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="780484ee"/>

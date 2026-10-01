@@ -32,13 +32,13 @@ module APB_to_UART (
     logic [7:0]  rx_data_r;   // 마지막으로 받은 rx 데이터
     logic [7:0]  tx_data_r;   // 마지막으로 쓴 tx 데이터
     logic        irq_en_r;    // 인터럽트 활성화 여부
+	logic       irq_pending_r;
 
     logic w_busy;
     assign w_busy = ~i_tx_ready;
     logic strb_lo;
     assign strb_lo = PSTRB[0];
-	assign o_irq = i_rx_valid & irq_en_r;
-
+	assign o_irq = irq_pending_r & irq_en_r;
 
     always_ff @(posedge PCLK, negedge PRESETn) begin
         if (!PRESETn) begin
@@ -50,8 +50,11 @@ module APB_to_UART (
             rx_data_r  <= 8'h0;
             tx_data_r  <= 8'h0;
             irq_en_r   <= 1'b0;
+			irq_pending_r <= 1'b0;
         end else begin
             o_tx_valid <= 1'b0; 
+			irq_pending_r <= irq_pending_r | i_rx_valid;
+			if (i_rx_valid) rx_data_r <= i_rx_data;
             // ---- UART core 쪽 수신 신호 반영 ----
             if (PSEL && PENABLE) begin
                 PREADY  <= 1'b1;
@@ -76,7 +79,10 @@ module APB_to_UART (
                 // =========== Read Access ===========
                 end else begin
                     case (PADDR[3:0])
-                        4'd0 : PRDATA <= {7'h0, i_rx_data, i_rx_valid};
+						4'd0 : begin
+						   	PRDATA <= {7'h0, rx_data_r, irq_pending_r};
+							if (!PREADY) irq_pending_r <= i_rx_valid;
+						end
                         4'd2 : PRDATA <= {7'h0, tx_data_r, 1'b0};  // TX_DATA (offset 2)
                         4'd4 : PRDATA <= {15'h0, w_busy};          // STATUS (offset 4)
                         4'd6 : PRDATA <= {15'h0, irq_en_r};        // IRQ_EN (offset 6)

@@ -465,11 +465,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>APB_GPIO</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>6</xilinx:coreRevision>
+      <xilinx:coreRevision>7</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:GPIO_top:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2026-10-01T00:18:26Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2026-10-01T01:19:03Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1932480b_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@70c4837f_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_GPIO</xilinx:tag>
@@ -565,6 +565,11 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@2a9c9a4e_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@33abcd90_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@358eb2da_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@599dae28_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@699d2fa_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2342e408_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@463f3fdb_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7630f4df_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_GPIO</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
