@@ -45,11 +45,22 @@ module GPIO_top (
 
         .o_irq(o_irq)
     );
+	//genvar i;
+	//generate
+    //    for (i = 0; i < 16; i = i + 1) begin : GPIO_PIN
+    //        assign io_port[i] = w_cr[i] ? w_aodr[i] : 1'bz;
+    //        assign w_idr[i]     = io_port[i];
+    //    end
+    //endgenerate
 	genvar i;
 	generate
-        for (i = 0; i < 16; i = i + 1) begin : GPIO_PIN
-            assign io_port[i] = w_cr[i] ? w_aodr[i] : 1'bz;
-            assign w_idr[i]     = io_port[i];
-        end
-    endgenerate
+	    for (i = 0; i < 16; i = i + 1) begin : GPIO_PIN
+	        IOBUF u_iobuf (
+	            .IO(io_port[i]),  // 외부 핀
+	            .I (w_aodr[i]),   // 출력 데이터
+	            .O (w_idr[i]),    // 입력 데이터
+	            .T (~w_cr[i])     // CR=0: 입력, CR=1: 출력
+	        );
+	    end
+	endgenerate
 endmodule

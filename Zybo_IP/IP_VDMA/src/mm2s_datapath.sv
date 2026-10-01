@@ -178,9 +178,7 @@ module mm2s_datapath #(
 
     // 비어 있는 슬롯 중 번호가 제일 작은 것
     // (셋 다 차 있으면 2가 나오지만, 그땐 outstanding_ok = 0 이라 주문을 안 냄)
-    wire [1:0] next_num = (!num_busy[0]) ? 2'd0 :
-                          (!num_busy[1]) ? 2'd1 :
-                                           2'd2;
+    wire [1:0] next_num = (!num_busy[0]) ? 2'd0 : (!num_busy[1]) ? 2'd1 : 2'd2;
 
     // 진행 중인 주문 수 세기
     //   주문 접수(ar_hs)   -> +1
@@ -233,8 +231,7 @@ module mm2s_datapath #(
     // ########################################################################
 
     // (b) 4KB 경계까지 : 4096 - (주소 하위 12비트)
-    wire [LEN_WIDTH-1:0] bytes_to_boundary = PAGE_BYTES -
-                               {{(LEN_WIDTH-PAGE_LSB){1'b0}}, cur_addr[PAGE_LSB-1:0]};
+    wire [LEN_WIDTH-1:0] bytes_to_boundary = PAGE_BYTES - {{(LEN_WIDTH-PAGE_LSB){1'b0}}, cur_addr[PAGE_LSB-1:0]};
     wire [LEN_WIDTH-1:0] beats_to_boundary = bytes_to_boundary >> ADDR_LSB;
 
     // (c) 영역 끝까지
@@ -247,54 +244,82 @@ module mm2s_datapath #(
                                                                          : desired_raw;
 
     // (b) 와 (c) 중 작은 쪽
-    wire [LEN_WIDTH-1:0] limit_beats = (beats_to_boundary < beats_to_region) ? beats_to_boundary
-                                                                              : beats_to_region;
+    //wire [LEN_WIDTH-1:0] limit_beats = (beats_to_boundary < beats_to_region) ? beats_to_boundary : beats_to_region;
+    wire [LEN_WIDTH-1:0] limit_beats = beats_to_boundary;
 
     // FIXED : 주소가 안 움직이니 경계 걱정 없음 -> min(남은 양, 설정값, 16)
-    wire [LEN_WIDTH-1:0] safe_beats_fixed =
-        (remain_beats < desired_beats) ?
-            ((remain_beats  < 16) ? remain_beats  : 16) :
-            ((desired_beats < 16) ? desired_beats : 16);
+    wire [LEN_WIDTH-1:0] safe_beats_fixed = (remain_beats < desired_beats) ?  ((remain_beats  < 16) ? remain_beats  : 16) : ((desired_beats < 16) ? desired_beats : 16);
 
     // INCR : min(설정값, 경계, 남은 양)  (경계 = 4KB 와 영역 끝 중 작은 것)
-    wire [LEN_WIDTH-1:0] safe_beats_incr =
-        (desired_beats < limit_beats) ?
-            ((desired_beats < remain_beats) ? desired_beats : remain_beats) :
-            ((limit_beats   < remain_beats) ? limit_beats   : remain_beats);
+    wire [LEN_WIDTH-1:0] safe_beats_incr = (desired_beats < limit_beats) ?
+            ((desired_beats < remain_beats) ? desired_beats : remain_beats) : ((limit_beats   < remain_beats) ? limit_beats   : remain_beats);
 
     // 최종 beat 수 (지원 안 하는 타입이면 0 -> 주문 안 나감)
-    wire [LEN_WIDTH-1:0] safe_beats =
-        (burst_type_cfg == BURST_FIXED) ? safe_beats_fixed :
-        (burst_type_cfg == BURST_INCR)  ? safe_beats_incr  : {LEN_WIDTH{1'b0}};
+    wire [LEN_WIDTH-1:0] safe_beats = (burst_type_cfg == BURST_FIXED) ? safe_beats_fixed : (burst_type_cfg == BURST_INCR)  ? safe_beats_incr  : {LEN_WIDTH{1'b0}};
 
-    wire [LEN_WIDTH-1:0]   safe_bytes = safe_beats << ADDR_LSB;            // beat -> 바이트 (×4) : 주소 전진량
-    wire [BURST_WIDTH-1:0] safe_arlen = safe_beats[BURST_WIDTH-1:0] - 1'b1; // ARLEN = beat 수 - 1
+	reg [LEN_WIDTH-1:0] safe_beats_reg;
+	reg                 safe_beats_valid;
+	
+	
+	//burst 길이를 계산해서 FF에 저장해도 되는가?
+	wire safe_calc_en = en && !init
+			&& !arvalid
+	    	&& !safe_beats_valid
+	    	&& req_pending
+			&& !abort
+	    	&& !abort_lat
+	    	&& outstanding_ok
+	    	&& !cfg_err
+	    	&& !region_err_c;
+	
+	always @(posedge clk) begin
+	    if (!rst_n || init) begin
+	        safe_beats_reg     <= {LEN_WIDTH{1'b0}};
+	        safe_beats_valid <= 1'b0;
+	    end
+	    else begin
+	        // 다음 단계에서 소비
+	        if (!arvalid && safe_beats_valid)
+	            safe_beats_valid <= 1'b0;
+	
+	        // 새로운 burst 길이 계산 결과 저장
+	        if (safe_calc_en) begin
+	            safe_beats_reg     <= safe_beats;
+	            safe_beats_valid <= 1'b1;
+	        end
+	    end
+	end
+
+
+    wire [LEN_WIDTH-1:0]   safe_bytes = safe_beats_reg << ADDR_LSB;            // beat -> 바이트 (×4) : 주소 전진량
+    wire [BURST_WIDTH-1:0] safe_arlen = safe_beats_reg[BURST_WIDTH-1:0] - 1'b1; // ARLEN = beat 수 - 1
 
     // ########################################################################
     //  8. 주문서를 내도 되는지 확인 / 설정 에러
     // ########################################################################
+	// 저장된 burst 정보를 AXI AR 채널로 내보내도 되는가?
     wire ar_can_issue = en && !init          // 일하는 중이고, 시작 클럭이 아니고 (설정값 래치 중)
                         && !arvalid          // 이전 주문서가 아직 접수 대기 중이 아니고
                         && req_pending       // 주문할 게 남았고
                         && !abort_lat        // 멈추라는 말이 없었고
                         && outstanding_ok    // 슬롯 여유가 있고
-                        && (safe_beats != {LEN_WIDTH{1'b0}})   // 길이가 0 이 아니고
+                        && (safe_beats_reg != {LEN_WIDTH{1'b0}})   // 길이가 0 이 아니고
                         && !cfg_err          // 설정 에러가 없고
-                        && !region_err_c;    // 주소가 허용 영역 안
+                        && !region_err_c     // 주소가 허용 영역 안
+						&& safe_beats_valid
+						&& !abort ;
 
     // 남은 게 있는데 길이가 0으로 계산됨 = 더 이상 진행할 방법이 없음
-    wire no_progress = en && !init && req_pending && !abort_lat
-                       && (safe_beats == {LEN_WIDTH{1'b0}});
+    wire no_progress = en && !init && req_pending && !abort_lat && !abort
+                       && (safe_beats_reg == {LEN_WIDTH{1'b0}})&& safe_beats_valid;
 
     // 설정 에러 플래그
     //   init 때 : 정렬 에러면 바로 1 (아니면 0 으로 초기화)
     //   일하는 중 : 진행 불가 / 정렬 에러 / 영역 밖 / 지원 안 하는 burst 타입 -> 1
     //   한 번 1 이 되면 다음 init 까지 유지 -> 주문 중단 -> 나간 주문 다 받으면 xfer_done
     always @(posedge clk) begin
-        if (!rst_n)
-            cfg_err <= 1'b0;
-        else if (init)
-            cfg_err <= align_err_c;
+        if (!rst_n) cfg_err <= 1'b0;
+        else if (init) cfg_err <= align_err_c;
         else if (en && (no_progress || align_err_q || region_err_c || burst_type_err))
             cfg_err <= 1'b1;
     end
@@ -331,9 +356,8 @@ module mm2s_datapath #(
 
             if (ar_hs) begin
                 // INCR 면 다음 주문 주소를 이번 burst 크기만큼 전진 (FIXED 는 그대로)
-                if (burst_type_cfg == BURST_INCR)
-                    cur_addr <= cur_addr + safe_bytes[ADDR_WIDTH-1:0];
-                req_beat_cnt        <= req_beat_cnt + safe_beats;   // 주문한 양 누적
+                if (burst_type_cfg == BURST_INCR) cur_addr <= cur_addr + safe_bytes[ADDR_WIDTH-1:0];
+				req_beat_cnt        <= req_beat_cnt + safe_beats_reg;   // 주문한 양 누적
                 slot_addr[ar_num_q] <= araddr;                      // 이 슬롯의 시작 주소 기록
             end
         end
@@ -384,10 +408,7 @@ module mm2s_datapath #(
     // ########################################################################
     wire beat_err = r_beat && rresp[1];
 
-    wire [ADDR_WIDTH-1:0] beat_addr =
-        (burst_type_cfg == BURST_FIXED)
-            ? slot_addr[rid[1:0]]
-            : slot_addr[rid[1:0]] +
+    wire [ADDR_WIDTH-1:0] beat_addr = (burst_type_cfg == BURST_FIXED) ? slot_addr[rid[1:0]] : slot_addr[rid[1:0]] +
               ({{(ADDR_WIDTH-BURST_WIDTH){1'b0}}, slot_beat[rid[1:0]]} << ADDR_LSB);
 
     reg [ADDR_WIDTH-1:0] err_addr_q;

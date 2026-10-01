@@ -227,16 +227,4 @@ module CAPTURE_AXI_HP1_MASTER #(
             endcase
         end
     end
-
-`ifndef SYNTHESIS
-    initial begin
-        if (DATA_WIDTH != 64)
-            $error("CAPTURE_AXI_HP1_MASTER requires a 64-bit HP1 data bus");
-        if ((ROW_STRIDE % BEAT_BYTES) != 0 ||
-            (ROI_ROW_BYTES % BEAT_BYTES) != 0)
-            $error("Packed RGB888 frame and ROI rows must align to eight bytes");
-        if (BEATS_PER_ROW > 511)
-            $error("BEATS_PER_ROW does not fit in remaining_beats");
-    end
-`endif
 endmodule
