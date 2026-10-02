@@ -4,7 +4,7 @@ module APB_to_UART (
     input  logic        PCLK,
     input  logic        PRESETn,
 
-    // ===== APB signals connected to the bridge =====
+    // ===== APB signals connected to the bridge ===== 
     input  logic        PSEL,
     input  logic        PENABLE,
     input  logic        PWRITE,
