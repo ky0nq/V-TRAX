@@ -145,7 +145,7 @@ module dma_mm2s #(
         .R0_BASE         (32'h0000_0000),   // DDR (HP0)
         .R0_SIZE         (32'h4000_0000),
         .R1_BASE         (32'h8000_0000),   // BRAM 프레임 창 (axi_bram_ctrl)
-        .R1_SIZE         (32'h002A_3000),
+        .R1_SIZE         (32'h002A_3000),   // 1280 x 720 x 3-byte BRAM frame window
         .MAX_BURST_BYTES (MAX_BURST_BYTES)
     ) U_READ_ENGINE (
         .clk          (aclk),

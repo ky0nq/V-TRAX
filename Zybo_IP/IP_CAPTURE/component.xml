@@ -229,6 +229,28 @@
         </spirit:parameter>
       </spirit:parameters>
     </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>o_irq</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt_rtl" spirit:version="1.0"/>
+      <spirit:master/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>INTERRUPT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>o_irq</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>SENSITIVITY</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.O_IRQ.SENSITIVITY" spirit:choiceRef="choice_list_99a1d2b9">LEVEL_HIGH</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
   </spirit:busInterfaces>
   <spirit:memoryMaps>
     <spirit:memoryMap>
@@ -266,7 +288,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>db6e1a2e</spirit:value>
+            <spirit:value>91c54423</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -282,7 +304,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>db6e1a2e</spirit:value>
+            <spirit:value>91c54423</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -905,6 +927,19 @@
         </spirit:wire>
       </spirit:port>
       <spirit:port>
+        <spirit:name>o_irq</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>wire</spirit:typeName>
+              <spirit:viewNameRef>xilinx_verilogsynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_verilogbehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
+      <spirit:port>
         <spirit:name>read_data</spirit:name>
         <spirit:wire>
           <spirit:direction>out</spirit:direction>
@@ -975,6 +1010,13 @@
       <spirit:enumeration>32</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
+      <spirit:name>choice_list_99a1d2b9</spirit:name>
+      <spirit:enumeration>LEVEL_HIGH</spirit:enumeration>
+      <spirit:enumeration>LEVEL_LOW</spirit:enumeration>
+      <spirit:enumeration>EDGE_RISING</spirit:enumeration>
+      <spirit:enumeration>EDGE_FALLING</spirit:enumeration>
+    </spirit:choice>
+    <spirit:choice>
       <spirit:name>choice_list_9d8b0d81</spirit:name>
       <spirit:enumeration>ACTIVE_HIGH</spirit:enumeration>
       <spirit:enumeration>ACTIVE_LOW</spirit:enumeration>
@@ -1003,7 +1045,7 @@
       <spirit:file>
         <spirit:name>hdl/AXI_LIte_v1_0.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_939965a9</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_9fdf9f6b</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
     <spirit:fileSet>
@@ -1155,11 +1197,11 @@
         <xilinx:taxonomy>AXI_Peripheral</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>CAPTURE_AXI_Lite</xilinx:displayName>
-      <xilinx:coreRevision>20</xilinx:coreRevision>
+      <xilinx:coreRevision>23</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:AXI_LIte:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2026-09-26T09:25:21Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2026-10-01T02:03:01Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@46b1a556_ARCHIVE_LOCATION">d:/ip_repo/AXI_LIte_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@6f0e43e_ARCHIVE_LOCATION">d:/ip_repo/AXI_LIte_1.0</xilinx:tag>
@@ -1403,40 +1445,84 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@5a37a9c2_ARCHIVE_LOCATION">d:/APB_Peri_fin/IP/AXI_LIte_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@30e557a2_ARCHIVE_LOCATION">d:/APB_Peri_fin/IP/AXI_LIte_1.0</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@53fbaf99_ARCHIVE_LOCATION">d:/APB_Peri_fin/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@5630cbec_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@c06a7aa_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@33a24cbb_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@7257e4d5_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@4fb50520_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@3203e69b_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@576a0fd3_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@325ce2f7_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@13800c6d_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@4e48ac10_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@78c769f6_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@17f0f33b_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@7f9e4b4a_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@7df8ca14_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@b8f20af_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@4bbe2c30_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@2fbb1719_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@36ee9db0_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@49b71841_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@1bf74423_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@5ff3f6a7_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@7a26ac15_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@7c6129e1_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@365b0a23_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@573e39c9_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
-        <xilinx:tag xilinx:name="ui.data.coregen.dd@730d12d4_ARCHIVE_LOCATION">d:/SoC-CNN-3/IP/AXI_LIte_1.0</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@134fe350_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2de903b2_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71b7cb67_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3d3b6b96_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5a61eec7_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@367305ae_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6ffd106e_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@40d59892_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3811251e_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@66ebe331_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@78f97726_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@22ca6237_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@52d4fff1_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4995ba_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6173afd7_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1ed5b04e_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@658a30aa_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7182ac9d_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@aaa7665_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@38cfe2a_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@61c4dbd7_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@607898a2_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@79aad6ef_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5fc00fcf_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1c014ad3_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7c45c11f_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2bf9d49b_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@27cb150_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2be2f3a1_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@41950056_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1e83a321_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4747424e_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7e162200_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6e735709_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@33696c43_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5d35ccae_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@527775e2_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6438ac6d_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4c1a8975_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@b315ef1_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2ab50c97_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7607cf2b_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32e0c3b0_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c63f56_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@36bff556_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71bf7d50_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7d970b3e_ARCHIVE_LOCATION">d:/Final_Project/SoC-CNN-3/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5312b8f4_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7c248ce5_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@55396d8d_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@ef02a73_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6898bd41_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@123beecf_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@404275cd_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@f7c23a_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6b4c1a0_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@e20dcb_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32b64096_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@71d652e6_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@4bad306d_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@638726b7_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@c20eee9_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3e0ed10d_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@284a5950_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@186639a3_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@bb2ac7e_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@fedf693_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5911dc4_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7e25512b_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@19246335_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_CAPTURE</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="206b0a70"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="5ee52e9a"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="ed1368d5"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="9e7c64e2"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="81d02988"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="261dde9e"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="514114d4"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="a92193f2"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="7fa41d5b"/>
     </xilinx:packagingInfo>

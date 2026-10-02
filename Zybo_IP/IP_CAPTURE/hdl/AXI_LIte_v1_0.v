@@ -52,6 +52,7 @@ module AXI_LIte_v1_0 #(
     input  wire m_axi_rlast,
     input  wire m_axi_rvalid,
     output wire m_axi_rready,
+    output wire o_irq,
     output wire [23:0] read_data,
     input wire [11:0] read_addr
 );
@@ -101,6 +102,7 @@ module AXI_LIte_v1_0 #(
         .DEBUG_READ_ADDR(debug_read_addr),
         .DEBUG_READ_ENABLE(debug_read_enable),
         .DEBUG_READ_DATA(read_data),
+        .IRQ(o_irq),
 
         .S_AXI_ACLK(s00_axi_aclk),
         .S_AXI_ARESETN(s00_axi_aresetn),

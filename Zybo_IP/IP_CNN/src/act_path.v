@@ -213,7 +213,7 @@ module act_ld_unit (
     // 현재 응답은 현재 word_index에 저장
     assign o_ibuf_we    = rst_n && accept_rsp;
     assign o_ibuf_waddr = {1'b0, word_index};
-    assign o_ibuf_wdata = {i_ram_rdata[7:0],i_ram_rdata[15:8],i_ram_rdata[23:16]};
+    assign o_ibuf_wdata = {i_ram_rdata[7:0],i_ram_rdata[15:8],i_ram_rdata[23:16]} ^ 24'h808080;
     assign o_ibuf_wbe   = 3'b111;
 
     always @(posedge clk or negedge rst_n) begin

@@ -142,7 +142,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>14cf7361</spirit:value>
+            <spirit:value>847dbf15</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -158,7 +158,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>14cf7361</spirit:value>
+            <spirit:value>847dbf15</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -454,11 +454,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>APB_TIMER</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>3</xilinx:coreRevision>
+      <xilinx:coreRevision>4</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>xilinx.com:user:Timer_top:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2026-09-16T02:26:06Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2026-10-01T01:54:31Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@2d19a89f_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_TIMER</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@1286eca6_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_TIMER</xilinx:tag>
@@ -501,12 +501,34 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@b7a8e7a_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_TIMER</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@30905d30_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_TIMER</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@4b2e91a6_ARCHIVE_LOCATION">d:/APB_Peri/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6bc269e3_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6e3a5193_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@38856101_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5747a080_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2c0d5514_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@15abe998_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@7ca188bc_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@5f4fcb16_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@77603d4f_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@d88073d_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@32fd5376_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3047b472_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6414a6ff_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@50b67570_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@8d05512_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@412154f5_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1e5bade5_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f8371d4_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@350accce_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1f0fa709_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@cc6a961_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39dec58e_ARCHIVE_LOCATION">d:/Final_Project/IP/IP_TIMER</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2020.2</xilinx:xilinxVersion>
       <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="c8d82fdf"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="c9c57a2e"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="f2ba2366"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="1e698f75"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="a5fd4b5a"/>
     </xilinx:packagingInfo>

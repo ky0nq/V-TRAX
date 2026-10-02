@@ -70,13 +70,14 @@ module cnn_cntl #(
     //   q = sat_int8( round( (acc + bias) * M / 2^S ) ).  레이어의 모든 출력 채널에 공통.
     //   S 의 사용 범위는 0 ~ 30. 기본값 = Model C export (ModelC_HW_TOP_READY_20260923_020957/HW_TOP_TEST/hw_params.txt). 2026-09-24
     //   다른 모델이면 인스턴스에서 덮어쓴다. L3 는 최종 FC2 의 ANGLE_MULT / ANGLE_SHIFT (1 LSB = 1 도).
-    parameter [31:0] L0_QM = 32'd1351983,
+    parameter [31:0] L0_QM = 32'd1720687,
     parameter [ 5:0] L0_QS = 6'd30,
-    parameter [31:0] L1_QM = 32'd2697078,
+    parameter [31:0] L1_QM = 32'd2938468,
     parameter [ 5:0] L1_QS = 6'd30,
-    parameter [31:0] L2_QM = 32'd487088,
+    parameter [31:0] L2_QM = 32'd579155,
     parameter [ 5:0] L2_QS = 6'd30,
-    parameter [31:0] L3_QM = 32'd1441906,
+    // L3_QM/QS = Final ANGLE_MULT/ANGLE_SHIFT
+    parameter [31:0] L3_QM = 32'd1328435,
     parameter [ 5:0] L3_QS = 6'd30
 ) (
     input wire clk,
@@ -1102,15 +1103,17 @@ module top_cnn_cntl #(
     parameter                 L3_RELU       = 1'b0,
 
     // 레이어별 Requant M / S (cnn_cntl 로 그대로 내려간다)
-    parameter [31:0] L0_QM = 32'd1463994,
+    parameter [31:0] L0_QM = 32'd1565594,
     parameter [ 5:0] L0_QS = 6'd30,
-    parameter [31:0] L1_QM = 32'd4487009,
+    parameter [31:0] L1_QM = 32'd3251879,
     parameter [ 5:0] L1_QS = 6'd30,
-    parameter [31:0] L2_QM = 32'd849386,
+    parameter [31:0] L2_QM = 32'd584858,
     parameter [ 5:0] L2_QS = 6'd30,
-    parameter [31:0] L3_QM = 32'd1046256,
+    // L3_QM/QS = Final ANGLE_MULT/ANGLE_SHIFT
+    parameter [31:0] L3_QM = 32'd1281480,
     parameter [ 5:0] L3_QS = 6'd30
-) (
+
+	) (
     input wire clk,
     input wire rst_n,
 

@@ -28,22 +28,8 @@ module CAPTURE #(
     wire [31:0] CAPTURE_Y_1 = CAPTURE_Y_0 + CAP - 1;
     // The video/DDR path stores pixels as R-B-G:
     //   [23:16] = R, [15:8] = B, [7:0] = G.
-    // This capture path reduces each 4x4 block (16-pixel mean) and writes the
-    // word format that IP_CNN / the Model C export expect for the Image RAM
-    // (IP_CNN README_HW_TOP_TEST, make_mem.py --img-quant scale):
-    //   word = [7:0] R, [15:8] G, [23:16] B
-    //   byte = signed INT8 = round(u8 * 254 / 255 - 127) = u8 - 127 - u8[7]
-    //          (0 -> -127, 127 -> 0, 128 -> 0, 255 -> 127; exact for all 256 values)
-    // 2026-09-25 : before this the RAM held raw uint8 as {R, G, B}, so IP_CNN read
-    // R/B on swapped lanes and every pixel >= 128 as a negative activation.
+    // This capture path reduces each 4x4 block and writes standard RGB888.
     localparam integer REDUCE = 4;
-
-    //function [7:0] u8_to_int8;
-    //    input [7:0] u;
-    //    begin
-    //        u8_to_int8 = u - 8'd127 - {7'd0, u[7]};
-    //    end
-    //endfunction
 
     reg [$clog2(4096)-1:0] ram_w_addr;
     reg capture_start_d;
@@ -180,10 +166,7 @@ module CAPTURE #(
                     sum_g_y[capture_block_x] <= {2'b00, sum_g_x};
                     sum_b_y[capture_block_x] <= {2'b00, sum_b_x};
                 end else if (capture_y_d[1:0] == REDUCE-1) begin
-                    //capture_data <= {u8_to_int8(total_r[11:4]),    // [23:16] = B
-                    //                 u8_to_int8(total_g[11:4]),    // [15:8]  = G
-                    //                 u8_to_int8(total_b[11:4])};   // [7:0]   = R  (IP_CNN lane 0)
-                    capture_data <= {(total_r[11:4]),    (total_g[11:4]),    (total_b[11:4])};   
+                    capture_data <= {total_r[11:4], total_g[11:4], total_b[11:4]};
                     capture_valid <= 1'b1;
                 end else begin
                     sum_r_y[capture_block_x] <= total_r;
