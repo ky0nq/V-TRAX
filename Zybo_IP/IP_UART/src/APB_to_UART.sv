@@ -4,7 +4,7 @@ module APB_to_UART (
     input  logic        PCLK,
     input  logic        PRESETn,
 
-    // ===== Bridge와 연결되는 APB 신호 =====
+    // ===== APB signals connected to the bridge =====
     input  logic        PSEL,
     input  logic        PENABLE,
     input  logic        PWRITE,
@@ -17,7 +17,7 @@ module APB_to_UART (
     output logic        PREADY,
     output logic        PSLVERR,
 
-    // ===== uart로 나가는 신호 =====
+    // ===== Signals to/from the UART core =====
     output logic [7:0]  o_tx_data,  
     output logic        o_tx_valid,
     input  logic        i_tx_ready, 
@@ -25,13 +25,13 @@ module APB_to_UART (
     input  logic        i_rx_valid,
     input  logic [7:0]  i_rx_data, 
 
-    // ===== 인터럽트 출력 =====
+    // ===== Interrupt output =====
     output logic        o_irq
 );
 
-    logic [7:0]  rx_data_r;   // 마지막으로 받은 rx 데이터
-    logic [7:0]  tx_data_r;   // 마지막으로 쓴 tx 데이터
-    logic        irq_en_r;    // 인터럽트 활성화 여부
+    logic [7:0]  rx_data_r;   // Last received RX data
+    logic [7:0]  tx_data_r;   // Last written TX data
+    logic        irq_en_r;    // Interrupt enable
 	logic       irq_pending_r;
 
     logic w_busy;
@@ -55,7 +55,7 @@ module APB_to_UART (
             o_tx_valid <= 1'b0; 
 			irq_pending_r <= irq_pending_r | i_rx_valid;
 			if (i_rx_valid) rx_data_r <= i_rx_data;
-            // ---- UART core 쪽 수신 신호 반영 ----
+            // ---- Capture RX signals from the UART core ----
             if (PSEL && PENABLE) begin
                 PREADY  <= 1'b1;
                 PSLVERR <= 1'b0;
@@ -66,7 +66,7 @@ module APB_to_UART (
                             if (strb_lo) begin
                                 tx_data_r <= PWDATA[8:1];
                                 o_tx_data <= PWDATA[8:1];
-                                if (PWDATA[0] && i_tx_ready) begin // start bit && idle일 때만
+                                if (PWDATA[0] && i_tx_ready) begin // Only when start bit is set && TX is idle
                                     o_tx_valid <= 1'b1;
                                 end
                             end
