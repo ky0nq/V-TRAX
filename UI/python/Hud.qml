@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
+import QtMultimedia
 
 Window {
     id: root
@@ -11,6 +12,7 @@ Window {
     property bool live: sourceMode==='DEMO' || backend.connected
     property bool controls: false
     property bool cameraExpanded: false
+    property string expandedCamera: 'zybo'
     property int sessionSeconds: 0
     property color accent: '#69d4ff'
     function adjust(p,a) { if(sourceMode==='DEMO'){manualMode=true;backend.updateValues(p,a)} }
@@ -27,7 +29,7 @@ Window {
         scale: Math.min(root.width/width,root.height/height)
         Rectangle { x: 45; y: 29; width: 4; height: 30; color: root.accent }
         Text { x: 64; y: 23; text: 'simulator'; color: '#f1f7ff'; font { family: 'Rajdhani'; pixelSize: 28; bold: true; letterSpacing: 1 } }
-        Text { x: 1280; y: 33; text: sourceMode==='DEMO'?(root.paused?'●  DEMO PAUSED':root.manualMode?'●  MANUAL':'●  AUTO DEMO'):root.live?'●  UDP LIVE':'○  NO SIGNAL'; color: root.live?root.accent:'#ffa27b'; font { pixelSize: 14; letterSpacing: 2 } }
+        Text { x: 1280; y: 33; text: sourceMode==='DEMO'?(root.paused?'●  DEMO PAUSED':root.manualMode?'●  MANUAL':'●  AUTO DEMO'):root.live?(sourceMode==='SERIAL'?'●  CAR LINK':'●  UDP LIVE'):'○  NO SIGNAL'; color: root.live?root.accent:'#ffa27b'; font { pixelSize: 14; letterSpacing: 2 } }
         Text { x: 1473; y: 33; text: 'Driving time  '+Math.floor(root.sessionSeconds/60).toString().padStart(2,'0')+':'+(root.sessionSeconds%60).toString().padStart(2,'0'); color: '#a8bed2'; font { pixelSize: 14; letterSpacing: 1 } }
         Button {
             objectName: 'settingsButton'; x: 1705; y: 24; width: 50; height: 38
@@ -37,22 +39,35 @@ Window {
             ToolTip.visible: hovered; ToolTip.text: 'Settings / test input'
         }
         Rectangle { x: 45; y: 89; width: 1710; height: 1; color: '#284354' }
-        SportGauge { x: 22; y: 144; scale: 1.1; transformOrigin: Item.TopLeft; value: backend.pressure; caption: sourceMode==='UDP' && backend.pressureSource!=='sensor' ? 'PRESSURE / '+backend.pressureSource.toUpperCase() : 'PRESSURE SENSOR'; unit: '% / NORMALIZED'; live: root.live }
-        SportGauge { x: 1228; y: 144; scale: 1.1; transformOrigin: Item.TopLeft; value: backend.angle; minimum: -90; maximum: 90; signedValue: true; caption: sourceMode==='UDP' && !backend.cnnFresh ? 'STEERING / STALE' : 'STEERING ANGLE'; unit: 'DEGREES'; live: root.live }
+        SportGauge { x: 22; y: 144; scale: 1.1; transformOrigin: Item.TopLeft; value: backend.pressure; caption: sourceMode!=='DEMO' && backend.pressureSource!=='sensor' ? 'PRESSURE / '+backend.pressureSource.toUpperCase() : 'PRESSURE SENSOR'; unit: '% / NORMALIZED'; live: root.live }
+        SportGauge { x: 1228; y: 144; scale: 1.1; transformOrigin: Item.TopLeft; value: backend.angle; minimum: -90; maximum: 90; signedValue: true; caption: sourceMode!=='DEMO' && !backend.cnnFresh ? 'STEERING / STALE' : 'STEERING ANGLE'; unit: 'DEGREES'; live: root.live }
         Rectangle {
-            x: 551; y: 125; width: 698; height: 506; radius: 12; color: '#040a12'; border.color: '#345269'
-            DrivingScene { id: drive; objectName: 'drivingScene'; x: 2; y: 2; width: parent.width-4; height: parent.height-4; clip: true; angle: backend.angle; pressure: backend.pressure; live: root.live; moving: !root.paused }
+            x: 551; y: 125; width: 698; height: 506; radius: 12; color: '#040a12'; border.color: '#345269'; clip: true
+            DrivingScene { id: drive; objectName: 'drivingScene'; x: 2; y: 2; width: parent.width-4; height: parent.height-4; clip: true; angle: backend.angle; pressure: backend.pressure; live: root.live; moving: !root.paused && !backend.emergencyStop }
             Rectangle {
                 x: 499; y: 306; width: 178; height: 180; radius: 6; color: '#07111c'; border.color: '#819baa'
-                Image { x: 6; y: 6; width: 166; height: 146; source: sourceMode==='DEMO' ? 'assets/camera_sample.png' : backend.cameraUrl; cache: false; fillMode: Image.PreserveAspectFit }
-                Text { anchors.horizontalCenter: parent.horizontalCenter; y: 158; text: sourceMode==='DEMO' ? 'CAMERA / SAMPLE  +' : backend.cameraConnected ? 'CAMERA / LIVE  +' : 'CAMERA / NO SIGNAL'; color: '#bad3e2'; font { pixelSize: 11; letterSpacing: 1 } }
-                MouseArea { objectName: 'cameraButton'; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.cameraExpanded=true }
+                VideoOutput { objectName: 'mainCaptureCamera'; x: 6; y: 6; width: 166; height: 146; visible: typeof captureMode !== 'undefined' && captureMode; fillMode: VideoOutput.PreserveAspectFit }
+                Image { visible: !(typeof captureMode !== 'undefined' && captureMode); x: 6; y: 6; width: 166; height: 146; source: sourceMode==='DEMO' ? 'assets/camera_sample.png' : backend.cameraUrl; cache: false; fillMode: Image.PreserveAspectFit }
+                Text { anchors.horizontalCenter: parent.horizontalCenter; y: 158; text: sourceMode==='DEMO' && !(typeof captureMode !== 'undefined' && captureMode) ? 'ZYBO / SAMPLE  +' : backend.cameraConnected ? 'ZYBO / LIVE  +' : 'ZYBO / NO SIGNAL'; color: '#bad3e2'; font { pixelSize: 11; letterSpacing: 1 } }
+                MouseArea { objectName: 'cameraButton'; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: {root.expandedCamera='zybo';root.cameraExpanded=true} }
+            }
+            Rectangle {
+                visible: backend.espCameraEnabled; x: 18; y: 62; width: 252; height: 194; radius: 7
+                color: '#06111b'; border.color: backend.espCameraConnected ? '#69d4ff' : '#617c8d'; clip: true
+                VideoOutput {
+                    objectName: 'mainEspCamera'; x: 2; y: 2; width: parent.width-4; height: parent.height-4
+                    fillMode: VideoOutput.PreserveAspectFit
+                }
+                Rectangle { x: 2; y: 2; width: parent.width-4; height: 30; color: '#c0081724' }
+                Text { x: 12; y: 9; text: backend.espCameraConnected ? 'FRONT CAM / LIVE' : 'FRONT CAM / NO SIGNAL'
+                    color: backend.espCameraConnected ? '#b9efff' : '#b6c5cf'; font { pixelSize: 13; bold: true; letterSpacing: 1 } }
+                MouseArea { objectName: 'espCameraButton'; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: {root.expandedCamera='esp32';root.cameraExpanded=true} }
             }
         }
         Rectangle { x: 45; y: 704; width: 1710; height: 1; color: '#284354' }
         Rectangle {
             x: 614; y: 736; width: 176; height: 38; radius: 19; color: '#091924'; border.color: root.accent
-            Text { anchors.centerIn: parent; text: root.live?backend.status:'NO SIGNAL'; color: root.accent; font { pixelSize: 17; italic: true; bold: true; letterSpacing: 2 } }
+            Text { anchors.centerIn: parent; text: root.live?backend.status:'NO SIGNAL'; color: backend.emergencyStop && root.live?'#ff796f':root.accent; font { pixelSize: 17; italic: true; bold: true; letterSpacing: 2 } }
         }
         Rectangle { x: 852; y: 732; width: 1; height: 48; color: '#35536b' }
         Canvas {
@@ -73,8 +88,10 @@ Window {
             visible: root.cameraExpanded; anchors.fill: parent; color: '#df010409'; z: 20
             MouseArea { anchors.fill: parent; onClicked: root.cameraExpanded=false }
             Rectangle { anchors.centerIn: parent; width: 536; height: 592; radius: 8; color: '#0a141f'; border.color: '#57778f'
-                Image { x: 12; y: 12; width: 512; height: 512; source: sourceMode==='DEMO' ? 'assets/camera_sample.png' : backend.cameraUrl; cache: false; fillMode: Image.PreserveAspectFit }
-                Text { x: 20; y: 545; text: sourceMode==='DEMO' ? 'CAMERA / SAMPLE IMAGE' : backend.cameraConnected ? 'CAMERA / LIVE' : 'CAMERA / NO SIGNAL'; color: '#c0dfef'; font { pixelSize: 17; letterSpacing: 2 } }
+                VideoOutput { objectName: 'expandedEspCamera'; x: 12; y: 12; width: 512; height: 512; visible: root.expandedCamera==='esp32'; fillMode: VideoOutput.PreserveAspectFit }
+                VideoOutput { objectName: 'expandedCaptureCamera'; x: 12; y: 12; width: 512; height: 512; visible: root.expandedCamera!=='esp32' && typeof captureMode !== 'undefined' && captureMode; fillMode: VideoOutput.PreserveAspectFit }
+                Image { x: 12; y: 12; width: 512; height: 512; visible: root.expandedCamera!=='esp32' && !(typeof captureMode !== 'undefined' && captureMode); source: !root.cameraExpanded || root.expandedCamera==='esp32' ? '' : sourceMode==='DEMO' ? 'assets/camera_sample.png' : backend.cameraUrl; cache: false; fillMode: Image.PreserveAspectFit }
+                Text { x: 20; y: 545; text: root.expandedCamera==='esp32' ? (backend.espCameraConnected ? 'ESP32-CAM / LIVE' : 'ESP32-CAM / NO SIGNAL') : sourceMode==='DEMO' && !(typeof captureMode !== 'undefined' && captureMode) ? 'ZYBO / SAMPLE IMAGE' : backend.cameraConnected ? 'ZYBO / LIVE' : 'ZYBO / NO SIGNAL'; color: '#c0dfef'; font { pixelSize: 17; letterSpacing: 2 } }
                 Text { anchors.right: parent.right; anchors.rightMargin: 20; y: 547; text: 'CLICK TO CLOSE'; color: '#7996ad'; font.pixelSize: 13 }
             }
         }
@@ -85,7 +102,7 @@ Window {
                 x: 1193; y: 104; width: 555; height: 475; radius: 10; color: '#0a141f'; border.color: '#43677f'
                 MouseArea { anchors.fill: parent }
                 Text { x: 28; y: 25; text: 'SESSION / INPUT'; color: '#deedfa'; font { pixelSize: 25; bold: true; letterSpacing: 2 } }
-                Text { x: 28; y: 76; text: sourceMode==='DEMO'?'Arrow keys: angle / pressure · Space: pause':'UDP input active — manual controls disabled'; color: '#8aaac1'; font.pixelSize: 15 }
+                Text { x: 28; y: 76; text: sourceMode==='DEMO'?'Arrow keys: angle / pressure · Space: pause':sourceMode==='SERIAL'?'←/→ steer · Space E-STOP · R release · Q quit':'UDP input active — manual controls disabled'; color: '#8aaac1'; font.pixelSize: 15 }
                 Text { x: 28; y: 120; text: 'PRESSURE  '+backend.pressure.toFixed(0)+' %'; color: '#b5d6eb'; font { pixelSize: 19; letterSpacing: 1 } }
                 Slider { objectName: 'pressureSlider'; x: 22; y: 149; width: 510; enabled: sourceMode==='DEMO'; from: 0; to: 100; value: backend.pressure; onMoved: root.adjust(value,backend.angle) }
                 Text { x: 28; y: 215; text: 'STEERING  '+backend.angle.toFixed(1)+'°'; color: '#b5d6eb'; font { pixelSize: 19; letterSpacing: 1 } }
@@ -94,7 +111,7 @@ Window {
                 Button { objectName: 'pauseButton'; x: 28; y: 358; width: 158; height: 42; text: root.paused?'RESUME':'PAUSE'; enabled: sourceMode==='DEMO'; onClicked: root.paused=!root.paused }
                 Button { objectName: 'autoDemoButton'; x: 199; y: 358; width: 158; height: 42; text: root.manualMode?'AUTO DEMO':'AUTO ACTIVE'; enabled: sourceMode==='DEMO'; onClicked: { root.manualMode=false; root.paused=false } }
                 Button { objectName: 'closeSettings'; x: 370; y: 358; width: 157; height: 42; text: 'CLOSE'; onClicked: root.controls=false }
-                Text { x: 28; y: 426; text: 'Open plain / pressure: speed / angle: 180° panorama.'; color: '#728da2'; font.pixelSize: 14 }
+                Text { x: 28; y: 426; text: sourceMode==='SERIAL' ? 'FSR RAW  ACC '+backend.accelRaw+' / BRAKE '+backend.brakeRaw+'     LEVEL '+backend.accelLevel+' / '+backend.brakeLevel : 'Open plain / pressure: speed / angle: 180° panorama.'; color: '#728da2'; font.pixelSize: 14 }
             }
         }
     }
