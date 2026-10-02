@@ -1,5 +1,5 @@
 #include "raw_udp.h"
-#include "ui_stream_config.h"
+#include "../ui_task/ui_stream_config.h"
 
 #include "xemacps.h"
 #include "xparameters.h"
@@ -64,9 +64,15 @@ static u32 g_phy_addr = 32U;
 static u8 g_bd_space[0x100000U] __attribute__((aligned(0x100000)));
 static u8 g_tx_frame[RAW_UDP_MAX_FRAME] __attribute__((aligned(64)));
 
+//udp addr
 static const u8 g_pc_mac[6] = {
     0xffU, 0xffU, 0xffU, 0xffU, 0xffU, 0xffU
 };
+
+//unicast addr
+// static const u8 g_pc_mac[6] = {
+//     0xE8U, 0x5BU, 0x5BU, 0x89U, 0x05U, 0xC4U
+// };
 
 static const u8 g_zybo_mac[6] = UI_MAC;
 

@@ -7,7 +7,8 @@
 #include "xil_printf.h"
 #include "xil_cache.h"
 #include "xtime_l.h"
-#include "raw_udp.h"
+#include "../ui_driver/raw_udp.h"
+#include "sleep.h"
 
 #if UI_VIDEO_WIDTH > 1280 || UI_VIDEO_HEIGHT > 720 || UI_VIDEO_FPS == 0 || UI_CROP_WIDTH == 0 || UI_CROP_HEIGHT == 0
 #error "Unsupported video dimensions or FPS"
@@ -117,9 +118,16 @@ static void UiStreamPoll(void) {
         UiVideoHeader(packet,UI_VIDEO_WIDTH,UI_VIDEO_HEIGHT,chunk,CHUNKS,
             len,frame_id,VIDEO_BYTES,session_id);
         memcpy(packet+HEADER_BYTES,frame+offset,len);
-        if(!Send(UI_VIDEO_PORT,packet,HEADER_BYTES+len)) break;
+        if (!Send(UI_VIDEO_PORT, packet, HEADER_BYTES + len))
+            break;
+
         ++chunk;
-        if(Now()>=budget_end) break;
+
+        /* GEM -> PC�� �ʹ� �����ϰ� ���� �۽����� �ʵ��� pacing */
+        usleep(200U);
+
+        if (Now() >= budget_end)
+            break;
     }
     if(chunk==CHUNKS) {phase=0; ++frames_sent;}
 }
