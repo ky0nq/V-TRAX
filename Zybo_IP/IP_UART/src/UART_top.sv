@@ -7,7 +7,7 @@ module UART_top #(
     input  logic        PCLK,
     input  logic        PRESETn,
 
-    // ===== Bridge와 연결되는 APB 신호 =====
+    // ===== APB signals connected to the Bridge =====
     input  logic        PSEL,
     input  logic        PENABLE,
     input  logic        PWRITE,
@@ -20,7 +20,7 @@ module UART_top #(
     output logic        PSLVERR,
     output logic        o_irq,
 
-    // ===== 물리 핀 (ESP32와 연결) =====
+    // ===== Physical pins (connected to ESP32) =====
     output logic         tx,
     input  logic         rx
 );

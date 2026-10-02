@@ -5,7 +5,7 @@ module APB_to_GPIO(
     input  logic        PCLK,
     input  logic        PRESETn,
 
-    // ===== Bridge와 연결되는 APB 신호 =====
+    // ===== APB signals connected to the Bridge =====
     input  logic        PSEL,
     input  logic        PENABLE,
     input  logic        PWRITE,
@@ -18,19 +18,19 @@ module APB_to_GPIO(
     output logic        PREADY,
     output logic        PSLVERR,
 
-    // ===== GPIO로 나가는 신호 =====
+    // ===== Signals going out to GPIO =====
     output logic [15:0] o_cr,
     output logic [15:0] o_aodr,
 
-    // ===== GPIO에서 들어오는 신호 =====
+    // ===== Signals coming in from GPIO =====
     input  logic [15:0] i_idr,
 
-    // ===== 인터럽트 출력 =====
+    // ===== Interrupt output =====
     output logic [7:0]  o_irq
     );
 
     logic [15:0] cr_r, aodr_r;
-    logic [15:0] idr_prev_r; // prev는 직전 클럭의 idr값 
+    logic [15:0] idr_prev_r; // prev holds the idr value from the previous clock
     logic [7:0]  irq_r;
 
     assign o_cr   = cr_r;
@@ -42,7 +42,7 @@ module APB_to_GPIO(
     logic strb_hi;
     assign strb_hi = PSTRB[1];
 
-    // 0->1 posedge: 지금 핀이 1이고 & 직전 핀이 0이었고 & 지금 입력모드일때 
+    // 0->1 posedge: pin is 1 now & pin was 0 on the previous clock & currently in input mode
     logic [7:0] w_posedge ;
     assign w_posedge = i_idr[7:0] & ~idr_prev_r & ~cr_r[7:0];
 
@@ -56,7 +56,7 @@ module APB_to_GPIO(
             idr_prev_r <= 16'h0;
             irq_r      <= 8'h0;
         end else begin
-            idr_prev_r <= i_idr; // 직전 값 저장
+            idr_prev_r <= i_idr; // store previous value
             irq_r      <= irq_r | w_posedge; 
             if (PSEL && PENABLE) begin
                 PREADY  <= 1'b1;
@@ -73,8 +73,8 @@ module APB_to_GPIO(
                             if (strb_hi) aodr_r[15:8] <= PWDATA[15:8];
                         end
                         4'd6: begin
-                            // cpu가 지우고 싶은 비트에 1을 써서 보내므로
-                            // irq_r & ~PWDATA: CPU가 1을 쓴 버튼은 0이 되고 0을 쓴 버튼은 기존 값 유지
+                            // the CPU writes 1 to the bits it wants to clear, so
+                            // irq_r & ~PWDATA: buttons the CPU wrote 1 to become 0, buttons written with 0 keep their value
                             if (strb_lo) irq_r <= (irq_r & ~PWDATA[7:0]) | w_posedge;
                         end
                         default : PSLVERR <= 1'b1;
