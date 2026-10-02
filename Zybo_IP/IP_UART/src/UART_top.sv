@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
 
+// Top wrapper: APB slave interface + UART core
 module UART_top #(
     parameter CLK_FREQ  = 100_000_000,
     parameter BAUD_RATE = 115_200
@@ -7,7 +8,7 @@ module UART_top #(
     input  logic        PCLK,
     input  logic        PRESETn,
 
-    // ===== Bridge와 연결되는 APB 신호 =====
+    // ===== APB signals connected to the bridge =====
     input  logic        PSEL,
     input  logic        PENABLE,
     input  logic        PWRITE,
@@ -18,16 +19,21 @@ module UART_top #(
     output logic [15:0] PRDATA,
     output logic        PREADY,
     output logic        PSLVERR,
+
+    // ===== Interrupt output =====
     output logic        o_irq,
 
-    // ===== 물리 핀 (ESP32와 연결) =====
+    // ===== Physical pins (connected to ESP32) =====
     output logic         tx,
     input  logic         rx
 );
 
+    // TX path (APB -> UART)
     logic [7:0] w_tx_data;
     logic       w_tx_valid;
     logic       w_tx_ready;
+
+    // RX path (UART -> APB)
     logic       w_rx_valid;
     logic [7:0] w_rx_data;
 
