@@ -5,7 +5,7 @@ import QtQuick.Controls
 Window {
     id: root
     width: 1800; height: 800; minimumWidth: 1080; minimumHeight: 480
-    visible: true; color: '#020509'; title: 'Motion / Sport — Driving HUD'
+    visible: true; color: '#020509'; title: 'Vision Drive'
     property bool paused: false
     property bool manualMode: true
     property bool live: sourceMode==='DEMO' || backend.connected
@@ -27,7 +27,7 @@ Window {
         scale: Math.min(root.width/width,root.height/height)
         Rectangle { x: 45; y: 29; width: 4; height: 30; color: root.accent }
         Text { x: 64; y: 23; text: 'simulator'; color: '#f1f7ff'; font { family: 'Rajdhani'; pixelSize: 28; bold: true; letterSpacing: 1 } }
-        Text { x: 1280; y: 33; text: sourceMode==='DEMO'?(root.paused?'●  DEMO PAUSED':root.manualMode?'●  MANUAL':'●  DEMO'):root.live?'●  UDP LIVE':'○  NO SIGNAL'; color: root.live?root.accent:'#ffa27b'; font { pixelSize: 14; letterSpacing: 2 } }
+        Text { x: 1280; y: 33; text: sourceMode==='DEMO'?(root.paused?'●  DEMO PAUSED':root.manualMode?'●  MANUAL':'●  AUTO DEMO'):root.live?'●  UDP LIVE':'○  NO SIGNAL'; color: root.live?root.accent:'#ffa27b'; font { pixelSize: 14; letterSpacing: 2 } }
         Text { x: 1473; y: 33; text: 'Driving time  '+Math.floor(root.sessionSeconds/60).toString().padStart(2,'0')+':'+(root.sessionSeconds%60).toString().padStart(2,'0'); color: '#a8bed2'; font { pixelSize: 14; letterSpacing: 1 } }
         Button {
             objectName: 'settingsButton'; x: 1705; y: 24; width: 50; height: 38
@@ -49,7 +49,6 @@ Window {
                 MouseArea { objectName: 'cameraButton'; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.cameraExpanded=true }
             }
         }
-        Text { x: 551; y: 647; width: 698; horizontalAlignment: Text.AlignHCenter; text: 'DRIVE '+Math.round(drive.visualSpeed*100)+'%'; color: '#9cbed5'; font { pixelSize: 14; letterSpacing: 3 } }
         Rectangle { x: 45; y: 704; width: 1710; height: 1; color: '#284354' }
         Rectangle {
             x: 614; y: 736; width: 176; height: 38; radius: 19; color: '#091924'; border.color: root.accent
@@ -69,7 +68,7 @@ Window {
                 c.stroke()
             }
         }
-        Text { x: 985; y: 743; text: !root.live?'WAITING FOR DATA':Math.abs(backend.angle)<2?'STRAIGHT AHEAD':backend.angle<0?'TURN LEFT':'TURN RIGHT'; color: '#deecf9'; font { pixelSize: 18; italic: true; bold: true; letterSpacing: 4 } }
+        Text { x: 985; y: 743; text: !root.live?'WAITING FOR DATA':Math.abs(backend.angle)<2?'STRAIGHT':backend.angle<0?'TURN LEFT':'TURN RIGHT'; color: '#deecf9'; font { pixelSize: 18; italic: true; bold: true; letterSpacing: 4 } }
         Rectangle {
             visible: root.cameraExpanded; anchors.fill: parent; color: '#df010409'; z: 20
             MouseArea { anchors.fill: parent; onClicked: root.cameraExpanded=false }
@@ -95,7 +94,7 @@ Window {
                 Button { objectName: 'pauseButton'; x: 28; y: 358; width: 158; height: 42; text: root.paused?'RESUME':'PAUSE'; enabled: sourceMode==='DEMO'; onClicked: root.paused=!root.paused }
                 Button { objectName: 'autoDemoButton'; x: 199; y: 358; width: 158; height: 42; text: root.manualMode?'AUTO DEMO':'AUTO ACTIVE'; enabled: sourceMode==='DEMO'; onClicked: { root.manualMode=false; root.paused=false } }
                 Button { objectName: 'closeSettings'; x: 370; y: 358; width: 157; height: 42; text: 'CLOSE'; onClicked: root.controls=false }
-                Text { x: 28; y: 426; text: 'Free-roam simulation / pressure: speed / angle: steering.'; color: '#728da2'; font.pixelSize: 14 }
+                Text { x: 28; y: 426; text: 'Open plain / pressure: speed / angle: 180° panorama.'; color: '#728da2'; font.pixelSize: 14 }
             }
         }
     }

@@ -1,110 +1,216 @@
 import QtQuick
 import QtQuick3D
-import QtQuick3D.Helpers
+
 Item {
- id: road
- property real angle: 0
- property real pressure: 0
- property real accelerationPerSecond: 2.8
- property real maxCyclesPerSecond: 14
- property bool live: true
- property bool moving: true
- readonly property real targetSpeed: live ? Math.max(0,Math.min(100,pressure))/100 : 0
- property real speedRatio: 0
- readonly property real visualSpeed: live && moving ? speedRatio : 0
- property real travel: 0
- property real phase: 0
- property real lateral: worldX
- readonly property int lap: 1
- readonly property bool offTrack: false
- property real steering: live ? Math.max(-1,Math.min(1,angle/90)) : 0
- property real worldX: 0
- property real worldZ: 0
- property real heading: 0
- readonly property int cellX: Math.floor(worldX/5)
- readonly property int cellZ: Math.floor(worldZ/5)
- function hash(x,z){ var n=Math.sin(x*127.1+z*311.7)*43758.5453;return n-Math.floor(n) }
- onLiveChanged: if(!live) speedRatio=0
- Timer {
-  interval: 16; repeat: true
-  running: road.live && road.moving && (road.targetSpeed>0 || road.speedRatio>0)
-  property double lastTick: 0
-  onRunningChanged: lastTick=Date.now()
-  onTriggered: {
-   var now=Date.now(),dt=Math.max(0,Math.min(.1,(now-lastTick)/1000));lastTick=now
-   var delta=road.targetSpeed-road.speedRatio,step=road.accelerationPerSecond*dt
-   road.speedRatio=Math.abs(delta)<=step?road.targetSpeed:road.speedRatio+(delta>0?step:-step)
-   var distance=road.speedRatio*road.maxCyclesPerSecond*dt
-   road.heading=road.steering*7
-   var yaw=road.heading*Math.PI/180
-   road.worldX=Math.max(-2.2,Math.min(2.2,road.worldX+Math.sin(yaw)*distance))
-   road.worldZ-=Math.cos(yaw)*distance
-   road.travel+=distance;road.phase=road.travel%1
-  }
- }
- // Supplied artwork is used only for the distant sky/mountains.
- // All nearby objects below it have persistent world positions.
- Image {
-  source: 'assets/speed_idle.png'
-  sourceClipRect: Qt.rect(0,0,1448,430)
-  width: parent.width*1.65;height: parent.height*.53
-  x: (parent.width-width)/2-Math.sin(road.heading*Math.PI/180)*parent.width*.3
- }
- View3D {
-  id: view;objectName: 'landscape3D';anchors.fill: parent
-  environment: SceneEnvironment {
-   backgroundMode: SceneEnvironment.Transparent
-   antialiasingMode: SceneEnvironment.MSAA;antialiasingQuality: SceneEnvironment.Medium
-   fog: Fog { enabled: true; color: '#d9a36b'; depthEnabled: true;depthNear: 18;depthFar: 55 }
-  }
-  DirectionalLight { eulerRotation: Qt.vector3d(-18,-15,0);color: '#ffe1ad';ambientColor: '#948778';brightness: 1.1 }
-  PrincipledMaterial {
-   id: sand;roughness: 1
-   baseColorMap: Texture { source: 'assets/sand.svg';scaleU: 2000;scaleV: 2000;tilingModeHorizontal: Texture.Repeat;tilingModeVertical: Texture.Repeat;generateMipmaps: true;mipFilter: Texture.Linear }
-  }
-  Model {
-   source: '#Cube';position: Qt.vector3d(0,-.3,0);scale: Qt.vector3d(200,.006,200);materials: sand
-  }
+    id: road
+    property real angle: 0
+    property real pressure: 0
+    property real accelerationPerSecond: 2.8
+    property real maxCyclesPerSecond: 50
+    property bool live: true
+    property bool moving: true
+    readonly property real targetSpeed: live ? Math.max(0, Math.min(100, pressure)) / 100 : 0
+    property real speedRatio: 0
+    readonly property real visualSpeed: live && moving ? speedRatio : 0
+    property real travel: 0
+    property real phase: 0
+    property real worldX: 0
+    property real worldZ: 0
+    property real heading: 0
+    readonly property real lateral: worldX
+    readonly property int lap: 1
+    readonly property bool offTrack: false
+    readonly property real steering: live ? Math.max(-1, Math.min(1, angle / 90)) : 0
+    property real visualSteering: steering
+    Behavior on visualSteering { NumberAnimation { duration: 190; easing.type: Easing.OutCubic } }
 
-  PrincipledMaterial {
-   id: duneSand;roughness: 1;cullMode: Material.NoCulling
-   baseColorMap: Texture { source: 'assets/sand.svg';tilingModeHorizontal: Texture.Repeat;tilingModeVertical: Texture.Repeat;generateMipmaps: true;mipFilter: Texture.Linear }
-  }
-  Repeater3D {
-   model: 3
-   Model {
-    required property int index
-    property int tile: index%3-1+Math.floor(road.worldZ/160)
-    z: tile*160
-    geometry: DuneGeometry {}
-    materials: duneSand
-   }
-  }
+    onLiveChanged: if (!live) speedRatio = 0
+    Timer {
+        interval: 16
+        repeat: true
+        running: road.live && road.moving && (road.targetSpeed > 0 || road.speedRatio > 0)
+        property double lastTick: 0
+        onRunningChanged: lastTick = Date.now()
+        onTriggered: {
+            var now = Date.now()
+            var dt = Math.max(0, Math.min(.1, (now - lastTick) / 1000))
+            lastTick = now
+            var delta = road.targetSpeed - road.speedRatio
+            var step = road.accelerationPerSecond * dt
+            road.speedRatio = Math.abs(delta) <= step ? road.targetSpeed : road.speedRatio + (delta > 0 ? step : -step)
+            var distance = road.speedRatio * road.maxCyclesPerSecond * dt
+            road.heading = road.visualSteering * 7
+            road.worldX = Math.max(-80, Math.min(80, road.worldX + Math.sin(road.heading * Math.PI / 180) * distance))
+            road.worldZ -= Math.cos(road.heading * Math.PI / 180) * distance
+            road.travel += distance
+            road.phase = road.travel % 1
+        }
+    }
 
-  Node {
-   id: carPose; objectName: 'carPose'
-   property real steeringYaw: road.moving ? -road.steering*15 : 0
-   Behavior on steeringYaw { NumberAnimation { duration: 140 } }
-   x: road.worldX+Math.sin(road.heading*Math.PI/180)*8
-   z: road.worldZ-Math.cos(road.heading*Math.PI/180)*8
-   y: .05+Math.sin(road.travel*2)*road.visualSpeed*.02
-   eulerRotation: Qt.vector3d(0,-road.heading+steeringYaw,road.steering*1.5)
-   DesertCar { steer: -road.steering; distance: road.travel }
-  }
-  PerspectiveCamera {
-   id: camera;objectName: 'driverCamera'
-   position: Qt.vector3d(road.worldX,3.6+Math.sin(road.travel*1.7)*road.visualSpeed*.018,road.worldZ)
-   eulerRotation: Qt.vector3d(-5,-road.heading,0)
-   clipNear: .15;clipFar: 180;fieldOfView: 65+road.visualSpeed*4
-  }
-  camera: camera
- }
- Rectangle {
-  x: 14;y: 14;width: 210;height: 42;radius: 7;color: '#b320232a'
-  Text { anchors.centerIn: parent;text: 'DESERT DRIVE  /  '+Math.floor(road.travel)+' units';color: '#ffe1ad';font { pixelSize: 15;letterSpacing: 1 } }
- }
- Rectangle {
-  anchors.fill: parent;visible: !road.live;color: '#99030a10'
-  Text { anchors.centerIn: parent;text: 'NO SIGNAL';color: '#d7e9f5';font.pixelSize: 24 }
- }
+    Rectangle { anchors.fill: parent; color: "#23497d" }
+
+    // Keep only the panorama's sky and mountains; its painted ground stays hidden.
+    Item {
+        width: road.width
+        height: road.height * .60
+        clip: true
+        Image {
+            id: panorama
+            objectName: "nightPanorama"
+            source: "assets/night_panorama_180.png"
+            height: road.height
+            width: height * sourceSize.width / Math.max(1, sourceSize.height)
+            x: -(width - road.width) * (road.visualSteering + 1) / 2
+            y: 0
+            smooth: true
+            mipmap: true
+        }
+    }
+
+    // One continuous 3D plain covers the foreground up to its natural horizon.
+    View3D {
+        id: groundScene
+        objectName: "landscape3D"
+        anchors.fill: parent
+        environment: SceneEnvironment {
+            backgroundMode: SceneEnvironment.Transparent
+            antialiasingMode: SceneEnvironment.MSAA
+            antialiasingQuality: SceneEnvironment.High
+            fog: Fog {
+                enabled: true
+                color: "#23497d"
+                depthEnabled: true
+                depthNear: 90
+                depthFar: 360
+            }
+        }
+
+        PrincipledMaterial {
+            id: plain
+            lighting: PrincipledMaterial.NoLighting
+            baseColor: "#b0c4e3"
+            baseColorMap: Texture {
+                source: "assets/night_plain.png"
+                tilingModeHorizontal: Texture.Repeat
+                tilingModeVertical: Texture.Repeat
+                scaleU: 12
+                scaleV: 8
+                generateMipmaps: true
+                mipFilter: Texture.Linear
+            }
+        }
+        PrincipledMaterial {
+            id: shadow
+            lighting: PrincipledMaterial.NoLighting
+            alphaMode: PrincipledMaterial.Blend
+            depthDrawMode: Material.NeverDepthDraw
+            baseColorMap: Texture { source: "assets/shadow.svg" }
+        }
+        Repeater3D {
+            model: 8
+            Model {
+                required property int index
+                source: "#Rectangle"
+                x: 0
+                y: 0
+                z: (Math.floor(road.worldZ / 100) + 1 - index) * 100 - 50
+                eulerRotation.x: -90
+                scale: Qt.vector3d(5, 1, 1)
+                materials: plain
+            }
+        }
+        Model {
+            source: "#Rectangle"
+            position: Qt.vector3d(carPose.x, .04, carPose.z)
+            eulerRotation.x: -90
+            scale: Qt.vector3d(.046, .032, 1)
+            materials: shadow
+        }
+        Node {
+            id: carPose
+            objectName: "carPose"
+            property real steeringYaw: -road.visualSteering * 10
+            x: road.worldX + road.visualSteering * .4
+            y: 1.22
+            z: road.worldZ - 8
+            eulerRotation: Qt.vector3d(-5, steeringYaw, 0)
+        }
+        PerspectiveCamera {
+            id: camera
+            objectName: "driverCamera"
+            position: Qt.vector3d(road.worldX, 2.8, road.worldZ)
+            eulerRotation.x: 8
+            eulerRotation.y: -road.heading
+            clipNear: .15
+            clipFar: 700
+            fieldOfView: 68
+        }
+        camera: camera
+    }
+
+    Image {
+        source: "assets/shadow.svg"
+        width: carImage.width * .95
+        height: carImage.height * .34
+        x: carImage.x + (carImage.width - width) / 2
+        y: carImage.y + carImage.height * .80
+        opacity: .50
+        smooth: true
+    }
+
+    Item {
+        id: carImage
+        objectName: "carImage"
+        width: 212
+        height: width * 2 / 3
+        x: (road.width - width) / 2 + visualSteer * 18
+        y: road.height * .65
+        property real visualSteer: road.visualSteering
+        property int poseIndex: 0
+        onVisualSteerChanged: {
+            var amount = Math.abs(visualSteer)
+            if (poseIndex === 0 && amount > .32)
+                poseIndex = 1
+            else if (poseIndex === 1 && amount > .72)
+                poseIndex = 2
+            else if (poseIndex === 1 && amount < .22)
+                poseIndex = 0
+            else if (poseIndex === 2 && amount < .60)
+                poseIndex = 1
+        }
+        Image {
+            anchors.fill: parent
+            source: "assets/race_gt_rear.png"
+            visible: carImage.poseIndex === 0
+            smooth: true
+            mipmap: true
+        }
+        Image {
+            anchors.fill: parent
+            source: "assets/race_gt_midturn.png"
+            mirror: carImage.visualSteer < 0
+            visible: carImage.poseIndex === 1
+            smooth: true
+            mipmap: true
+        }
+        Image {
+            anchors.fill: parent
+            source: "assets/race_gt_turn.png"
+            mirror: carImage.visualSteer < 0
+            visible: carImage.poseIndex === 2
+            smooth: true
+            mipmap: true
+        }
+    }
+
+    Rectangle {
+        x: 14; y: 14; width: 226; height: 38; radius: 7
+        color: "#b5101929"
+        Text {
+            anchors.centerIn: parent
+            text: "NIGHT DRIVE  /  " + Math.round(road.visualSpeed * 100) + "%"
+            color: "#c1e9f4"
+            font { pixelSize: 15; letterSpacing: 1 }
+        }
+    }
 }

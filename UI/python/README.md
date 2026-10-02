@@ -1,54 +1,90 @@
-# 최신 사막 UI + Zybo DDR 카메라 연동
+# Night panorama driving HUD - UDP version
 
-이 폴더는 `motion_hud_live_landscape.zip`의 3D 주행 화면을 유지하면서
-`zybo_latest_ui.zip`의 UDP 계기 값·카메라 수신 코드를 이식한 PC UI입니다.
-보드 Vitis 소스를 변경하거나 보드에 펌웨어를 올리는 작업은 이 폴더에서 하지 않습니다.
+`motion_hud_night_manual`의 야간 파노라마/차량/주행 UI를 유지하면서 `UI.zip`의 UDP 수신 구조를 이식한 버전이다.
 
-## 보드와 연결
+## 입력 구조
 
-1. PC 유선 Ethernet 어댑터를 `192.168.10.1`, 서브넷 마스크 `255.255.255.0`으로 설정합니다.
-2. 보드(`192.168.10.2`)와 PC를 유선으로 연결하고, 보드의 UI 송신 펌웨어를 실행합니다.
-3. 이 PC에서 `setup.cmd`를 한 번 실행하여 `.venv`와 PySide6를 설치합니다.
-4. 이후 `run_board.cmd`로 신형 UI를 실행합니다. UDP 7000은 계기 값 JSON,
-   7001은 RGB565 카메라 영상입니다. Windows 방화벽에서 두 포트 수신을 허용하세요.
-   작은 카메라 창을 클릭하면 확대됩니다. 터미널의 `complete_frames`와 `fps~`로 수신을 확인합니다.
+| 구분 | 포트 | 형식 | 용도 |
+|---|---:|---|---|
+| Telemetry | UDP 7000 | JSON | pressure, angle 수신 |
+| Camera | UDP 7001 | HUDV v1 / RGB565 또는 RGB888 | 실시간 카메라 프레임 수신 |
 
-보드 없이 화면만 확인하려면 `run_demo.cmd`를 사용합니다. 수동 명령도 동일합니다:
-`.venv\Scripts\python.exe main.py --udp --host 0.0.0.0 --port 7000 --video-port 7001 --board-ip 192.168.10.2 --stats`.
-`setup.cmd`의 Python 경로는 현재 PC 설치 위치에 맞춰 두었습니다. 위치가 바뀌면 `PY` 값을 수정하세요.
-현재 보드 펌웨어의 압력은 실센서가 아닌 시험값이며, CNN 새 결과가 없으면 각도에 `STALE`을 표시합니다.
+Telemetry JSON 예시:
 
-## 원본 프로젝트 설명
-첨부 ZIP의 계기판과 노을 그림을 바탕으로 한 별도 프로젝트입니다.
-기존 프로젝트와 원본 ZIP은 그대로 보존했습니다.
+```json
+{"pressure":70,"angle":-25,"cnn_valid":true,"pressure_source":"sensor"}
+```
+
+필수 필드는 `pressure`, `angle`이다.
+
+- pressure: 0~100 범위로 clamp
+- angle: -90~90 범위로 clamp
+- 수신 timeout: 1.2초
+- timeout 발생 시 UI를 `NO SIGNAL` 상태로 전환
+- UDP 모드에서는 수동 슬라이더와 방향키 입력 비활성화
+
+## 보드 연결
+
+기존 `UI.zip` 기준 네트워크 구성을 그대로 사용한다.
+
+- PC Ethernet: `192.168.10.1 / 255.255.255.0`
+- Zybo: `192.168.10.2`
+- Telemetry: UDP 7000
+- Camera: UDP 7001
+
+Windows 방화벽에서 UDP 7000, 7001 수신을 허용해야 한다.
 
 ## 실행
-pip install -r requirements.txt
-python main.py
 
-실제 UDP 센서:
-python main.py --udp --port 7000
-JSON 예: {"pressure": 70, "angle": -25}
+### 1. 최초 설정
 
-압력: 0~100, 각도: -90~90. 기존 입력 클램프/신호 타임아웃 유지.
-메뉴에서 수동 슬라이더 또는 자동 데모를 선택할 수 있습니다.
-화살표 위/아래: 압력 조절, 좌/우: 각도 조절. Space: 일시정지.
+`setup.cmd` 실행.
 
-## 동작
-GIF는 사용하지 않습니다. Qt Quick 3D 카메라가 세계 좌표에서 이동합니다. 중앙은 비우고 양옆에 낮고 부드러운 모래 언덕을 배치합니다.
-압력은 전진 속도를 바꾸고, 핸들 각도는 중앙 통로 안에서 좌우 이동과 작은 시선 회전을 조절합니다.
-0에서 부드럽게 정지하며 영상 첫 프레임으로 돌아가지 않습니다.
-일시정지/신호 끊김 동안 위치와 방향을 유지합니다.
-지면과 모래 언덕은 3D 메시입니다. 풀과 바위는 제거했습니다.
-멀리 있는 하늘/산만 첨부 PNG의 일부를 표시합니다. 3D 랠리카는 조향에 맞춰 회전하고 이동하며 예상 경로선은 표시하지 않습니다.
-배경은 360도 파노라마가 아니며, 충돌/차량 물리는 구현하지 않았습니다.
-거리 units는 시뮬레이션 값이며 실제 미터나 km/h로 보정되지 않았습니다.
+### 2. 보드 UDP 모드
 
-## 그래픽
-Windows에서는 Direct3D11을 사용합니다. Qt Quick software 모드는 지원하지 않습니다.
-저사양 GPU에서는 DrivingScene.qml의 안티앨리어싱을 줄일 수 있습니다.
+`run_board.cmd` 실행.
 
-## 확인
-tests/test_ui.py: 입력, 속도 비율, 정지, 신호, 설정/카메라 UI
-tests/test_kart.py: 실제 월드 이동, 조향, 정지 시 위치 유지
-preview.png와 motion_preview.gif는 실행 화면 캡처이며 앱 배경 영상이 아닙니다.
+동일한 명령:
+
+```bat
+.venv\Scripts\python.exe main.py --udp --host 0.0.0.0 --port 7000 --video-port 7001 --board-ip 192.168.10.2 --stats
+```
+
+### 3. 보드 없이 UI 확인
+
+`run_demo.cmd` 실행.
+
+Demo 모드에서는 기존 수동 입력과 AUTO DEMO를 사용할 수 있다.
+
+## UDP 단독 확인
+
+HUD를 종료한 뒤 Telemetry만 확인한다.
+
+```bat
+.venv\Scripts\python.exe check_udp.py --port 7000 --seconds 10
+```
+
+PC 내부 loopback으로 Telemetry/Camera 송수신을 확인한다.
+
+```bat
+.venv\Scripts\python.exe main.py --udp --host 0.0.0.0 --port 7000 --video-port 7001
+```
+
+다른 터미널:
+
+```bat
+.venv\Scripts\python.exe test_sender.py --host 127.0.0.1
+```
+
+## 수정 범위
+
+- `main.py`: UDP Telemetry + Camera 수신 추가
+- `Hud.qml`: UDP LIVE / NO SIGNAL 상태 표시 추가
+- `Hud.qml`: UDP 모드에서 실시간 Camera Provider 사용
+- `Hud.qml`: UDP 모드 수동 입력 차단
+- `video_protocol.py`: HUDV 프레임 재조립
+- `video_receiver.py`: UDP Camera worker 및 Qt Image Provider
+- `run_board.cmd`, `run_demo.cmd`, `setup.cmd`: 실행 스크립트 추가
+- `check_udp.py`, `test_sender.py`: UDP 확인 도구 추가
+
+`DrivingScene.qml`, 차량 이미지, 야간 파노라마 및 주행 애니메이션 구조는 기존 manual 버전을 유지한다.

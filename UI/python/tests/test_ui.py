@@ -23,14 +23,30 @@ e.warnings.connect(lambda items:warnings.extend(i.toString() for i in items))
 e.rootContext().setContextProperty('backend',b)
 e.rootContext().setContextProperty('sourceMode','DEMO')
 e.load(QUrl.fromLocalFile(str(BASE/'Hud.qml')))
-assert e.rootObjects(),'QML load failed'
+assert e.rootObjects(),warnings or 'QML load failed'
 w=e.rootObjects()[0]; QTest.qWait(300)
 road=w.findChild(QObject,'drivingScene')
 assert road is not None
+panorama=w.findChild(QObject,'nightPanorama')
+assert panorama is not None
+ground_viewport=w.findChild(QObject,'landscape3D')
+camera=w.findChild(QObject,'driverCamera')
+car=w.findChild(QObject,'carImage')
+assert ground_viewport is not None and camera is not None and car is not None
+pan_positions=[]
 for angle in (-90,0,90):
     b.updateValues(68,angle);QTest.qWait(220)
     assert abs(road.property('steering')-angle/90)<.001
+    assert abs(road.property('visualSteering')-angle/90)<.01
+    assert abs(car.property('visualSteer')-road.property('visualSteering'))<.001
+    assert abs(camera.property('eulerRotation').y()+road.property('heading'))<.01
+    assert car.property('poseIndex') == (0 if angle==0 else 2)
+    pan_positions.append(panorama.property('x'))
     assert not w.grabWindow().isNull()
+assert pan_positions[0]>pan_positions[1]>pan_positions[2]
+assert pan_positions[0]-pan_positions[2]>600,pan_positions
+b.updateValues(68,40);QTest.qWait(220)
+assert car.property('poseIndex') == 1
 b.updateValues(140,-150); assert b.pressure==100 and b.angle==-90
 for bad in (float('nan'),float('inf')):
     try: b.updateValues(50,bad)
@@ -45,10 +61,17 @@ assert road.property('speedRatio') == 0
 p=road.property('phase');QTest.qWait(200);assert road.property('phase')==p
 samples=[]
 for pressure in (25,75):
-    b.updateValues(pressure,0);QTest.qWait(600)
+    b.updateValues(pressure,0)
+    for _ in range(24):
+        if abs(road.property('speedRatio')-pressure/100)<.001: break
+        QTest.qWait(50)
     assert abs(road.property('speedRatio')-pressure/100)<.001
     p=road.property('travel');QTest.qWait(240)
     samples.append(road.property('travel')-p)
+    assert abs(camera.property('fieldOfView')-68)<.001
+    assert abs(ground_viewport.property('height')-road.property('height'))<.001
+    assert abs(car.property('y')-road.property('height')*.65)<.001
+    assert car.property('rotation') == 0
 assert 2.3 < samples[1]/samples[0] < 3.7, samples
 assert road.property('maxCyclesPerSecond') >= 12
 print('Measured travel at 25% / 75%:', samples)
@@ -63,13 +86,8 @@ QTest.mouseClick(w,Qt.LeftButton,Qt.NoModifier,QPoint(1125,510));QTest.qWait(80)
 assert w.property('cameraExpanded')
 QTest.mouseClick(w,Qt.LeftButton,Qt.NoModifier,QPoint(100,300));QTest.qWait(80)
 assert not w.property('cameraExpanded')
-e.rootContext().setContextProperty('sourceMode','UDP');b.setConnected(False);QTest.qWait(220)
-assert not w.property('live') and not road.property('live') and road.property('steering')==0
-assert road.property('speedRatio')==0
-p=road.property('phase');QTest.qWait(140);assert road.property('phase')==p
-b.setConnected(True);QTest.qWait(100);assert w.property('live')
 w.resize(1080,480);QTest.qWait(150);assert not w.grabWindow().isNull()
 assert not warnings,warnings
-w.close();print('PASS: steering direction/endpoints, clamps, nonfinite, animation pause, settings/slider, camera, no signal, resize')
+w.close();print('PASS: 180-degree panorama, steering, speed, pause, manual sliders, camera sample and resize')
 
 

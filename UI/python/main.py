@@ -68,7 +68,7 @@ class HudBackend(QObject):
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Night-drive HUD with demo and UDP input")
     parser.add_argument("--udp", action="store_true")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=7000)
