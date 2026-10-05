@@ -1,7 +1,9 @@
 # Minicar Control (ICD v0.4)
 
-무선 미니카 제어 파이프라인. FSR 페달과 PC 키보드 조향 입력이 4개 노드를 거쳐
-L298N + TT 모터 4개를 구동한다.
+무선 미니카 제어 파이프라인. FSR 페달과 PC 키보드 조향 입력이 4개 노드를 거쳐 차량을 구동한다.
+
+차량 측 컨트롤러는 **두 가지**가 있다. 둘 다 같은 `CommandPacket`을 받으므로, 링크
+반대편에 무엇이 붙든 나머지 노드는 바뀌지 않는다.
 
 ```
 FSR ×2 → ADS1115 → ESP32 #3 ──ESP-NOW──┐
@@ -10,8 +12,13 @@ PC 키보드 ──UART1──────────────────�
                                                                       │ UART
                                         ESP32 #2 ←──ESP-NOW── ESP32 #1 ←┘
                                             │
-                                        L298N → TT Motor ×4
+                                         차량 구동
 ```
+
+| 스케치 | 차량 |
+|---|---|
+| `ESP32_2_VehicleControl` | L298N + TT 모터 ×4 |
+| `ESP32_2_NewVehicleControl` | ACEBOTT QD001 V2 |
 
 ## 설계의 핵심
 
@@ -53,8 +60,8 @@ PC 키보드 ──UART1──────────────────�
 | IF-05 | Zybo → ESP32 #1 | UART 115200 8-N-1 · 100 Hz · MIO15 (JF10) → GPIO16 |
 | IF-06 | ESP32 #1 → #2 | ESP-NOW ch.1 · `CommandPacket` · 100 Hz |
 | IF-07 | 내부 | `CommandPacket` → `DriverCommand` |
-| IF-08 | ESP32 #2 → L298N | GPIO + PWM 5 kHz / 8 bit |
-| IF-09 | L298N → Motor | H-Bridge |
+| IF-08 | ESP32 #2 → 모터 드라이버 | L298N: GPIO + PWM 5 kHz / 8 bit · ACEBOTT: 9600 baud 시리얼 |
+| IF-09 | 드라이버 → Motor | L298N: H-Bridge · ACEBOTT: QD001 V2 내장 드라이버 |
 
 ### SensorPacket (8 byte, packed)
 
@@ -113,8 +120,9 @@ minicar_control/
 │     └─ xsa/             Vitis용 하드웨어 핸드오프
 ├─ firmware/
 │  ├─ ESP32_1_WirelessBridge/   양방향 허브 (ESP-NOW ↔ UART)
-│  ├─ ESP32_2_VehicleControl/   차량 제어 (50 Hz) + L298N 구동
-│  └─ ESP32_3_FSR/              ADS1115 읽기 + SensorPacket 송신 (50 Hz)
+│  ├─ ESP32_2_VehicleControl/      차량 제어 (50 Hz) + L298N 구동
+│  ├─ ESP32_2_NewVehicleControl/   차량 제어 (40 Hz) + ACEBOTT QD001 V2 구동
+│  └─ ESP32_3_FSR/                 ADS1115 읽기 + SensorPacket 송신 (50 Hz)
 └─ host/car_control_fsr.py      PC 조향·E-Stop GUI (Tkinter)
 ```
 
@@ -123,7 +131,7 @@ minicar_control/
 | 노드 | MAC | 비고 |
 |---|---|---|
 | ESP32 #1 Hub | `B0:3F:D3:75:17:50` | UART2 RX=GPIO16 / TX=GPIO17 |
-| ESP32 #2 Vehicle | `B0:3F:D3:64:04:14` | L298N 구동 |
+| ESP32 #2 Vehicle | `B0:3F:D3:64:04:14` | 차량 구동 |
 | ESP32 #3 Sensor | `38:3E:51:CB:14:40` | I2C SDA=GPIO21 / SCL=GPIO22 |
 
 MAC 상수가 세 스케치에 흩어져 있다. 보드를 교체하면 `ESP32_1`의 `VEHICLE_MAC`/`SENSOR_MAC`,
@@ -141,8 +149,14 @@ UART0 = MIO14(RX)/MIO15(TX) = Pmod **JF9/JF10**, UART1 = MIO48/49 = PC USB-UART.
 
 ### ESP32 ×3
 
-Arduino IDE (ESP32 core 3.x — `ledcAttach` API 사용). 각 보드에 해당 스케치를 굽는다.
-세 노드 모두 ESP-NOW 채널 1을 명시적으로 고정한다.
+Arduino IDE (ESP32 core 3.x). 각 보드에 해당 스케치를 굽는다. 세 노드 모두 ESP-NOW
+채널 1을 명시적으로 고정한다.
+
+`ESP32_2_VehicleControl`은 `ledcAttach`로 L298N을 직접 PWM 구동하고,
+`ESP32_2_NewVehicleControl`은 `ACB_SmartCar_V2` 라이브러리가 필요하다.
+
+차량 보드를 바꾸면 **ESP32 #1의 `VEHICLE_MAC`도 새 보드의 MAC으로 고쳐야 한다.**
+허브가 그 주소로만 송신한다.
 
 ### PC
 
@@ -157,10 +171,33 @@ python host/car_control_fsr.py
 
 조작: `←`/`→` 조향, `SPACE` E-Stop, `R` 해제, `Q` 종료. 가감속은 FSR 페달.
 
-## L298N 배선
+## 차량 구동
+
+### L298N  (`ESP32_2_VehicleControl`)
 
 | | IN1 | IN2 | ENA | IN3 | IN4 | ENB |
 |---|---|---|---|---|---|---|
 | GPIO | 25 | 26 | 27 | 32 | 14 | 13 |
 
 좌측이 `IN1/IN2/ENA`, 우측이 `IN3/IN4/ENB`. 우측은 장착 방향이 반대라 코드에서 논리를 반전한다.
+PWM 5 kHz / 8 bit, 가상 속도 0~100.
+
+### ACEBOTT QD001 V2  (`ESP32_2_NewVehicleControl`)
+
+PWM 핀을 직접 물리지 않는다. `ACB_SmartCar_V2` 라이브러리가 **9600 baud 시리얼**로
+차량 자체 드라이버에 모터 명령을 보낸다.
+
+| 항목 | 값 |
+|---|---|
+| 모터 번호 | 1 = 앞좌 · 2 = 뒤좌 · 3 = 앞우 · 4 = 뒤우 |
+| 명령 범위 | −255 ~ +255 |
+| 최소 구동 | **125** — 110에서는 일부 바퀴만 돌고 불안정, 120부터 움직임 |
+| 조향 차등 | **0.30** — 양쪽 모두 전진, 최대 조향에서 바깥 ×1.30 / 안쪽 ×0.70 |
+| 제어 주기 | **25 ms (40 Hz)** — 9600 baud로 모터 명령 4개를 보낼 여유 |
+
+L298N판과 달리 **조향이 바퀴를 역회전시키지 않는다.** 양쪽이 계속 전진하면서 속도 차이만
+생기므로 제자리 선회가 아니라 호를 그리며 돈다. 움직이는 바퀴는 항상 125 이상으로 명령되어
+불안정 구간(1~124)을 피한다.
+
+같은 명령이 반복되면 시리얼 전송을 생략한다. 그렇게 하지 않으면 값이 그대로여도 매 주기
+4개 프레임이 나간다.
