@@ -4,10 +4,6 @@
 
 카메라로 본 핸들 각도를 FPGA CNN 가속기가 추론해 무선 미니카를 조향하는 Zybo Z7-20 기반 SoC 프로젝트.
 
-<p align="center">
-  <img src="UI/python/preview.png" alt="V-TRAX 주행 HUD" width="860">
-</p>
-
 Pcam 5C가 촬영한 운전대 영상을 PL에서 64×64로 축소하고, 직접 설계한 INT8 systolic CNN 가속기가 조향각(°)을 회귀한다. PS(ARM Cortex-A9)는 이 각도와 FSR 페달 입력을 합쳐 주행 명령을 만들고, ESP32/ESP-NOW 링크를 통해 미니카를 구동한다. 영상과 상태는 HDMI와 PC HUD로 동시에 확인한다.
 
 | 항목 | 내용 |
@@ -39,10 +35,32 @@ Pcam 5C가 촬영한 운전대 영상을 PL에서 64×64로 축소하고, 직접
 
 ## 시스템 구조
 
-<p align="center">
-  <img src="docs/images/system_block_diagram.png" alt="V-TRAX 시스템 블록도" width="900">
-  <br><sub>Controller(Zybo Z7-20) · Car · Accel/Brake 3개 노드로 구성된 전체 시스템</sub>
-</p>
+```
+                         ┌────────────────────── Zybo Z7-20 ──────────────────────┐
+                         │                                                         │
+ Pcam 5C ──MIPI CSI-2──▶ │ D-PHY RX → CSI-2 RX → Bayer→RGB → Gamma                 │
+ (OV5640)                │                                    │                    │
+                         │                              DMA (S2MM)                 │
+                         │                                    ▼                    │
+                         │                        DDR3 프레임 버퍼 ×3              │
+                         │                         │                  │            │
+                         │                   DMA (MM2S)        CAPTURE (AXI HP)    │
+                         │                         ▼            256×256 ROI 크롭   │
+                         │                  BBOX 오버레이       4×4 평균 → 64×64   │
+                         │                         ▼                  ▼            │
+ HDMI 모니터 ◀── rgb2dvi ─┤                    Video Out        CNN 가속기         │
+                         │                                    (조향각, INT8)       │
+                         │                                           │ AXI4-Lite   │
+                         │   AXI→APB 브리지 ─ GPIO / Timer / UART    ▼             │
+                         │                                 ARM Cortex-A9 (PS)      │
+                         └───────────────┬───────────────────────┬─────────────────┘
+                                         │ UART                  │ Ethernet(UDP) / HDMI 캡처
+                                         ▼                       ▼
+ FSR 페달 → ESP32 #3 ─ESP-NOW─▶ ESP32 #1 (Hub)                PC HUD (Qt/QML)
+                                         │ ESP-NOW
+                                         ▼
+                                  ESP32 #2 → 미니카 모터
+```
 
 **데이터 흐름**
 
@@ -74,8 +92,7 @@ V-TRAX/
 ├─ UI/
 │  ├─ zybo/                보드 측 UDP 텔레메트리·영상 송신
 │  └─ python/              PC HUD (PySide6 + QML)
-├─ minicar_control/        무선 미니카 제어 (Zybo 앱 + ESP32 펌웨어 + PC 도구)
-└─ docs/images/            README 그림
+└─ minicar_control/        무선 미니카 제어 (Zybo 앱 + ESP32 펌웨어 + PC 도구)
 ```
 
 ---
@@ -99,15 +116,18 @@ V-TRAX/
 
 ### 아키텍처
 
-<p align="center">
-  <img src="docs/images/cnn_accelerator_dataflow.png" alt="CNN 가속기 데이터 흐름" width="720">
-  <br><sub>데이터 흐름 — weight / activation / output 세 경로가 PE core를 둘러싸고, 중간 레이어 출력은 activation 경로로 되돌아간다</sub>
-</p>
-
-<p align="center">
-  <img src="docs/images/cnn_accelerator_block.png" alt="CNN 가속기 상세 블록도" width="900">
-  <br><sub>모듈 계층 — <code>top_cnn_cntl</code>, <code>act_path</code>, <code>wgt_path</code>, <code>pe_core</code>, <code>out_path</code></sub>
-</p>
+```
+            ┌──────────────── top_cnn_cntl ────────────────┐
+            │  cnn_cntl (레이어 시퀀서)  pe_cntl (타일 실행) │
+            └──────┬───────────────┬───────────────┬───────┘
+                   ▼               ▼               ▼
+ Image RAM ─▶ act_path ──24b──▶ pe_core ──288b──▶ out_path ─▶ RESULT
+              input_buf         3×3 PE array      FIFO → 후처리 → Pool
+                 ▲              (skew + MAC)        │
+ Weight RAM ─▶ wgt_path ──24b──────┘                │
+              wgt_buf                               │
+                 └──────────── 결과를 input_buf에 재기록 ◀──┘
+```
 
 | 모듈 | 역할 |
 |---|---|
@@ -132,16 +152,6 @@ V-TRAX/
 ### 제어 FSM
 
 `cnn_cntl`은 레이어 단위 순서(파라미터 적재 → weight chunk 적재 → 타일 설정 → PE 실행 → 다음 타일/레이어)를, `pe_cntl`은 타일 하나 안에서의 feed · chunk 교체 · drain 타이밍을 담당한다.
-
-<p align="center">
-  <img src="docs/images/cnn_cntl_fsm.png" alt="cnn_cntl FSM">
-  <br><sub><code>cnn_cntl</code> — 레이어 시퀀서</sub>
-</p>
-
-<p align="center">
-  <img src="docs/images/pe_cntl_fsm.png" alt="pe_cntl FSM" width="860">
-  <br><sub><code>pe_cntl</code> — 타일 실행 제어</sub>
-</p>
 
 ### 레지스터 맵 (AXI4-Lite)
 
@@ -180,21 +190,9 @@ Xil_Out32(CNN_BASE + 0x00, 0x2);                       // done / irq clear
 
 **CNN 입력 캡처** — 1280×720 프레임에서 256×256 ROI를 잘라 4×4 픽셀마다 RGB를 각각 합산한 뒤 16으로 나누어(>> 4) 64×64 이미지를 만든다. DDR은 AXI HP 포트의 64-bit beat로 읽고, 내부 바이트 버퍼에서 24-bit 픽셀 단위로 다시 정렬한다.
 
-<p align="center">
-  <img src="docs/images/capture_roi_downscale.png" alt="ROI 크롭과 4x4 축소" width="900">
-</p>
-
 **DMA 데이터 폭 정렬** — 24-bit 픽셀 스트림과 32-bit DMA, 64-bit PS HP 포트 사이의 폭 차이를 packetizer / depacketizer와 AXI Interconnect 폭 변환으로 맞춘다.
 
-<p align="center">
-  <img src="docs/images/vdma_data_width.png" alt="VDMA 데이터 폭과 스트림 정렬" width="820">
-</p>
-
 **소프트웨어 스택** — PS 애플리케이션은 HW IP 위에 Interface · HAL · Driver · Application 계층으로 나뉜다.
-
-<p align="center">
-  <img src="docs/images/sw_stack.png" alt="소프트웨어 계층 구조" width="820">
-</p>
 
 ---
 
@@ -220,15 +218,6 @@ FSR ×2 → ADS1115 → ESP32 #3 ──ESP-NOW──▶ ESP32 #1 (Hub) ◀──
 ## PC UI
 
 `UI/python`은 PySide6 + QML로 만든 주행 HUD다. 조향각 게이지, 페달 압력, 야간 주행 3D 장면, 카메라 영상을 표시한다.
-
-<p align="center">
-  <img src="UI/python/angle_preview.png" alt="조향각에 따른 주행 장면" width="900">
-  <br><sub>조향각 −90° / 0° / +90°에서의 주행 장면</sub>
-</p>
-
-<p align="center">
-  <img src="UI/python/motion_preview.gif" alt="HUD 동작 미리보기" width="720">
-</p>
 
 | 경로 | 형식 | 용도 |
 |---|---|---|
@@ -293,10 +282,6 @@ gcc -std=c11 -O2 -Wall -Wextra cnn_int8.c cnn_model_data.c cnn_mem_test.c -o cnn
 
 `top_cnn`을 DUT로 하는 UVM 테스트벤치다. 세 인터페이스마다 agent를 두고, predictor가 만든 기대값을 scoreboard에서 DUT 결과와 비교한다.
 
-<p align="center">
-  <img src="docs/images/uvm_testbench.png" alt="CNN 가속기 UVM 테스트벤치 구조" width="860">
-</p>
-
 | 구성 요소 | 역할 |
 |---|---|
 | `host_agent` (`cnn_ctrl_if`) | start / IRQ clear 등 호스트 제어 구동과 상태·결과 모니터링 |
@@ -306,15 +291,9 @@ gcc -std=c11 -O2 -Wall -Wextra cnn_int8.c cnn_model_data.c cnn_mem_test.c -o cnn
 | `scoreboard` / `layer_scb` | 최종 각도 비교 / `act_buf_probe`로 관측한 레이어별 중간 결과 비교 |
 | `coverage`, `sva` | 기능 커버리지 수집과 프로토콜 assertion |
 
-### RTL 시뮬레이션 및 보드 확인
+### RTL 시뮬레이션
 
 `Zybo_IP/IP_CNN/src/tb_top_cnn_board.v`가 이미지 여러 장을 차례로 추론하고, 결과 각도를 기준 모델 값(`expected_angles.mem`)과 비교하며 done / busy / IRQ 동작을 함께 확인한다. `IP_VDMA`는 `tb_dma_top.sv`로 검증한다.
-
-아래는 보드에서 캡처한 64×64 입력과 CNN이 출력한 조향각이다.
-
-<p align="center">
-  <img src="docs/images/cnn_capture_result.png" alt="보드 캡처 이미지와 CNN 조향각" width="760">
-</p>
 
 ---
 
