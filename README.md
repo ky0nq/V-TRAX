@@ -1,4 +1,4 @@
-# V-TRAX
+<img width="5672" height="4424" alt="image" src="https://github.com/user-attachments/assets/24c7ccd1-bf51-4037-adfb-5b6be3ac2f74" /># V-TRAX
 
 **CNN 가속기 활용 Vision 기반 원격 차량 제어 SoC 설계**
 
@@ -35,32 +35,8 @@ Pcam 5C가 촬영한 운전대 영상을 PL에서 64×64로 축소하고, 직접
 
 ## 시스템 구조
 
-```
-                         ┌────────────────────── Zybo Z7-20 ──────────────────────┐
-                         │                                                         │
- Pcam 5C ──MIPI CSI-2──▶ │ D-PHY RX → CSI-2 RX → Bayer→RGB → Gamma                 │
- (OV5640)                │                                    │                    │
-                         │                              DMA (S2MM)                 │
-                         │                                    ▼                    │
-                         │                        DDR3 프레임 버퍼 ×3              │
-                         │                         │                  │            │
-                         │                   DMA (MM2S)        CAPTURE (AXI HP)    │
-                         │                         ▼            256×256 ROI 크롭   │
-                         │                  BBOX 오버레이       4×4 평균 → 64×64   │
-                         │                         ▼                  ▼            │
- HDMI 모니터 ◀── rgb2dvi ─┤                    Video Out        CNN 가속기         │
-                         │                                    (조향각, INT8)       │
-                         │                                           │ AXI4-Lite   │
-                         │   AXI→APB 브리지 ─ GPIO / Timer / UART    ▼             │
-                         │                                 ARM Cortex-A9 (PS)      │
-                         └───────────────┬───────────────────────┬─────────────────┘
-                                         │ UART                  │ Ethernet(UDP) / HDMI 캡처
-                                         ▼                       ▼
- FSR 페달 → ESP32 #3 ─ESP-NOW─▶ ESP32 #1 (Hub)                PC HUD (Qt/QML)
-                                         │ ESP-NOW
-                                         ▼
-                                  ESP32 #2 → 미니카 모터
-```
+<img width="2048" height="1597" alt="image" src="https://github.com/user-attachments/assets/2ec3ed19-fa47-4566-9c06-aaf3805d06b3" />
+
 
 **데이터 흐름**
 
@@ -72,7 +48,7 @@ Pcam 5C가 촬영한 운전대 영상을 PL에서 64×64로 축소하고, 직접
 
 ---
 
-## 저장소 구성
+## Repository 구성
 
 ```
 V-TRAX/
@@ -99,7 +75,7 @@ V-TRAX/
 
 ## CNN 가속기
 
-### 모델
+### Custom CNN 모델
 
 | Layer | 연산 | 입력 | 출력 | Weight (word) |
 |---|---|---|---|---:|
@@ -299,13 +275,13 @@ gcc -std=c11 -O2 -Wall -Wextra cnn_int8.c cnn_model_data.c cnn_mem_test.c -o cnn
 
 ## 팀
 
-4팀 **SoC닥SoC닥** — 대한상공회의소 서울기술교육센터 온디바이스 AI 시스템반도체 설계 과정 최종 프로젝트
+4팀 **SoC닥SoC닥** — 대한상공회의소 서울기술교육센터 온디바이스 AI 시스템반도체 설계 2기 과정 최종 프로젝트
 
 | 이름 | 역할 |
 |---|---|
 | 공경환 | CNN PE core · 출력단 설계, 가속기 성능 분석 및 결과 비교 |
 | 선우정욱 | System Top 통합, DMA IP, 시스템 Interface 설계 |
 | 신민지 | DMA IP 설계 및 검증, 시스템 Interface 설계 |
-| 이나경 ([@ky0nq](https://github.com/ky0nq)) | 팀장 · CNN Controller 설계, CNN Top 통합 및 UVM 검증 |
+| 이나경 | 팀장 · CNN Controller 설계, CNN Top 통합 및 UVM 검증 |
 | 정광근 | CNN AXI Slave · 입력단 설계, 입력단-연산부 UVM 검증, UI 디자인 |
 | 조강혁 | Vehicle System 설계, 자동차 3D 모델링 |
