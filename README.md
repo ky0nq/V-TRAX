@@ -1,5 +1,4 @@
-<img width="5672" height="4424" alt="image" src="https://github.com/user-attachments/assets/24c7ccd1-bf51-4037-adfb-5b6be3ac2f74" /># V-TRAX
-
+# V-TRAX
 **CNN 가속기 활용 Vision 기반 원격 차량 제어 SoC 설계**
 
 카메라로 본 핸들 각도를 FPGA CNN 가속기가 추론해 무선 미니카를 조향하는 Zybo Z7-20 기반 SoC 프로젝트.
@@ -35,8 +34,7 @@ Pcam 5C가 촬영한 운전대 영상을 PL에서 64×64로 축소하고, 직접
 
 ## 시스템 구조
 
-<img width="2048" height="1597" alt="image" src="https://github.com/user-attachments/assets/2ec3ed19-fa47-4566-9c06-aaf3805d06b3" />
-
+<img width="5672" height="4424" alt="image" src="https://github.com/user-attachments/assets/24c7ccd1-bf51-4037-adfb-5b6be3ac2f74" />
 
 **데이터 흐름**
 
@@ -92,18 +90,7 @@ V-TRAX/
 
 ### 아키텍처
 
-```
-            ┌──────────────── top_cnn_cntl ────────────────┐
-            │  cnn_cntl (레이어 시퀀서)  pe_cntl (타일 실행) │
-            └──────┬───────────────┬───────────────┬───────┘
-                   ▼               ▼               ▼
- Image RAM ─▶ act_path ──24b──▶ pe_core ──288b──▶ out_path ─▶ RESULT
-              input_buf         3×3 PE array      FIFO → 후처리 → Pool
-                 ▲              (skew + MAC)        │
- Weight RAM ─▶ wgt_path ──24b──────┘                │
-              wgt_buf                               │
-                 └──────────── 결과를 input_buf에 재기록 ◀──┘
-```
+<img width="7584" height="7508" alt="image" src="https://github.com/user-attachments/assets/02bc4ffd-dced-4eca-bc08-0bd9a584d4a0" />
 
 | 모듈 | 역할 |
 |---|---|
@@ -176,14 +163,10 @@ Xil_Out32(CNN_BASE + 0x00, 0x2);                       // done / irq clear
 
 FSR 페달 2개와 조향 입력이 4개 노드를 거쳐 차량을 구동한다. 상세 사양은 [`minicar_control/README.md`](minicar_control/README.md)에 있다.
 
-```
-FSR ×2 → ADS1115 → ESP32 #3 ──ESP-NOW──▶ ESP32 #1 (Hub) ◀──UART──▶ Zybo
-                                              │ ESP-NOW
-                                              ▼
-                                          ESP32 #2 → 모터 드라이버
-```
+<img width="1188" height="556" alt="image" src="https://github.com/user-attachments/assets/86320d04-3d18-4be8-a6c8-d994036e5bbb" />
 
 - **패킷** — 8 byte `SensorPacket`(페달 원시값 상행)과 `CommandPacket`(주행 명령 하행), CRC-8 보호
+  <img width="1140" height="318" alt="image" src="https://github.com/user-attachments/assets/20b0055c-4086-4418-89c6-1f350c132eb2" />
 - **판단 지점 일원화** — 페달 레벨 변환과 안전 판정은 Zybo 한 곳에서만 수행
 - **조향 소스 전환** — `vehicle.h`의 `STEERING_SOURCE_CNN` 스위치로 PC 키보드와 CNN `RESULT` 레지스터 전환
 - **안전 동작** — 센서 200 ms, PC 500 ms, 명령 300 ms 타임아웃 시 E-Stop 또는 failsafe 정지. CNN 결과는 200 ms가 지나면 무효 처리
