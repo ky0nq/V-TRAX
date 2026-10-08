@@ -2,7 +2,7 @@
 
 무선 미니카 제어 파이프라인. FSR 페달과 PC 키보드 조향 입력이 4개 노드를 거쳐 차량을 구동한다.
 
-차량 측 컨트롤러는 **두 가지**가 있다. 둘 다 같은 `CommandPacket`을 받으므로, 링크
+차량 측 컨트롤러는 **세 가지**가 있다. 셋 다 같은 `CommandPacket`을 받으므로, 링크
 반대편에 무엇이 붙든 나머지 노드는 바뀌지 않는다.
 
 ```
@@ -15,10 +15,15 @@ PC 키보드 ──UART1──────────────────�
                                          차량 구동
 ```
 
-| 스케치 | 차량 |
-|---|---|
-| `ESP32_2_VehicleControl` | L298N + TT 모터 ×4 |
-| `ESP32_2_NewVehicleControl` | ACEBOTT QD001 V2 |
+| 스케치 | 차량 구동 | 가속 페달의 의미 |
+|---|---|---|
+| `ESP32_2_VehicleControl` | L298N + TT 모터 ×4 | 가속도 |
+| `ESP32_2_NewVehicleControl` | ACEBOTT QD001 V2 내장 드라이버 (9600 시리얼) | 가속도 |
+| **`ESP32_2_FinalVehicleControl`** | **MDD10A 직접 PWM — 현재 사용** | **목표 속도** |
+
+세 번째 스케치에서 **가속 페달의 의미가 바뀌었다.** 앞의 두 스케치는 레벨이 가감속률을
+정했지만, `Final`에서는 레벨이 **목표 속도**를 고르고 `vehicleSpeed`가 그 목표로 부드럽게
+접근한다. 제동은 여전히 감속률이다.
 
 ## 설계의 핵심
 
@@ -60,8 +65,8 @@ PC 키보드 ──UART1──────────────────�
 | IF-05 | Zybo → ESP32 #1 | UART 115200 8-N-1 · 100 Hz · MIO15 (JF10) → GPIO16 |
 | IF-06 | ESP32 #1 → #2 | ESP-NOW ch.1 · `CommandPacket` · 100 Hz |
 | IF-07 | 내부 | `CommandPacket` → `DriverCommand` |
-| IF-08 | ESP32 #2 → 모터 드라이버 | L298N: GPIO + PWM 5 kHz / 8 bit · ACEBOTT: 9600 baud 시리얼 |
-| IF-09 | 드라이버 → Motor | L298N: H-Bridge · ACEBOTT: QD001 V2 내장 드라이버 |
+| IF-08 | ESP32 #2 → 모터 드라이버 | L298N: GPIO + PWM 5 kHz / 8 bit · ACEBOTT: 9600 baud 시리얼 · MDD10A: PWM + DIR ×2채널 |
+| IF-09 | 드라이버 → Motor | L298N: H-Bridge · ACEBOTT: QD001 V2 내장 드라이버 · MDD10A: 좌/우 병렬 2채널 |
 
 ### SensorPacket (8 byte, packed)
 
@@ -122,6 +127,7 @@ minicar_control/
 │  ├─ ESP32_1_WirelessBridge/   양방향 허브 (ESP-NOW ↔ UART)
 │  ├─ ESP32_2_VehicleControl/      차량 제어 (50 Hz) + L298N 구동
 │  ├─ ESP32_2_NewVehicleControl/   차량 제어 (40 Hz) + ACEBOTT QD001 V2 구동
+│  ├─ ESP32_2_FinalVehicleControl/ 차량 제어 (40 Hz) + MDD10A 직접 PWM 구동
 │  └─ ESP32_3_FSR/                 ADS1115 읽기 + SensorPacket 송신 (50 Hz)
 └─ host/car_control_fsr.py      PC 조향·E-Stop GUI (Tkinter)
 ```
@@ -154,6 +160,8 @@ Arduino IDE (ESP32 core 3.x). 각 보드에 해당 스케치를 굽는다. 세 �
 
 `ESP32_2_VehicleControl`은 `ledcAttach`로 L298N을 직접 PWM 구동하고,
 `ESP32_2_NewVehicleControl`은 `ACB_SmartCar_V2` 라이브러리가 필요하다.
+`ESP32_2_FinalVehicleControl`은 **추가 라이브러리 없이** `analogWrite` / `digitalWrite`로
+MDD10A를 직접 구동한다.
 
 차량 보드를 바꾸면 **ESP32 #1의 `VEHICLE_MAC`도 새 보드의 MAC으로 고쳐야 한다.**
 허브가 그 주소로만 송신한다.
@@ -201,3 +209,55 @@ L298N판과 달리 **조향이 바퀴를 역회전시키지 않는다.** 양쪽�
 
 같은 명령이 반복되면 시리얼 전송을 생략한다. 그렇게 하지 않으면 값이 그대로여도 매 주기
 4개 프레임이 나간다.
+
+### MDD10A  (`ESP32_2_FinalVehicleControl`) — 현재 사용
+
+시리얼 드라이버를 버리고 **PWM + DIR 2채널**을 직접 물린다. 바퀴 4개가 좌/우 두 채널에
+병렬로 묶여 있다.
+
+| | PWM | DIR | 전진 시 DIR |
+|---|---|---|---|
+| CH1 좌측 (앞좌 + 뒤좌) | GPIO 16 | GPIO 17 | `LOW` |
+| CH2 우측 (앞우 + 뒤우) | GPIO 18 | GPIO 19 | `HIGH` |
+
+좌우 DIR 극성이 반대인 것은 모터 장착 방향이 반대이기 때문이다. 실차에서 확인한 값이다.
+
+| 항목 | 값 |
+|---|---|
+| 하드웨어 PWM 상한 | **230** — 무부하 실측 약 5.8~6.3 V. 255가 아니라 230으로 둔다 |
+| 내부 명령 범위 | −255 ~ +255 (음수 = 후진) |
+| 최소 구동 명령 | **60** — 실 PWM 약 54. 저속 조향·감속 여유를 위해 A1 목표(67)보다 낮다 |
+| 조향 차등 | **0.30** — 바깥 ×1.30 / 안쪽 ×0.70, 양쪽 모두 전진 |
+| 제어 주기 | **25 ms (40 Hz)** — 시리얼 병목은 없어졌지만 거동을 바꾸지 않으려고 유지 |
+
+`commandToPwm()`이 내부 명령 0~255를 실제 PWM 0~230으로 마지막에 한 번 환산한다.
+내부 명령값과 PWM값을 섞어 읽지 않도록 주의한다.
+
+#### 가속 페달 = 목표 속도
+
+앞의 두 스케치와 **여기가 다르다.** 레벨이 가속도가 아니라 목표 속도를 고르고,
+`vehicleSpeed`가 그 목표로 램프를 타고 접근한다.
+
+| 레벨 | 목표 (내부 명령) | 실 PWM 근사 |
+|---|---|---|
+| A1 | 67 | 60 |
+| A2 | 100 | 90 |
+| A3 | 139 | 125 |
+| A4 | 188 | 170 |
+| A5 | 255 | 230 |
+
+접근 속도는 올라갈 때 `SPEED_RISE_RATE 50`, 내려갈 때 `SPEED_FALL_RATE 80` (단위 /초).
+레벨을 계속 밟고 있어도 속도가 무한정 오르지 않고 그 레벨의 목표에서 멈춘다.
+
+제동은 여전히 **감속률**이다.
+
+| 레벨 | 감속률 | 255 → 0 |
+|---|---|---|
+| B1 | 25.5 | 10.0 초 |
+| B2 | 45.9 | 5.6 초 |
+| B3 | 76.5 | 3.3 초 |
+| B4 | 255.0 | 1.0 초 |
+| B5 | 318.75 | 0.8 초 |
+
+가속·제동이 모두 0이면 `COAST_RATE 10.2`로 타력 주행한다 (255 → 0 약 25초).
+이것은 `SPEED_FALL_RATE`와 별개다 — 후자는 더 낮은 레벨을 밟았을 때 쓴다.
