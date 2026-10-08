@@ -1,0 +1,28 @@
+#ifndef VEHICLE_DRIVER_H
+#define VEHICLE_DRIVER_H
+
+#include "xil_types.h"
+#include "xtime_l.h"
+#include <stdint.h>
+
+/* Raw byte I/O + wire-protocol framing for both UARTs.
+ * (Everything the outside world needs is already in vehicle.h;
+ *  this header only exposes what vehicle_task.c additionally needs
+ *  to drive the Driver layer directly.) */
+
+extern int8_t  pcSteering;
+extern uint8_t pcEmergencyStop;
+
+extern int16_t latestAccelRaw;
+extern int16_t latestBrakeRaw;
+extern uint8_t latestSensorSequence;
+extern int     sensorHistoryValid;
+
+/* Owned by vehicle_task.c, but initialised here at bring-up. */
+extern XTime lastPcCommandTime;
+extern XTime lastSensorPacketTime;
+
+int processPCSerial(void);
+int processSensorUART(void);
+
+#endif /* VEHICLE_DRIVER_H */
