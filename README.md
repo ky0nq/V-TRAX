@@ -1,4 +1,4 @@
-# V-TRAX
+# V-TRAX-Vision-AI-SoC
 **CNN 가속기 활용 Vision 기반 원격 차량 제어 SoC 설계**
 
 카메라로 본 핸들 각도를 FPGA CNN 가속기가 추론해 무선 미니카를 조향하는 Zybo Z7-20 기반 SoC 프로젝트.
