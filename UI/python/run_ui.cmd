@@ -1,9 +1,10 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-if not exist ".venv\Scripts\pythonw.exe" (
+if not exist ".venv\Scripts\python.exe" (
  echo Run setup.cmd first.
  pause
  exit /b 1
 )
-start "" ".venv\Scripts\pythonw.exe" main.py %*
+title Zybo COM4 - Board Terminal
+".venv\Scripts\python.exe" -u main.py %*

@@ -29,9 +29,10 @@ def decode_state(line):
 
 class SerialTerminal(QObject):
     changed=Signal()
-    def __init__(self,port='COM4',baud=115200,enabled=True):
+    def __init__(self,port='COM4',baud=115200,enabled=True,console_output=False):
         super().__init__()
         self.port=port;self.baud=baud;self.enabled=enabled
+        self.console_output=console_output
         self.lock=threading.Lock();self.stop=threading.Event()
         self.commands=queue.Queue(maxsize=16)
         self.pending=deque(maxlen=500);self.lines=deque(maxlen=250)
@@ -46,6 +47,7 @@ class SerialTerminal(QObject):
     portOpen=Property(bool,lambda s:s._open,notify=changed)
 
     def append(self,text):
+        if self.console_output: print(text,flush=True)
         with self.lock: self.pending.append(text)
 
     @Slot()

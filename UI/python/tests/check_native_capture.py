@@ -47,12 +47,7 @@ backend.changed.emit()
 def check():
     try:
         assert item('mainCaptureCamera').property('width')==178
-        assert window.property('terminalVisible') is False
-        assert window.grabWindow().save(str(root/'terminal_hidden_preview.png'))
-        window.setProperty('terminalVisible',True)
-        assert item('terminalOverlay').property('visible')
-        assert window.grabWindow().save(str(root/'terminal_panel_preview.png'))
-        window.setProperty('terminalVisible',False)
+        assert window.findChild(QObject,'terminalOverlay') is None
         window.setProperty('captureCrop',True)
         assert item('mainCaptureCamera').property('width')==890
         assert item('mainCaptureCamera').property('x')==-305.9375
@@ -62,3 +57,4 @@ def check():
         import traceback;traceback.print_exc();app.exit(1)
 QTimer.singleShot(800,check)
 sys.exit(app.exec())
+

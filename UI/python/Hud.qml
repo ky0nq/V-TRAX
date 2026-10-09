@@ -12,7 +12,6 @@ Window {
     property bool live: sourceMode==='DEMO' || backend.connected
     property bool captureCrop: false
     property bool controls: false
-    property bool terminalVisible: false
     property bool cameraExpanded: false
     property string expandedCamera: 'zybo'
     property int sessionSeconds: 0
@@ -27,7 +26,7 @@ Window {
     Shortcut { sequence: 'I'; enabled: sourceMode==='DEMO'; onActivated: backend.toggleDemoDrive() }
     Shortcut { sequence: 'B'; enabled: sourceMode==='DEMO'; onActivated: backend.setDemoBrake(backend.brakePercent>0?0:50) }
     Shortcut { sequence: 'R'; enabled: sourceMode==='DEMO'; onActivated: backend.setDemoReverse(!backend.reverse) }
-    Shortcut { sequence: 'Escape'; onActivated: {root.controls=false;root.cameraExpanded=false;root.terminalVisible=false} }
+    Shortcut { sequence: 'Escape'; onActivated: {root.controls=false;root.cameraExpanded=false} }
     Item {
         id: stage
         width: 1800; height: 840; anchors.centerIn: parent
@@ -154,7 +153,6 @@ Window {
                 Slider { objectName: 'angleSlider'; x: 22; y: 248; width: 510; enabled: sourceMode==='DEMO'; from: -90; to: 90; value: backend.angle; onMoved: root.adjust(backend.pressure,value) }
                 Text { x: 28; y: 298; text: '−90°                               0°                               +90°'; color: '#7697ad'; font.pixelSize: 16 }
                 Button { objectName: 'pauseButton'; x: 28; y: 358; width: 158; height: 42; text: sourceMode==='DEMO'?(root.paused?'RESUME':'PAUSE'):(backend.canSendBoardCommand?'BOARD DEMO (T)':'T: BOARD TERMINAL'); visible: sourceMode==='DEMO'; enabled: sourceMode==='DEMO'; onClicked: {if(sourceMode==='DEMO') root.paused=!root.paused; else backend.requestBoardDemo()} }
-                Button { objectName: 'terminalButton'; x:28; y:358; width:158; height:42; visible:sourceMode!=='DEMO'; text:'TERMINAL'; onClicked:{root.controls=false;root.terminalVisible=true} }
                 Button { objectName: 'autoDemoButton'; x: 199; y: 358; width: 158; height: 42; text: sourceMode==='DEMO'?(root.manualMode?'AUTO DEMO':'AUTO ACTIVE'):(root.captureCrop?'HDMI CROP':'HDMI FULL'); onClicked: { if(sourceMode==='DEMO') {root.manualMode=false;root.paused=false} else root.captureCrop=!root.captureCrop } }
                 Button { objectName: 'closeSettings'; x: 370; y: 358; width: 157; height: 42; text: 'CLOSE'; onClicked: root.controls=false }
                 Text {x:28; y:425; text:'BRAKE  '+backend.brakePercent.toFixed(0)+' %'; color:'#ffc078'; font.pixelSize:17}
@@ -163,44 +161,6 @@ Window {
             }
         }
 
-        Rectangle {
-            objectName: 'terminalOverlay'; visible:root.terminalVisible
-            anchors.fill:parent; color:'#c9020509'; z:40
-            MouseArea {anchors.fill:parent; onClicked:root.terminalVisible=false}
-            Rectangle {
-                x:250; y:154; width:1300; height:540; radius:10
-                color:'#08121d'; border.color:'#35566a'
-                MouseArea {anchors.fill:parent}
-                Text {x:24; y:18; text:'BOARD TERMINAL'; color:'#d5edf8'; font {pixelSize:24; bold:true; letterSpacing:2}}
-                Text {x:24; y:54; text:terminal.connectionStatus; color:terminal.portOpen?'#69d4ff':'#ffa27b'; font.pixelSize:15}
-                Button {x:1188; y:18; width:88; height:36; text:'CLOSE'; onClicked:root.terminalVisible=false}
-                ScrollView {
-                    x:24; y:89; width:1252; height:330; clip:true
-                    TextArea {
-                        objectName:'terminalLog'; text:terminal.logText
-                        readOnly:true; selectByMouse:true; wrapMode:TextEdit.Wrap
-                        color:'#b8cddb'; font {family:'Consolas'; pixelSize:14}
-                        background:Rectangle {color:'#030a11'; border.color:'#1d3445'; radius:5}
-                        onTextChanged: if(followLog.checked) cursorPosition=length
-                    }
-                }
-                TextField {
-                    id:commandInput; objectName:'terminalCommand'; x:24; y:437; width:680; height:40
-                    placeholderText:'Board command (T, c, j, ? …)'; color:'#d4e9f6'; enabled:terminal.portOpen
-                    onAccepted:{terminal.send(text);text=''}
-                    background:Rectangle {color:'#0c1b28'; radius:4; border.color:'#365b72'}
-                }
-                Button {x:714; y:437; width:90; height:40; text:'SEND'; enabled:terminal.portOpen; onClicked:{terminal.send(commandInput.text);commandInput.text=''}}
-                Button {objectName:'boardDemoButton'; x:814; y:437; width:140; height:40; text:'DEMO (T)'; enabled:terminal.portOpen; onClicked:terminal.send('T')}
-                Button {x:964; y:437; width:80; height:40; text:'c'; enabled:terminal.portOpen; onClicked:terminal.send('c')}
-                Button {x:1054; y:437; width:80; height:40; text:'j'; enabled:terminal.portOpen; onClicked:terminal.send('j')}
-                Button {x:1144; y:437; width:60; height:40; text:'?'; enabled:terminal.portOpen; onClicked:terminal.send('?')}
-                Button {x:1214; y:437; width:62; height:40; text:'CLR'; onClicked:terminal.clear()}
-                CheckBox {id:followLog; x:18; y:488; checked:true; text:'FOLLOW LOG'}
-                Text {x:235; y:500; text:'Closing this panel keeps COM4 connected. Commands follow board TEST / DEMO rules.'; color:'#7892a7'; font.pixelSize:14}
-            }
-        }
     }
 }
-
 

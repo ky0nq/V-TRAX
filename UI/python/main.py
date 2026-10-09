@@ -3,6 +3,7 @@ import math
 import os
 import sys
 import time
+import threading
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Property, QTimer, Signal, Slot, QUrl, QEvent, Qt
@@ -242,7 +243,18 @@ def main():
         QFontDatabase.addApplicationFont(str(font))
     app.setFont(QFont('Rajdhani', 12))
     video = None
-    terminal = SerialTerminal(args.serial_port, args.baud, enabled=not args.demo)
+    terminal = SerialTerminal(args.serial_port, args.baud, enabled=not args.demo,
+                              console_output=not args.demo)
+    if not args.demo:
+        print('BOARD TERMINAL: type T / c / j / ? and press Enter. Close the UI to exit.',flush=True)
+        def console_input():
+            while not terminal.stop.is_set():
+                try:
+                    command = input()
+                except (EOFError, OSError):
+                    return
+                terminal.send(command.strip())
+        threading.Thread(target=console_input,daemon=True,name='cmd-input').start()
     engine = QQmlApplicationEngine()
     backend = HudBackend(esp_camera_enabled=bool(args.esp32_cam_url))
     backend.updateValues(0, 0)
