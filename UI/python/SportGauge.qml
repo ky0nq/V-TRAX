@@ -108,7 +108,7 @@ Item {
         color: '#f6f7fc'; font { family: 'Rajdhani'; pixelSize: gauge.signedValue?89:113; weight: Font.DemiBold; italic: true; letterSpacing: -2 }
     }
     Text { x: gauge.readoutX-width/2; y: 290; text: gauge.unit; color: '#939baa'; font { family: 'Rajdhani'; pixelSize: 15; letterSpacing: 1 } }
-    Text { visible: gauge.showTarget; x: gauge.readoutX-width/2; y: 313; text: gauge.live ? 'TARGET '+Math.round(gauge.targetValue)+' %' : 'TARGET --'; color: '#ffc078'; font { family: 'Rajdhani'; pixelSize: 13; bold: true } }
+    Text { visible: false; x: gauge.readoutX-width/2; y: 313; text: gauge.live ? 'TARGET '+Math.round(gauge.targetValue)+' %' : 'TARGET --'; color: '#ffc078'; font { family: 'Rajdhani'; pixelSize: 13; bold: true } }
     Image { x: gauge.readoutX-18; y: 333; width: 36; height: 36; source: gauge.signedValue?'assets/steering.svg':'assets/sensor.svg'; opacity: 0.8; rotation: gauge.signedValue && gauge.live ? gauge.value : 0; Behavior on rotation { NumberAnimation { duration: 110 } } }
 }
 

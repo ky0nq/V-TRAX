@@ -30,8 +30,6 @@ START_NUMBER = 10
 CAPTURE_INTERVAL = 0.1  # 0.1 sec capture
 
 
-
-
 class HudBackend(QObject):
     changed = Signal()
     cameraFrameChanged = Signal()
