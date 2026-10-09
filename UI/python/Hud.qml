@@ -10,7 +10,7 @@ Window {
     property bool paused: false
     property bool manualMode: true
     property bool live: sourceMode==='DEMO' || backend.connected
-    property bool captureCrop: false
+    property bool captureCrop: true
     property bool controls: false
     property bool cameraExpanded: false
     property string expandedCamera: 'zybo'
@@ -26,6 +26,7 @@ Window {
     Shortcut { sequence: 'I'; enabled: sourceMode==='DEMO'; onActivated: backend.toggleDemoDrive() }
     Shortcut { sequence: 'B'; enabled: sourceMode==='DEMO'; onActivated: backend.setDemoBrake(backend.brakePercent>0?0:50) }
     Shortcut { sequence: 'R'; enabled: sourceMode==='DEMO'; onActivated: backend.setDemoReverse(!backend.reverse) }
+    Shortcut { objectName: 'datasetShortcut'; sequence: 'K'; context: Qt.WindowShortcut; autoRepeat: false; enabled: backend.testMode; onActivated: backend.toggleDataset() }
     Shortcut { sequence: 'Escape'; onActivated: {root.controls=false;root.cameraExpanded=false} }
     Item {
         id: stage
@@ -42,8 +43,9 @@ Window {
             contentItem: Text { text: '≡'; color: '#c9eafa'; font.pixelSize: 27; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
             ToolTip.visible: hovered; ToolTip.text: 'Settings / test input'
         }
+        Text { x: 551; y: 65; text: backend.datasetActive ? '● DATASET REC · K to stop' : ''; color: '#ff898c'; font { pixelSize: 15; bold: true } }
         Rectangle { x: 45; y: 89; width: 1710; height: 1; color: '#284354' }
-        SportGauge { x: 22; y: 144; scale: 1.1; transformOrigin: Item.TopLeft; value: backend.motionSpeed; caption: 'DRIVE OUTPUT'; unit: '%'; live: root.live }
+        SportGauge { x: 22; y: 144; scale: 1.1; transformOrigin: Item.TopLeft; value: backend.motionSpeed; caption: 'DRIVE CMD / EST'; unit: '%'; showTarget: true; targetValue: backend.motionTarget; live: root.live }
         SportGauge { x: 1228; y: 144; scale: 1.1; transformOrigin: Item.TopLeft; value: backend.angle; minimum: -90; maximum: 90; signedValue: true; caption: sourceMode!=='DEMO' && !backend.cnnFresh ? 'STEERING / STALE' : 'STEERING ANGLE'; unit: 'DEGREES'; live: root.live }
         Rectangle {
             x: 551; y: 106; width: 698; height: 350; radius: 8; color: '#040a12'; border.color: '#345269'; clip: true
@@ -108,7 +110,7 @@ Window {
             x:551; y:744; spacing:12
             Repeater {
                 model:[
-                    {key:'DRIVE PERMISSION', note:'', label:!root.live || !backend.driveKnown?'WAITING':backend.driveEnabled?'READY':'LOCKED', mark:'●', known:root.live && backend.driveKnown, active:backend.driveEnabled, tint:backend.driveEnabled?'#68e4cd':'#ff898c'},
+                    {key:'DRIVE PERMISSION', note:'', label:!root.live || !backend.driveKnown?'WAITING':backend.driveEnabled?'ON':'OFF', mark:'●', known:root.live && backend.driveKnown, active:backend.driveEnabled, tint:backend.driveEnabled?'#68e4cd':'#ff898c'},
                     {key:'DIRECTION', note:'', label:!root.live || !backend.reverseKnown?'WAITING':backend.reverse?'REVERSE':'FORWARD', mark:backend.reverse?'R':'D', known:root.live && backend.reverseKnown, active:true, tint:backend.reverse?'#b7a2ff':'#69d4ff'},
                     {key:'BRAKE', note:'', label:'BRAKE', mark:'Ⅱ', known:root.live && backend.brakeKnown, active:backend.brakeActive, tint:'#ffc078'}
                 ]
@@ -116,7 +118,7 @@ Window {
                     required property var modelData
                     objectName:'state_'+modelData.key
                     property color tint:modelData.known?modelData.tint:'#687c90'
-                    property bool lit:modelData.known && (modelData.active || modelData.label==='LOCKED')
+                    property bool lit:modelData.known && (modelData.active || modelData.label==='OFF')
                     width:225; height:72; radius:7
                     color:lit?Qt.rgba(tint.r,tint.g,tint.b,0.10):'#080f17'
                     border.color:lit?tint:'#233648'; border.width:lit?1.5:1
@@ -132,11 +134,22 @@ Window {
         Rectangle {
             visible: root.cameraExpanded; anchors.fill: parent; color: '#df010409'; z: 20
             MouseArea { anchors.fill: parent; onClicked: root.cameraExpanded=false }
-            Rectangle { anchors.centerIn: parent; width: 536; height: 592; radius: 8; color: '#0a141f'; border.color: '#57778f'
-                VideoOutput { objectName: 'expandedEspCamera'; x: 12; y: 12; width: 512; height: 512; visible: root.expandedCamera==='esp32'; fillMode: VideoOutput.PreserveAspectFit }
-                VideoOutput { objectName: 'expandedCaptureCamera'; x: 12; y: 12; width: 512; height: 512; visible: root.expandedCamera!=='esp32' && typeof captureMode !== 'undefined' && captureMode; fillMode: VideoOutput.PreserveAspectFit }
-                Image { x: 12; y: 12; width: 512; height: 512; visible: root.expandedCamera!=='esp32' && !(typeof captureMode !== 'undefined' && captureMode); source: !root.cameraExpanded || root.expandedCamera==='esp32' ? '' : sourceMode==='DEMO' ? 'assets/camera_sample.png' : backend.cameraUrl; cache: false; fillMode: Image.PreserveAspectFit }
-                Text { anchors.right: parent.right; anchors.rightMargin: 20; y: 547; text: 'CLICK TO CLOSE'; color: '#7996ad'; font.pixelSize: 13 }
+            Rectangle {
+                anchors.centerIn: parent; width: parent.width-24; height: parent.height-24
+                radius: 8; color: '#0a141f'; border.color: '#57778f'
+                Item {
+                    id: expandedViewport
+                    x: 12; y: 12; width: parent.width-24; height: parent.height-60; clip: true
+                    VideoOutput { objectName: 'expandedEspCamera'; anchors.fill: parent; visible: root.expandedCamera==='esp32'; fillMode: VideoOutput.PreserveAspectFit }
+                    VideoOutput {
+                        objectName: 'expandedCaptureCamera'
+                        anchors.fill: parent
+                        visible: root.expandedCamera!=='esp32' && typeof captureMode !== 'undefined' && captureMode
+                        fillMode: VideoOutput.PreserveAspectFit
+                    }
+                    Image { anchors.fill: parent; visible: root.expandedCamera!=='esp32' && !(typeof captureMode !== 'undefined' && captureMode); source: !root.cameraExpanded || root.expandedCamera==='esp32' ? '' : sourceMode==='DEMO' ? 'assets/camera_sample.png' : backend.cameraUrl; cache: false; fillMode: Image.PreserveAspectFit }
+                }
+                Text { anchors.right: parent.right; anchors.rightMargin: 20; anchors.bottom: parent.bottom; anchors.bottomMargin: 14; text: 'CLICK TO CLOSE'; color: '#7996ad'; font.pixelSize: 16 }
             }
         }
         Rectangle {
@@ -153,7 +166,16 @@ Window {
                 Slider { objectName: 'angleSlider'; x: 22; y: 248; width: 510; enabled: sourceMode==='DEMO'; from: -90; to: 90; value: backend.angle; onMoved: root.adjust(backend.pressure,value) }
                 Text { x: 28; y: 298; text: '−90°                               0°                               +90°'; color: '#7697ad'; font.pixelSize: 16 }
                 Button { objectName: 'pauseButton'; x: 28; y: 358; width: 158; height: 42; text: sourceMode==='DEMO'?(root.paused?'RESUME':'PAUSE'):(backend.canSendBoardCommand?'BOARD DEMO (T)':'T: BOARD TERMINAL'); visible: sourceMode==='DEMO'; enabled: sourceMode==='DEMO'; onClicked: {if(sourceMode==='DEMO') root.paused=!root.paused; else backend.requestBoardDemo()} }
-                Button { objectName: 'autoDemoButton'; x: 199; y: 358; width: 158; height: 42; text: sourceMode==='DEMO'?(root.manualMode?'AUTO DEMO':'AUTO ACTIVE'):(root.captureCrop?'HDMI CROP':'HDMI FULL'); onClicked: { if(sourceMode==='DEMO') {root.manualMode=false;root.paused=false} else root.captureCrop=!root.captureCrop } }
+                Button {
+                    objectName: 'autoDemoButton'
+                    x: 199; y: 358; width: 158; height: 42
+                    visible: sourceMode === 'DEMO'
+                    text: root.manualMode ? 'AUTO DEMO' : 'AUTO ACTIVE'
+                    onClicked: {
+                        root.manualMode = false
+                        root.paused = false
+                    }
+                }
                 Button { objectName: 'closeSettings'; x: 370; y: 358; width: 157; height: 42; text: 'CLOSE'; onClicked: root.controls=false }
                 Text {x:28; y:425; text:'BRAKE  '+backend.brakePercent.toFixed(0)+' %'; color:'#ffc078'; font.pixelSize:17}
                 Slider {x:22; y:451; width:510; enabled:sourceMode==='DEMO'; from:0; to:100; value:backend.brakePercent; onMoved:backend.setDemoBrake(value)}

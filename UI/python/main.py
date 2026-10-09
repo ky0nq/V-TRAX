@@ -13,10 +13,23 @@ from PySide6.QtQuick import QQuickWindow, QSGRendererInterface
 from PySide6.QtMultimedia import QVideoFrame
 from video_receiver import MjpegReceiver, CameraProvider
 from capture_receiver import CaptureReceiver
+from dataset_capture import DatasetRecorder
 from serial_terminal import SerialTerminal
 from PySide6.QtMultimedia import QMediaDevices
 from mac_discovery import DEFAULT_MAC, normalize_mac
 from motion_model import MotionModel
+
+
+# ESP32-CAM: discover the AP IP using DEFAULT_MAC in mac_discovery.py.
+# Set a stream URL here only if you want to bypass MAC discovery.
+ESP32_CAM_URL = None
+
+# Dataset settings
+SAVE_DIR = Path(r"D:\capture\dataset_test_1008")
+START_NUMBER = 10  
+CAPTURE_INTERVAL = 0.1  # 0.1 sec capture
+
+
 
 
 class HudBackend(QObject):
@@ -24,6 +37,7 @@ class HudBackend(QObject):
     cameraFrameChanged = Signal()
     espCameraFrameChanged = Signal()
     boardDemoRequested = Signal()
+    datasetToggleRequested = Signal()
 
     @Slot()
     def requestBoardDemo(self):
@@ -59,6 +73,27 @@ class HudBackend(QObject):
         self._pedal_gauge = 0.0
         self._command_known = False
         self._can_send_board_command = False
+        self._dataset_active = False
+        self._test_mode = False
+
+    testMode = Property(bool, lambda self: self._test_mode, notify=changed)
+
+    def setTestMode(self, enabled):
+        if self._test_mode != enabled:
+            self._test_mode = enabled
+            self.changed.emit()
+
+    @Slot()
+    def toggleDataset(self):
+        if self._test_mode:
+            self.datasetToggleRequested.emit()
+
+    datasetActive = Property(bool, lambda self: self._dataset_active, notify=changed)
+
+    @Slot(bool)
+    def setDatasetActive(self, active):
+        self._dataset_active = active
+        self.changed.emit()
 
     canSendBoardCommand = Property(bool, lambda self: self._can_send_board_command, notify=changed)
 
@@ -76,7 +111,13 @@ class HudBackend(QObject):
 
     pedalGauge = Property(float, lambda self: self._pedal_gauge, notify=changed)
 
-    motionSpeed = Property(float, lambda self: self.motion.speed, notify=changed)
+    motionSpeed = Property(float, lambda self: self.motion.command_percent, notify=changed)
+    motionTarget = Property(float, lambda self: (
+        self.motion.TARGET_SPEED[self._accel_level] * 100.0 / self.motion.SPEED_MAX
+        if self._drive_enabled and self._drive_known and not self._emergency_stop
+        and not self._brake_level and not self.motion.direction_interlock
+        and (self._pressure_source == 'demo' or self._command_known) else 0.0
+    ), notify=changed)
     brakePercent = Property(float, lambda self: self._brake_percent, notify=changed)
     reverse = Property(bool, lambda self: self._reverse, notify=changed)
 
@@ -222,17 +263,25 @@ def main():
     parser.add_argument("--baud", type=int, default=115200)
     parser.add_argument("--capture-device", default="USB3 Video", help="Name substring or index")
     parser.add_argument("--list-devices", action="store_true")
+    parser.add_argument("--dataset-dir", type=Path, default=SAVE_DIR)
+    parser.add_argument("--dataset-start", type=int, default=START_NUMBER, help="Override START_NUMBER configured at the top of main.py")
     parser.add_argument("--esp32-cam-url")
-    parser.add_argument("--esp32-cam-mac", default=DEFAULT_MAC)
+    parser.add_argument("--esp32-cam-mac", help="Use MAC discovery instead of the configured fixed URL")
     parser.add_argument("--no-esp32-cam", action="store_true")
     parser.add_argument("--demo", action="store_true")
     parser.add_argument("--stats", action="store_true")
     parser.add_argument("--snapshot", type=Path)
     parser.add_argument("--snapshot-delay", type=int, default=2500)
     args = parser.parse_args()
-    try: normalize_mac(args.esp32_cam_mac)
-    except ValueError as exc: parser.error(str(exc))
-    args.esp32_cam_url = None if args.no_esp32_cam else args.esp32_cam_url or 'mac:'+args.esp32_cam_mac
+    if args.dataset_start is not None and args.dataset_start < 0:
+        parser.error("--dataset-start must be non-negative")
+    if args.esp32_cam_mac:
+        try: normalize_mac(args.esp32_cam_mac)
+        except ValueError as exc: parser.error(str(exc))
+    args.esp32_cam_url = None if args.no_esp32_cam else (
+        args.esp32_cam_url or
+        ('mac:' + args.esp32_cam_mac if args.esp32_cam_mac else ESP32_CAM_URL or 'mac:' + DEFAULT_MAC)
+    )
     app = QGuiApplication(sys.argv)
     if args.list_devices:
         print("Video:", [(i, d.description()) for i,d in enumerate(QMediaDevices.videoInputs())])
@@ -245,16 +294,6 @@ def main():
     video = None
     terminal = SerialTerminal(args.serial_port, args.baud, enabled=not args.demo,
                               console_output=not args.demo)
-    if not args.demo:
-        print('BOARD TERMINAL: type T / c / j / ? and press Enter. Close the UI to exit.',flush=True)
-        def console_input():
-            while not terminal.stop.is_set():
-                try:
-                    command = input()
-                except (EOFError, OSError):
-                    return
-                terminal.send(command.strip())
-        threading.Thread(target=console_input,daemon=True,name='cmd-input').start()
     engine = QQmlApplicationEngine()
     backend = HudBackend(esp_camera_enabled=bool(args.esp32_cam_url))
     backend.updateValues(0, 0)
@@ -277,6 +316,22 @@ def main():
     if not args.demo:
         video = CaptureReceiver(args.capture_device, sink('mainCaptureCamera'),
             sink('expandedCaptureCamera'), backend, window)
+    recorder = DatasetRecorder(terminal, args.dataset_dir, window, start_number=args.dataset_start,interval=CAPTURE_INTERVAL,)
+    recorder.activeChanged.connect(backend.setDatasetActive)
+    backend.datasetToggleRequested.connect(recorder.toggle)
+    terminal.datasetToggleRequested.connect(recorder.toggle, Qt.ConnectionType.QueuedConnection)
+    if video:
+        video.dataset_recorder = recorder
+    if not args.demo:
+        print('BOARD TERMINAL: type T / c / j / ? / k (TEST dataset on/off) and press Enter. Close the UI to exit.',flush=True)
+        def console_input():
+            while not terminal.stop.is_set():
+                try:
+                    command = input()
+                except (EOFError, OSError):
+                    return
+                terminal.send(command.strip())
+        threading.Thread(target=console_input,daemon=True,name='cmd-input').start()
     esp = presenter = None
     if args.esp32_cam_url:
         esp = MjpegReceiver(args.esp32_cam_url)
@@ -292,6 +347,8 @@ def main():
         dt = now-last_tick
         last_tick = now
         status = terminal.poll()
+        backend.setTestMode(not args.demo and status is not None and status.get("capture_mode") == "TEST")
+        recorder.check_mode()
         if not args.demo:
             backend.setConnected(status is not None)
             if status:
@@ -346,6 +403,7 @@ def main():
         timer.stop()
         terminal.close()
         if video: video.close()
+        recorder.close()
         if esp: esp.close()
 
 if __name__ == '__main__':

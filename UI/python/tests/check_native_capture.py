@@ -27,6 +27,7 @@ engine.rootContext().setContextProperty('captureMode',True)
 engine.load(QUrl.fromLocalFile(str(root/'Hud.qml')))
 assert engine.rootObjects()
 window=engine.rootObjects()[0]
+window.setProperty('captureCrop',False)
 def item(name): return window.findChild(QObject,name)
 class ReceiverFixture:
     main_sink=item('mainCaptureCamera').property('videoSink')

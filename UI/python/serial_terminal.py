@@ -29,6 +29,7 @@ def decode_state(line):
 
 class SerialTerminal(QObject):
     changed=Signal()
+    datasetToggleRequested=Signal()
     def __init__(self,port='COM4',baud=115200,enabled=True,console_output=False):
         super().__init__()
         self.port=port;self.baud=baud;self.enabled=enabled
@@ -57,6 +58,9 @@ class SerialTerminal(QObject):
 
     @Slot(str)
     def send(self,text):
+        if text.strip().lower() == 'k':
+            self.datasetToggleRequested.emit()
+            return
         if not self._open:
             self.append('[PC] Port is not open; command was not sent.');return
         try: data=text.encode('ascii')
@@ -112,6 +116,10 @@ class SerialTerminal(QObject):
                     try: self.commands.get_nowait()
                     except queue.Empty: break
             self.stop.wait(2)
+
+    def current_state(self):
+        with self.lock:
+            return self.latest if time.monotonic()-self.last_at < 1.2 else None
 
     def poll(self):
         now=time.monotonic()

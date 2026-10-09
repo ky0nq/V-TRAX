@@ -76,6 +76,9 @@ class CaptureReceiver(QObject):
         self.error = None
         self.frames += 1
         self.backend.setCameraConnected(True)
+        recorder = getattr(self, "dataset_recorder", None)
+        if recorder is not None:
+            recorder.capture(frame)
 
     def close(self):
         if self.camera:
