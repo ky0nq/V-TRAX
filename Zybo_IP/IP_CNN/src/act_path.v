@@ -182,7 +182,7 @@ module act_ld_unit (
 
     output wire        o_ibuf_we,
     output wire [13:0] o_ibuf_waddr,
-    output wire [23:0] o_ibuf_wdata,
+    output wire [23:0] o_ibuf_wdata, // Reverse byte order and flip MSB of each byte (uint8 -> int8 offset)
     output wire [ 2:0] o_ibuf_wbe,
 
     output reg o_ld_done
@@ -200,7 +200,7 @@ module act_ld_unit (
     wire [31:0] ram_addr_full = (state == S_IDLE) ? i_ram_base : ram_base 
                 + {19'd0, word_index} + 32'd1;
 
-    // ram_base + word_count <= 4096
+    // Only the low 12 bits are used: requires ram_base + word_count <= 4096
     assign o_ram_rd_addr = ram_addr_full[11:0];
 
     // Store the current response at the current word_index
@@ -284,7 +284,7 @@ endmodule
 
 
 // ============================================================================
-// act_patch_gen 
+// Builds 3x3 conv patches from input_buf via a 2-bank 4x4 window cache
 // ============================================================================
 module act_patch_gen (
     input wire clk,
@@ -296,7 +296,8 @@ module act_patch_gen (
     input wire [ 5:0] i_in_c,
     input wire [ 6:0] i_in_h,
     input wire [ 6:0] i_in_w,
-    input wire [ 1:0] i_stride,
+    
+    input wire [ 1:0] i_stride, // stride=1 and does not use this input
     input wire        i_pad_en,
     input wire [12:0] i_k_total,
     input wire [ 2:0] i_row_mask,
