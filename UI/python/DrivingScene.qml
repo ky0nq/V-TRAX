@@ -5,12 +5,13 @@ Item {
     id: road
     property real angle: 0
     property real pressure: 0
+    property bool reverse: false
     property real accelerationPerSecond: 2.8
     property real maxCyclesPerSecond: 50
     property bool live: true
     property bool moving: true
     readonly property real targetSpeed: live ? Math.max(0, Math.min(100, pressure)) / 100 : 0
-    property real speedRatio: 0
+    readonly property real speedRatio: targetSpeed
     readonly property real visualSpeed: live && moving ? speedRatio : 0
     property real travel: 0
     property real phase: 0
@@ -24,7 +25,7 @@ Item {
     property real visualSteering: steering
     Behavior on visualSteering { NumberAnimation { duration: 190; easing.type: Easing.OutCubic } }
 
-    onLiveChanged: if (!live) speedRatio = 0
+
     Timer {
         interval: 16
         repeat: true
@@ -35,10 +36,7 @@ Item {
             var now = Date.now()
             var dt = Math.max(0, Math.min(.1, (now - lastTick) / 1000))
             lastTick = now
-            var delta = road.targetSpeed - road.speedRatio
-            var step = road.accelerationPerSecond * dt
-            road.speedRatio = Math.abs(delta) <= step ? road.targetSpeed : road.speedRatio + (delta > 0 ? step : -step)
-            var distance = road.speedRatio * road.maxCyclesPerSecond * dt
+            var distance = road.speedRatio * road.maxCyclesPerSecond * dt * (road.reverse ? -1 : 1)
             road.heading = road.visualSteering * 7
             road.worldX = Math.max(-80, Math.min(80, road.worldX + Math.sin(road.heading * Math.PI / 180) * distance))
             road.worldZ -= Math.cos(road.heading * Math.PI / 180) * distance
@@ -164,7 +162,7 @@ Item {
         width: 212
         height: width * 2 / 3
         x: (road.width - width) / 2 + visualSteer * 18
-        y: road.height * .65
+        y: Math.min(road.height * .65, road.height - height - 14)
         property real visualSteer: road.visualSteering
         property int poseIndex: 0
         onVisualSteerChanged: {
@@ -203,14 +201,4 @@ Item {
         }
     }
 
-    Rectangle {
-        x: 14; y: 14; width: 226; height: 38; radius: 7
-        color: "#b5101929"
-        Text {
-            anchors.centerIn: parent
-            text: "NIGHT DRIVE  /  " + Math.round(road.visualSpeed * 100) + "%"
-            color: "#c1e9f4"
-            font { pixelSize: 15; letterSpacing: 1 }
-        }
-    }
 }

@@ -1,37 +1,26 @@
 #include "ui_task.h"
-#include "../video_pipeline_driver/video_pipeline_driver.h"
+#include "ui_serial_wire.h"
 #include "../capture_task/capture_task.h"
-#include "../vehicle_task/vehicle_task.h"
-#include "ui_stream.h"
+#include "xil_printf.h"
 #include "xtime_l.h"
 
-/* Take the newest completed custom-VDMA buffer into the UDP snapshot copier.
- * Keep all Ethernet work outside the S2MM interrupt handler. */
+/* Compact 10 Hz console USB-UART telemetry; no Ethernet or DDR copying.
+ * Main loop only: keep video/CNN interrupts free of serial output. */
 void UiApplicationService(void)
 {
-	unsigned before, index, age;
-	UINTPTR address = 0U;
-	XTime now;
-	XTime_GetTime(&now);
-	age = cnn_done_count ?
-		(unsigned)((now - ui_cnn_done_time) / (COUNTS_PER_SECOND / 1000U)) : 0U;
-	do {
-		before = s2mm_done_count;
-		index = vdma.newest_rx_idx;
-	} while (before != s2mm_done_count);
-	if (s2mm_valid_count != 0U && before != 0U &&
-	    index < NUM_FRAME_BUFFERS && index == s2mm_last_buffer_idx &&
-	    (s2mm_last_status & VDMA_SR_ERROR_MASK) == 0U)
-		address = vdma.buffer_address[index];
-	UiStream_Service(
-	    address,
-	    FRAME_WIDTH,
-	    FRAME_HEIGHT,
-	    (int)cnn_last_result,
-	    ui_pressure_percent,
-	    before,
-	    &s2mm_done_count,
-	    cnn_result_valid && age < UI_CNN_FRESH_MS,
-	    age
-	);
+    static XTime last;
+    XTime now;
+    unsigned age;
+    VehicleUiState state;
+    char frame[160];
+    XTime_GetTime(&now);
+    if (now - last < (XTime)COUNTS_PER_SECOND / 10U) return;
+    last = now;
+    age = cnn_done_count ?
+        (unsigned)((now - ui_cnn_done_time) / (COUNTS_PER_SECOND / 1000U)) : 0U;
+    VehicleReadUiState(&state);
+    if (UiSerialFormat(frame, sizeof frame, ui_pressure_percent, (int)cnn_last_result,
+            cnn_result_valid && age < 1500U, age, &state,
+            CaptureGetMode() == CAPTURE_MODE_DEMO) >= 0)
+        xil_printf("\r\n%s\r\n", frame);
 }

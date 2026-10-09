@@ -10,6 +10,9 @@ Item {
     property string unit: "%"
     property bool signedValue: false
     property bool live: true
+    property bool showTarget: false
+    property real targetValue: 0
+    onTargetValueChanged: face.requestPaint()
     property color accent: "#69d4ff"
     property real displayed: value
     property real readoutX: signedValue ? 287 : 213
@@ -56,6 +59,14 @@ Item {
                 c.lineTo(X(265+(major?219:225)*Math.cos(a)),237+(major?187:193)*Math.sin(a))
                 c.strokeStyle=major?'#dceefa':'#658aa3'; c.lineWidth=major?1.5:0.8; c.stroke()
             }
+            if(gauge.live && gauge.showTarget) {
+                var targetFraction=Math.max(0,Math.min(1,(gauge.targetValue-gauge.minimum)/(gauge.maximum-gauge.minimum)))
+                var targetAngle=(90+180*targetFraction)*Math.PI/180
+                c.beginPath()
+                c.moveTo(X(265+240*Math.cos(targetAngle)),237+207*Math.sin(targetAngle))
+                c.lineTo(X(265+213*Math.cos(targetAngle)),237+180*Math.sin(targetAngle))
+                c.strokeStyle='#ffc078'; c.lineWidth=3; c.stroke()
+            }
             if(gauge.live) {
                 var fraction=(gauge.displayed-gauge.minimum)/(gauge.maximum-gauge.minimum)
                 var degrees=90+180*fraction, a=degrees*Math.PI/180
@@ -97,6 +108,7 @@ Item {
         color: '#f6f7fc'; font { family: 'Rajdhani'; pixelSize: gauge.signedValue?89:113; weight: Font.DemiBold; italic: true; letterSpacing: -2 }
     }
     Text { x: gauge.readoutX-width/2; y: 290; text: gauge.unit; color: '#939baa'; font { family: 'Rajdhani'; pixelSize: 15; letterSpacing: 1 } }
+    Text { visible: false; x: gauge.readoutX-width/2; y: 313; text: gauge.live ? 'TARGET '+Math.round(gauge.targetValue)+' %' : 'TARGET --'; color: '#ffc078'; font { family: 'Rajdhani'; pixelSize: 13; bold: true } }
     Image { x: gauge.readoutX-18; y: 333; width: 36; height: 36; source: gauge.signedValue?'assets/steering.svg':'assets/sensor.svg'; opacity: 0.8; rotation: gauge.signedValue && gauge.live ? gauge.value : 0; Behavior on rotation { NumberAnimation { duration: 110 } } }
 }
 
