@@ -63,13 +63,13 @@ module cnn_cntl #(
     parameter                 L3_RELU       = 1'b0,
 
     // Per-layer requantization: q = sat_int8(round((acc + bias) * M / 2^S)).
-    parameter [31:0] L0_QM = 32'd1720687,
+    parameter [31:0] L0_QM = 32'd3157292,
     parameter [ 5:0] L0_QS = 6'd30,
-    parameter [31:0] L1_QM = 32'd2938468,
+    parameter [31:0] L1_QM = 32'd11411101,
     parameter [ 5:0] L1_QS = 6'd30,
-    parameter [31:0] L2_QM = 32'd579155,
+    parameter [31:0] L2_QM = 32'd3791004,
     parameter [ 5:0] L2_QS = 6'd30,
-    parameter [31:0] L3_QM = 32'd1328435,
+    parameter [31:0] L3_QM = 32'd7489321,
     parameter [ 5:0] L3_QS = 6'd30
 ) (
     input wire clk,
