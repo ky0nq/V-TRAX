@@ -7,14 +7,14 @@ module top_cnn #(
     // Default Requant M / S values = Model C export 
     //   q = sat_int8( round( (acc + bias) * M / 2^S ) ). 
     //   L3 = ANGLE_MULT / ANGLE_SHIFT of the final FC2 layer (1 LSB = 1 degree)
-    parameter [31:0] L0_QM = 32'd1574039,
+    parameter [31:0] L0_QM = 32'd3157292,
     parameter [ 5:0] L0_QS = 6'd30,
-    parameter [31:0] L1_QM = 32'd3254702,
+    parameter [31:0] L1_QM = 32'd11411101,
     parameter [ 5:0] L1_QS = 6'd30,
-    parameter [31:0] L2_QM = 32'd485488,
+    parameter [31:0] L2_QM = 32'd3791004,
     parameter [ 5:0] L2_QS = 6'd30,
     // L3_QM/QS = Final ANGLE_MULT/ANGLE_SHIFT
-    parameter [31:0] L3_QM = 32'd1726771,
+    parameter [31:0] L3_QM = 32'd7489321,
     parameter [ 5:0] L3_QS = 6'd30
 ) (
     input wire clk,
