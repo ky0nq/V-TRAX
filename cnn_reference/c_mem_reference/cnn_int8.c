@@ -1,18 +1,4 @@
-/*
- * Model C CPU inference - matching cnn_accelerator_ver7 RTL MATH.
- *
- * Conv0   : 64x64x3 -> 64x64x6, K=3x3, stride=1, pad=1, ReLU
- * MaxPool : 64x64x6 -> 32x32x6, K=2x2, stride=2
- * Conv1   : 32x32x6 -> 32x32x4, K=3x3, stride=1, pad=1, ReLU
- * FC1     : 4096 -> 32, ReLU (input flattened in pixel-major HWC)
- * FC2     : 32 -> 1, NO ReLU, signed INT8 degrees
- *
- * Accumulator: signed INT32. In this fixed model K<=4096 and operands are
- * INT8, so the bias-free MAC sum is bounded by 4096*128*128=67,108,864
- * and cannot overflow INT32. For the bias addition, RTL saturates to INT32.
- * Requantization: signed INT64 product, round-nearest/ties-away-from-zero,
- * right shift S, hidden ReLU, signed INT8 saturation.
- */
+/* INT8 CNN reference inference. */
 
 #include "cnn_int8.h"
 #include "cnn_model_data.h"
@@ -29,13 +15,13 @@
 #define FC2_OC    1
 #define FC2_K   32
 
-/* Constant unpacked CPU weights. Prepared ONCE, not timed. */
+/* Unpacked layer weights. */
 static int8_t w_conv0[CONV0_OC * CONV0_K];
 static int8_t w_conv1[CONV1_OC * CONV1_K];
 static int8_t w_fc1[FC1_OC * FC1_K];
 static int8_t w_fc2[FC2_OC * FC2_K];
 
-/* Static scratch space: avoiding large stack frames on bare-metal A9. */
+/* Static feature buffers. */
 static int8_t conv0_buf[64 * 64 * CONV0_OC];
 static int8_t pool0_buf[32 * 32 * CONV0_OC];
 static int8_t conv1_buf[32 * 32 * CONV1_OC];
@@ -45,7 +31,6 @@ static int weights_ready = 0;
 static int8_t signed_lane(uint32_t word, unsigned lane)
 {
     uint32_t u = (word >> (8U * lane)) & UINT32_C(0xFF);
-    /* C conversion is safe because the signed value is now in [-128,127]. */
     return (int8_t)((u < 128U) ? (int32_t)u : (int32_t)u - 256);
 }
 
@@ -56,10 +41,7 @@ static int32_t saturate_i32(int64_t value)
     return (int32_t)value;
 }
 
-/* RTL post_process: clamp ACC+bias to int32, int64 multiply, ties-away
- * rounding, arithmetic right shift, optional ReLU, signed INT8 saturation.
- * This avoids C implementation-defined right shift of negative values.
- */
+/* Saturate bias sum and requantize to INT8; round ties away from zero. */
 static int8_t requant(int32_t acc, int32_t bias,
                       CNNQuantParam param, int relu,
                       int32_t *after_bias)
@@ -74,7 +56,6 @@ static int8_t requant(int32_t acc, int32_t bias,
         q = p;
     } else {
         int64_t half = INT64_C(1) << (param.shift - 1U);
-        /* P fits within (-2^62,2^62), so negating P is safe. */
         if (p >= 0) q = (p + half) >> param.shift;
         else        q = -(((-p) + half) >> param.shift);
     }
@@ -133,10 +114,7 @@ void cnn_unpack_image(const uint32_t image_words[4096],
     }
 }
 
-/* Convolution cross-correlation, no kernel flip.
- * [OC][KY][KX][IC] weight order (IC fastest) as RTL k sequence.
- * Output is pixel-major [Y][X][OC], same as accelerator feature memory.
- */
+/* 3x3 cross-correlation; weights OC/KY/KX/IC, features HWC. */
 static void conv3x3_same(const int8_t *input,
                          unsigned width, unsigned in_channels,
                          unsigned out_channels, const int8_t *weights,
@@ -212,7 +190,7 @@ int cnn_infer_int8(const int8_t input_hwc[CNN_INPUT_BYTES],
     conv3x3_same(pool0_buf, 32U, 6U, CONV1_OC,
                  w_conv1, cnn_biases + 6, cnn_quant[1], conv1_buf);
 
-    /* FC1 input order is HWC (pixel-major), NOT PyTorch CHW. */
+    /* FC1 input: flattened HWC. */
     for (oc = 0; oc < FC1_OC; ++oc) {
         const int8_t *w = w_fc1 + oc * FC1_K;
         acc = 0;
@@ -222,7 +200,7 @@ int cnn_infer_int8(const int8_t input_hwc[CNN_INPUT_BYTES],
         fc1_buf[oc] = requant(acc, cnn_biases[10U + oc], cnn_quant[2], 1, NULL);
     }
 
-    /* FC2: no ReLU. Output is signed INT8 degrees, 1 LSB = 1 degree. */
+    /* FC2: INT8 angle, 1 LSB = 1 degree, no ReLU. */
     acc = 0;
     for (k = 0; k < FC2_K; ++k) {
         acc += (int32_t)fc1_buf[k] * (int32_t)w_fc2[k];
@@ -233,7 +211,7 @@ int cnn_infer_int8(const int8_t input_hwc[CNN_INPUT_BYTES],
     return 0;
 }
 
-/* FNV-1a hashes are debug aids, not part of inference or measured time. */
+/* Debug feature hashes. */
 static uint32_t fnv1a(const int8_t *data, unsigned size)
 {
     uint32_t h = UINT32_C(2166136261);
