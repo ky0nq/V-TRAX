@@ -3,7 +3,7 @@
 
 uint32_t cnn_weight_words[CNN_WEIGHT_WORDS];
 int32_t cnn_biases[CNN_BIAS_WORDS];
-/* Quantization from the same export as Weight_Bias_Image.coe. */
+/* Per-layer requantization parameters. */
 const CNNQuantParam cnn_quant[CNN_LAYER_COUNT] = {
     {1574039, 30U}, {3254702, 30U}, {485488, 30U}, {1726771, 30U}
 };
