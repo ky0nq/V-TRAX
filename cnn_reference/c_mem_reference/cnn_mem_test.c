@@ -1,13 +1,4 @@
-/*
- * Run the INT8 C reference model with one RTL image .mem file.
- *
- * MEM format from dataset_4_rtl_64x64:
- *   4096 lines, one 24-bit RGB word per line: RRGGBB
- *   address = y * 64 + x
- *
- * RTL input loader converts each RGB byte with XOR 0x80, producing
- * signed INT8 (equivalent to unsigned byte minus 128).
- */
+/* Run INT8 inference on 64x64 RRGGBB MEM images. */
 
 #include "cnn_int8.h"
 #include "cnn_model_data.h"
@@ -21,7 +12,7 @@
 #define IMAGE_PIXELS 4096U
 #define IMAGE_BYTES  (IMAGE_PIXELS * 3U)
 
-/* Load RRGGBB .mem and reproduce act_path's XOR 24'h808080. */
+/* Convert RGB uint8 to INT8 HWC (RGB - 128). */
 static int load_rgb_mem_quantized(const char *path,
                                   int8_t input_hwc[IMAGE_BYTES])
 {
